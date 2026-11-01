@@ -1,26 +1,48 @@
 # Silicon to Screen — The Computer System Engine
 
-An interactive, single-file web simulation that teaches the complete computer-system
-architecture pipeline — from raw human input and hardware digitization through CPU
-logic execution to visual output rendering.
+A **stunning, minimalist visual immersion sandbox** — a single-file interactive schematic
+that lets you steer live signals through the complete computer-system pipeline, from raw
+hardware input, through software abstraction and system buses, into memory, across the CPU
+machine cycle, and out to glowing display pixels.
 
-**Play it:** open `index.html` in any modern browser, or visit the GitHub Pages deployment.
+Not a quiz. No scores. Just an aesthetic, fully manipulable schematic with a smooth
+auto-scrolling tour.
 
-## The 6 Modules
+**Play it:** open `index.html` in any browser, or visit the GitHub Pages deployment.
 
-1. **Input & Signal Conversion** — compile-time source translation vs. runtime peripheral digitization + IRQs.
-2. **Software Stack & Hardware Layer** — App → OS Kernel/Utilities → Device Drivers → Hardware Registers; system calls; driver vs. middleware.
-3. **Motherboard & Tri-Bus Router** — PSU, cooling, PCH, PCIe, SATA, USB; Address / Data / Control bus dispatch.
-4. **Memory Hierarchy & Cache Blitz** — ROM→RAM boot, storage media classification, L1/L2/L3 SRAM cache pyramid.
-5. **Microarchitecture Machine Cycle** — transistors → gates → ALU/registers; step through Fetch → Decode → Execute.
-6. **Output Display & Thermal Balancing** — GPU frame buffer rendering; CRT < LCD < OLED < micro-LED trade-offs.
+## Design language
+
+- Deep charcoal backdrop, muted blueprint grid, crisp white typography.
+- Four glowing signal accents: **Electric Cyan** (address / control), **Amber Gold**
+  (data / registers), **Emerald Glow** (logic / ALU), **Deep Magenta** (interrupts).
+- Fluid canvas particle simulations, eased camera pans, and subtle ambient synth hums
+  with filtered ticks.
+
+## The 6 visual stages
+
+1. **Input — Live Digitization vs Static Compilation.** A code block collapses into
+   binary (compile-time) beside live peripherals (keystroke waves, a draggable
+   crosshair, OCR laser scan, microphone) digitizing straight onto the system bus.
+2. **Software Abstraction & Register Mapping.** Glassmorphic layers — Applications →
+   OS Kernel + Utilities → Driver Translators → Hardware Registers. Fire a *system call*
+   and watch it descend as the driver writes register values. Middleware/DB APIs sit
+   visibly apart — *not* a driver.
+3. **Motherboard & Tri-Bus Flow.** PSU power grid, heat sinks with a thermal-throttle
+   meter, PCH hub, PCIe (GPU, NIC), SATA, USB — feeding three bus rails: Address
+   (unidirectional), Data (bidirectional), Control (strobes & IRQs).
+4. **Memory Pyramid & Locality.** Drag *Data Access* and watch a request descend the
+   hierarchy — Registers, L1/L2/L3 SRAM cache, DRAM/ROM — down to storage: magnetic tape
+   (sequential), HDD, CD, non-volatile SSD. A live cycle meter proves locality of reference.
+5. **Machine Cycle & Circuit Engine.** Single-step or auto-run Fetch → Decode → Execute
+   across PC, MAR, MDR, CIR, CU, ALU, ACC. Zoom in to see NPN transistors → logic gates →
+   combinational (adder/mux) and sequential (flip-flop/latch) circuits.
+6. **Output Pipeline & Display Calibration.** The GPU renders a frame buffer to a panel you
+   toggle between CRT / LCD / OLED / micro-LED — contrast ascending, power descending.
+
+Closes on Steve Jobs: *"…the equivalent of a bicycle for our minds."*
 
 ## Tech
 
-Single `index.html` — inline CSS, vanilla JavaScript, HTML5 Canvas and the Web Audio API.
-No frameworks, no build step, no dependencies.
-
----
-
-> "What a computer is to me is the most remarkable tool that we have ever come up with.
-> It's the equivalent of a bicycle for our minds." — Steve Jobs
+Single `index.html` — inline CSS, vanilla JavaScript, HTML5 Canvas, Web Audio API.
+No frameworks, no build step, no dependencies. Layered rendering, delta-time
+`requestAnimationFrame`, eased camera, and a pooled particle system keep it smooth.

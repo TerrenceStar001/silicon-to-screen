@@ -7,1589 +7,1332 @@
 <style>
   :root{
     --bg:#0d0f12;
-    --panel:#14171c;
-    --panel2:#1b1f26;
-    --line:#2a3038;
-    --text:#e8ebef;
-    --dim:#8b95a3;
-    --dim2:#5f6875;
-    --accent:#4fd1c5;
-    --good:#3ddc97;
-    --bad:#ff6b6b;
-    --warn:#ffcb6b;
-    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --line:#1e232a;
+    --text:#f0f4f8;
+    --dim:#5a6472;
+    --dim2:#39414d;
+    --cyan:#00f0ff;
+    --amber:#ffb700;
+    --green:#00ff88;
+    --magenta:#ff0055;
+    --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0}
-  body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:var(--sans);
-    font-size:14px;
-    overflow:hidden;
-    -webkit-font-smoothing:antialiased;
-  }
-  #app{
-    height:100vh;
-    display:grid;
-    grid-template-rows:auto 1fr auto;
-    overflow:hidden;
-  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+  canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #bg{z-index:0}
+  #scene{z-index:1}
+  #hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:grid;grid-template-rows:auto 1fr auto;padding:22px 26px}
+  #hud *{pointer-events:auto}
 
-  /* ---------- HEADER ---------- */
-  #hud{
-    display:flex;align-items:center;gap:18px;
-    padding:10px 16px;
-    background:var(--panel);
-    border-bottom:1px solid var(--line);
-    flex-wrap:wrap;
+  /* top bar */
+  #top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+  #brand{display:flex;flex-direction:column;gap:3px}
+  #brand .t{font-size:15px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+  #brand .s{font-family:var(--mono);font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim)}
+  #topRight{display:flex;align-items:center;gap:18px}
+  #stageReadout{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);text-align:right}
+  #stageReadout b{color:var(--text);font-weight:600;display:block;font-size:11px;letter-spacing:.14em}
+  .icobtn{
+    width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.02);
+    display:grid;place-items:center;cursor:pointer;color:var(--dim);transition:.25s;pointer-events:auto
   }
-  #brand{display:flex;flex-direction:column;line-height:1.05;min-width:190px}
-  #brand .t{font-weight:700;letter-spacing:.2px;font-size:15px}
-  #brand .s{color:var(--dim2);font-size:11px;font-family:var(--mono)}
-  .hdrmetrics{display:flex;gap:14px;flex-wrap:wrap}
-  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;min-width:78px}
-  .metric .k{color:var(--dim2);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono)}
-  .metric .v{font-family:var(--mono);font-size:14px;font-weight:600}
-  .metric .v .u{color:var(--dim);font-size:10px;font-weight:400}
-  #progress{display:flex;gap:6px;align-items:center;flex:1;justify-content:flex-end}
-  .pill{
-    width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
-    font-family:var(--mono);font-size:11px;color:var(--dim);
-    border:1px solid var(--line);background:var(--panel2);transition:.25s;
-  }
-  .pill.done{background:var(--good);color:#05140d;border-color:var(--good)}
-  .pill.active{background:var(--accent);color:#04110f;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,209,197,.15)}
-  #scoreMetric .v{color:var(--accent)}
+  .icobtn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 22px -6px var(--cyan)}
+  .icobtn svg{width:13px;height:13px;fill:currentColor}
 
-  /* ---------- BODY ---------- */
-  #body{display:grid;grid-template-columns:1fr 340px;overflow:hidden;min-height:0}
-  #stage{position:relative;overflow:hidden;background:
-      radial-gradient(circle at 30% 20%,rgba(79,209,197,.05),transparent 60%),
-      linear-gradient(180deg,#0e1116,#0b0d10);}
-  #cv{position:absolute;inset:0;width:100%;height:100%;display:block}
-  #overlay{position:absolute;inset:0;overflow:auto;padding:18px;z-index:2}
-  #console{
-    background:#0a0c0f;border-left:1px solid var(--line);
-    display:flex;flex-direction:column;min-height:0;
-  }
-  .console-hd{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
-  #console .stream{flex:1;overflow:auto;padding:8px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.5}
-  .log{display:flex;gap:8px;margin-bottom:5px;color:var(--dim);animation:in .18s ease-out}
-  @keyframes in{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:none}}
-  .log .ts{color:var(--dim2);flex:none}
-  .log.good .msg{color:var(--good)}
-  .log.bad .msg{color:var(--bad)}
-  .log.warn .msg{color:var(--warn)}
-  .log.sys .msg{color:var(--accent)}
-  .log .msg b{color:var(--text)}
+  /* progress hairline */
+  #progTrack{position:fixed;left:0;top:0;height:1px;width:100%;background:transparent;z-index:11}
+  #progBar{height:1px;width:0;background:linear-gradient(90deg,var(--cyan),var(--amber));transition:width .2s linear;box-shadow:0 0 10px var(--cyan)}
 
-  /* ---------- CONTROLS ---------- */
+  /* center hint + legend */
+  #mid{align-self:center;justify-self:start;max-width:360px;opacity:.9}
+  #mid h2{margin:0 0 8px;font-size:20px;font-weight:600;letter-spacing:.01em;line-height:1.15}
+  #mid p{margin:0;font-size:12.5px;line-height:1.6;color:var(--dim)}
+  #mid .accentbar{width:34px;height:2px;background:var(--cyan);margin-bottom:14px;box-shadow:0 0 12px var(--cyan)}
+
+  /* bottom: nav + controls */
+  #bottom{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
+  #nav{display:flex;gap:22px;align-items:center}
+  .navdot{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;background:none;border:0;padding:0}
+  .navdot .d{width:8px;height:8px;border-radius:50%;background:var(--dim2);transition:.3s;position:relative}
+  .navdot .l{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);transition:.3s;white-space:nowrap}
+  .navdot:hover .d{background:var(--dim)}
+  .navdot.active .d{background:var(--cyan);box-shadow:0 0 0 4px rgba(0,240,255,.12),0 0 16px var(--cyan)}
+  .navdot.active .l{color:var(--text)}
+  .navdot.done .d{background:var(--dim)}
+
   #controls{
-    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-    padding:10px 14px;background:var(--panel);border-top:1px solid var(--line);
-    min-height:56px;
+    display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;
+    background:rgba(16,19,24,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:14px;padding:10px 16px;box-shadow:0 18px 50px -20px rgba(0,0,0,.9);
+    max-width:min(94vw,1000px);
   }
-  button.btn{
-    font-family:var(--mono);font-size:12px;letter-spacing:.03em;
-    background:var(--panel2);color:var(--text);border:1px solid var(--line);
-    border-radius:8px;padding:9px 14px;cursor:pointer;transition:.15s;white-space:nowrap;
+  .ctl-lab{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .ctlsep{width:1px;height:22px;background:var(--line)}
+  button.cb{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    background:rgba(255,255,255,.02);color:var(--dim);border:1px solid var(--line);border-radius:9px;
+    padding:8px 13px;cursor:pointer;transition:.22s;white-space:nowrap
   }
-  button.btn:hover{border-color:var(--accent);color:var(--accent)}
-  button.btn:active{transform:translateY(1px)}
-  button.btn.primary{background:var(--accent);color:#04110f;border-color:var(--accent);font-weight:600}
-  button.btn.primary:hover{filter:brightness(1.1);color:#04110f}
-  button.btn.ghost{background:transparent}
-  button.btn[disabled]{opacity:.35;cursor:not-allowed}
-  .spacer{flex:1}
-  .ctrl-note{color:var(--dim2);font-family:var(--mono);font-size:11px}
+  button.cb:hover{color:var(--text);border-color:var(--dim)}
+  button.cb.on{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 20px -8px var(--cyan)}
+  button.cb.warm.on{color:var(--amber);border-color:var(--amber);box-shadow:0 0 20px -8px var(--amber)}
+  button.cb.hot.on{color:var(--magenta);border-color:var(--magenta);box-shadow:0 0 20px -8px var(--magenta)}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:2px;background:var(--line);border-radius:2px;outline:none;width:130px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--text);cursor:pointer;border:0;box-shadow:0 0 12px rgba(240,244,248,.6)}
+  input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--text);cursor:pointer;border:0}
 
-  /* ---------- MODULE COMMON ---------- */
-  .mod-head{margin-bottom:14px;max-width:900px}
-  .mod-head .kicker{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
-  .mod-head h1{margin:4px 0 6px;font-size:22px;font-weight:700}
-  .mod-head p{margin:0;color:var(--dim);font-size:13px;line-height:1.55}
-  .card{background:rgba(20,23,28,.86);border:1px solid var(--line);border-radius:12px;padding:14px;backdrop-filter:blur(3px)}
-  .card h3{margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.02em;display:flex;justify-content:space-between;align-items:center;gap:8px}
-  .card h3 .tag{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dim2);text-transform:uppercase}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  @media(max-width:1100px){#body{grid-template-columns:1fr}#console{display:none}.grid2,.grid3{grid-template-columns:1fr}}
+  /* legend */
+  #legend{position:fixed;right:26px;bottom:26px;z-index:10;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+  .lg{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .lg i{width:16px;height:2px;border-radius:2px;display:inline-block}
 
-  .chip{
-    display:inline-flex;align-items:center;gap:8px;
-    background:var(--panel2);border:1px solid var(--line);border-radius:9px;
-    padding:9px 12px;margin:4px;cursor:pointer;user-select:none;font-size:12.5px;
-    transition:.15s;position:relative;
-  }
-  .chip:hover{border-color:var(--dim)}
-  .chip.sel{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,209,197,.15);color:var(--accent)}
-  .chip.used{opacity:.35;pointer-events:none}
-  .chip .ic{font-family:var(--mono);font-size:10px;color:var(--dim2)}
-  .chip.ok{border-color:var(--good);color:var(--good)}
-  .chip.no{animation:shake .3s}
-  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-
-  .zone{
-    border:1.5px dashed var(--line);border-radius:11px;padding:12px;min-height:70px;
-    transition:.18s;cursor:pointer;background:rgba(255,255,255,.012);
-  }
-  .zone:hover{border-color:var(--dim)}
-  .zone.hot{border-color:var(--accent);background:rgba(79,209,197,.06)}
-  .zone.filled{border-style:solid;border-color:var(--good)}
-  .zone .zl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);margin-bottom:8px}
-  .slot{min-height:54px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;transition:.18s;cursor:pointer;background:rgba(255,255,255,.012)}
-  .slot:hover{border-color:var(--dim)}
-  .slot.hot{border-color:var(--accent);background:rgba(79,209,197,.06)}
-  .slot.filled{border-style:solid;border-color:var(--good);background:rgba(61,220,151,.05)}
-  .slot .idx{font-family:var(--mono);color:var(--dim2);font-size:11px;width:18px}
-
-  .hint{color:var(--dim2);font-size:11.5px;font-family:var(--mono);margin-top:6px}
-  .kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;padding:4px 0;border-bottom:1px dashed var(--line)}
-  .kv:last-child{border-bottom:0}
-  .kv .vk{color:var(--dim2)}
-  .binary{font-family:var(--mono);letter-spacing:2px;font-size:16px;color:var(--accent)}
-  .bite{display:inline-grid;place-items:center;width:22px;height:26px;border:1px solid var(--line);border-radius:4px;margin:0 1px;font-family:var(--mono);font-size:13px;color:var(--dim)}
-  .bite.on{color:#04110f;background:var(--accent);border-color:var(--accent)}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--line);border-radius:3px;outline:none;width:100%}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
-  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
-  .bar{height:8px;background:var(--line);border-radius:5px;overflow:hidden}
-  .bar > i{display:block;height:100%;background:var(--accent);transition:.3s}
-  .mini{font-size:10px;color:var(--dim2);font-family:var(--mono)}
-  .opt{
-    display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
-    border-radius:9px;padding:11px 13px;margin:6px 0;cursor:pointer;color:var(--text);font-size:13px;transition:.15s;font-family:inherit;
-  }
-  .opt:hover{border-color:var(--dim)}
-  .opt.ok{border-color:var(--good);background:rgba(61,220,151,.08)}
-  .opt.no{border-color:var(--bad);background:rgba(255,107,107,.08)}
-  .flash{animation:flash .5s}
-  @keyframes flash{0%{background:rgba(79,209,197,.35)}100%{background:transparent}}
+  /* tooltip for zoom inset / hotspots */
+  #tip{position:fixed;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s;background:rgba(13,15,18,.92);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--text);max-width:220px;backdrop-filter:blur(8px)}
 
   /* finale */
-  #finale{position:absolute;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;background:radial-gradient(circle at 50% 40%,rgba(79,209,197,.08),transparent 65%),var(--bg)}
-  #finale.show{display:flex;animation:in .5s}
-  #finale blockquote{max-width:760px;font-size:24px;line-height:1.5;font-weight:300;margin:0 0 8px}
-  #finale blockquote .hl{color:var(--accent);font-weight:500}
-  #finale .who{color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.1em}
-  #finale .bigscore{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--accent);margin:26px 0 0}
-  *::-webkit-scrollbar{width:9px;height:9px}
-  *::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
-  *::-webkit-scrollbar-track{background:transparent}
+  #finale{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8vw;background:radial-gradient(circle at 50% 45%,rgba(0,240,255,.05),transparent 60%),rgba(13,15,18,.96);backdrop-filter:blur(8px)}
+  #finale.show{display:flex;animation:fade .8s ease}
+  @keyframes fade{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+  #finale blockquote{max-width:840px;font-size:clamp(20px,3.2vw,34px);line-height:1.5;font-weight:300;margin:0 0 22px;color:var(--text)}
+  #finale blockquote .hl{color:var(--cyan);font-weight:400}
+  #finale .who{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+  #finale .rule{width:40px;height:1px;background:var(--dim2);margin:30px 0}
+  #finale .meta{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2)}
+  #finale button.restart{margin-top:28px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;background:none;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 20px;cursor:pointer;transition:.25s}
+  #finale button.restart:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 26px -8px var(--cyan)}
+
+  .fadein{animation:fadein .7s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media(max-width:820px){#legend{display:none}#mid{max-width:300px}#nav{gap:14px}.navdot .l{display:none}}
 </style>
 </head>
 <body>
-<div id="app">
-  <header id="hud">
+<canvas id="bg"></canvas>
+<canvas id="scene"></canvas>
+
+<div id="progTrack"><div id="progBar"></div></div>
+
+<div id="hud">
+  <div id="top">
     <div id="brand">
       <span class="t">Silicon to Screen</span>
-      <span class="s">Computer System Engine</span>
+      <span class="s">The Computer System Engine</span>
     </div>
-    <div class="hdrmetrics">
-      <div class="metric"><div class="k">Clock</div><div class="v"><span id="mClock">2.4</span><span class="u"> GHz</span></div></div>
-      <div class="metric"><div class="k">Memory</div><div class="v"><span id="mMem">512</span><span class="u"> MB</span></div></div>
-      <div class="metric"><div class="k">Temp</div><div class="v"><span id="mTemp">38</span><span class="u"> °C</span></div></div>
-      <div class="metric" id="scoreMetric"><div class="k">Score</div><div class="v" id="mScore">0</div></div>
+    <div id="topRight">
+      <div id="stageReadout"><b id="roName">Input</b><span id="roNum">Stage 01 / 06</span></div>
+      <div class="icobtn" id="playBtn" title="Toggle auto tour"></div>
     </div>
-    <div id="progress"></div>
-  </header>
-
-  <div id="body">
-    <section id="stage">
-      <canvas id="cv"></canvas>
-      <div id="overlay"></div>
-    </section>
-    <aside id="console">
-      <div class="console-hd"><span>Diagnostic Console</span><span id="modLabel">M1</span></div>
-      <div class="stream" id="stream"></div>
-    </aside>
   </div>
 
-  <footer id="controls"></footer>
+  <div id="mid">
+    <div class="accentbar" id="midBar"></div>
+    <h2 id="midTitle">Input</h2>
+    <p id="midText"></p>
+  </div>
+
+  <div id="bottom">
+    <div id="controls"></div>
+    <div id="nav"></div>
+  </div>
 </div>
+
+<div id="legend">
+  <div class="lg"><i style="background:#00f0ff"></i>Address / Control</div>
+  <div class="lg"><i style="background:#ffb700"></i>Data / Registers</div>
+  <div class="lg"><i style="background:#00ff88"></i>Logic / ALU</div>
+  <div class="lg"><i style="background:#ff0055"></i>Interrupt (IRQ)</div>
+</div>
+
+<div id="tip"></div>
 
 <div id="finale">
   <blockquote>
     “What a computer is to me is the most remarkable tool that we have ever come up with.
     It's the equivalent of a <span class="hl">bicycle for our minds</span>.”
   </blockquote>
-  <div class="who">— Steve Jobs</div>
-  <div class="bigscore" id="finalScore">0</div>
-  <div class="mini" style="margin-top:4px">TOTAL SCORE</div>
-  <div class="row" style="margin-top:26px;justify-content:center">
-    <button class="btn primary" id="restartBtn">RESTART ENGINE</button>
-  </div>
+  <div class="who">Steve Jobs</div>
+  <div class="rule"></div>
+  <div class="meta">Silicon to Screen · The Computer System Engine</div>
+  <button class="restart" id="restartBtn">Replay the tour</button>
 </div>
 
 <script>
 "use strict";
 /* =====================================================================
-   SILICON TO SCREEN — The Computer System Engine
-   Single-file interactive simulation of the full computer-system pipeline.
+   SILICON TO SCREEN — Minimalist Visual Engine
+   A single-file, full-screen interactive schematic of the complete
+   computer-system pipeline: input → software → motherboard → memory →
+   CPU → display.  No quizzes — pure live signal visualization.
+
+   14 ICT concepts depicted (not tested):
+     1  runtime digitization vs compile-time translation
+     2  applications / utilities / OS (GUI+CLI)
+     3  drivers as register translators vs middleware
+     4  case, PSU power distribution, cooling / thermal throttling
+     5  PCH, PCIe (GPU, NIC), SATA, USB
+     6  tri-bus: address / data / control
+     7  storage spectrum: tape (sequential), HDD, CD, SSD
+     8  volatile DRAM (RAM) vs non-volatile ROM (BIOS)
+     9  multi-level SRAM cache L1/L2/L3
+     10 CPU general-purpose vs GPU parallel graphics
+     11 Fetch-Decode-Execute: PC, MAR, MDR, CIR, ACC, CU, ALU
+     12 NPN → AND/OR/NOT gates → combinational (adder/mux) + sequential (flip-flop/latch)
+     13 CRT/LCD/OLED/micro-LED (ascending contrast, descending power)
+     14 closing Steve Jobs reflection
    ===================================================================== */
 
-/* ------------------------------ tiny DOM helpers ------------------------------ */
-const $  = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+/* ------------------------------ palette + utils ------------------------------ */
+const COL = {
+  bg:'#0d0f12', line:'#1e232a', text:'#f0f4f8', dim:'#5a6472', dim2:'#39414d',
+  cyan:'#00f0ff', amber:'#ffb700', green:'#00ff88', magenta:'#ff0055',
+};
+function rgba(hex, a){
+  const h = hex.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return 'rgba('+r+','+g+','+b+','+a+')';
+}
+const MONO = 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const lerp = (a,b,t) => a + (b-a)*t;
+const easeInOut = t => t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+const easeOut = t => 1 - Math.pow(1-t,3);
+const TAU = Math.PI*2;
 
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 function el(tag, attrs={}, ...kids){
   const n = document.createElement(tag);
   for(const k in attrs){
-    const v = attrs[k];
-    if(v == null) continue;
-    if(k === 'class') n.className = v;
-    else if(k === 'html') n.innerHTML = v;
-    else if(k === 'text') n.textContent = v;
-    else if(k === 'style' && typeof v === 'object') Object.assign(n.style, v);
-    else if(k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
-    else n.setAttribute(k, v);
+    const v = attrs[k]; if(v==null) continue;
+    if(k==='class') n.className=v;
+    else if(k==='html') n.innerHTML=v;
+    else if(k==='text') n.textContent=v;
+    else if(k==='style' && typeof v==='object') Object.assign(n.style,v);
+    else if(k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v);
+    else n.setAttribute(k,v);
   }
-  for(const kid of kids.flat()){
-    if(kid == null || kid === false) continue;
-    n.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
-  }
+  for(const kid of kids.flat()){ if(kid==null||kid===false) continue; n.append(kid.nodeType?kid:document.createTextNode(String(kid))); }
   return n;
 }
 
-/* ------------------------------ Web Audio synth ------------------------------ */
+/* ------------------------------ ambient audio ------------------------------ */
 const Audio_ = (() => {
-  let ctx = null;
-  function ac(){
-    if(!ctx){
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC) return null;
-      ctx = new AC();
-    }
-    if(ctx.state === 'suspended') ctx.resume();
+  let ctx=null, master=null, humGain=null, started=false;
+  let lastTick=0;
+  function ensure(){
+    if(ctx) { if(ctx.state==='suspended') ctx.resume(); return ctx; }
+    const AC = window.AudioContext||window.webkitAudioContext; if(!AC) return null;
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = 0.0; master.connect(ctx.destination);
+    // layered low drone: two detuned sines + subtle saw through a lowpass
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=260; lp.Q.value=0.6;
+    lp.connect(master);
+    humGain = ctx.createGain(); humGain.gain.value=0.5; humGain.connect(lp);
+    [55, 82.5, 110.3].forEach((f,i)=>{
+      const o = ctx.createOscillator(); o.type = i===2?'triangle':'sine'; o.frequency.value=f;
+      const g = ctx.createGain(); g.gain.value = i===2?0.10:0.22;
+      o.connect(g); g.connect(humGain); o.start();
+    });
+    // slow shimmer LFO on the drone
+    const lfo = ctx.createOscillator(); lfo.frequency.value=0.06;
+    const lfoG = ctx.createGain(); lfoG.gain.value=120;
+    lfo.connect(lfoG); lfoG.connect(lp.frequency); lfo.start();
     return ctx;
   }
-  function tone(freq, dur=0.12, type='square', gain=0.05, when=0){
-    const c = ac(); if(!c) return;
-    const o = c.createOscillator(), g = c.createGain();
-    o.type = type; o.frequency.value = freq;
-    o.connect(g); g.connect(c.destination);
-    const t = c.currentTime + when;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(gain, t + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.start(t); o.stop(t + dur + 0.03);
+  function swell(to, time=2.2){ if(!master) return; const t=ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(to, t+time); }
+  function start(){ const c=ensure(); if(!c||started) return; started=true; swell(0.05,3.0); }
+  function tick(freq=880, gain=0.05, dur=0.05, type='triangle'){
+    const c=ensure(); if(!c) return;
+    const now=c.currentTime; if(now-lastTick < 0.045) return; lastTick=now;
+    const o=c.createOscillator(), g=c.createGain(), f=c.createBiquadFilter();
+    o.type=type; o.frequency.value=freq; f.type='lowpass'; f.frequency.value=2600;
+    o.connect(f); f.connect(g); g.connect(master);
+    g.gain.setValueAtTime(0.0001,now); g.gain.linearRampToValueAtTime(gain,now+0.006); g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+    o.start(now); o.stop(now+dur+0.02);
   }
-  return {
-    click: () => tone(520, 0.05, 'square', 0.025),
-    select:() => tone(700, 0.04, 'sine', 0.03),
-    ok:    () => { tone(660, 0.09, 'sine', 0.06); tone(990, 0.12, 'sine', 0.05, 0.075); },
-    err:   () => { tone(180, 0.16, 'sawtooth', 0.05); tone(120, 0.18, 'sawtooth', 0.04, 0.05); },
-    irq:   () => { tone(1300, 0.04, 'square', 0.04); tone(340, 0.1, 'square', 0.035, 0.045); },
-    tick:  () => tone(880, 0.03, 'square', 0.02),
-    win:   () => [523,659,784,1046].forEach((f,i)=>tone(f,0.16,'sine',0.06,i*0.1)),
-    boot:  () => [330,440,554,660].forEach((f,i)=>tone(f,0.14,'triangle',0.05,i*0.09)),
-  };
+  function chime(){ const c=ensure(); if(!c) return; [392,587,784].forEach((f,i)=>setTimeout(()=>tick(f,0.05,0.5,'sine'), i*90)); }
+  function irq(){ tick(260,0.09,0.16,'sawtooth'); }
+  function blip(){ tick(1400,0.03,0.03,'square'); }
+  return { start, tick, chime, irq, blip };
 })();
-function unlockAudio(){ Audio_.click(); }
-window.addEventListener('pointerdown', unlockAudio, { once:true });
+window.addEventListener('pointerdown', ()=>Audio_.start(), { once:true });
+window.addEventListener('keydown', ()=>Audio_.start(), { once:true });
 
-/* ------------------------------ diagnostic console ------------------------------ */
-const streamEl = $('#stream');
-function logmsg(msg, type='info'){
-  const line = el('div', { class:'log ' + type },
-    el('span', { class:'ts' }, new Date().toLocaleTimeString([], { hour12:false })),
-    el('span', { class:'msg', html: msg })
-  );
-  streamEl.append(line);
-  streamEl.scrollTop = streamEl.scrollHeight;
-  while(streamEl.children.length > 260) streamEl.removeChild(streamEl.firstChild);
-}
-function clearLog(){ streamEl.innerHTML = ''; }
+/* ------------------------------ canvases + camera ------------------------------ */
+const bgCv = $('#bg'), bgX = bgCv.getContext('2d');
+const scCv = $('#scene'), scX = scCv.getContext('2d');
+let W=0, H=0, DPR=1;
+const cam = { x:0, target:0, vx:0 };
+let STAGE_W = 0;
 
-/* ------------------------------ global state ------------------------------ */
-const state = {
-  moduleIndex: 0,
-  score: 0,
-  clock: 2.4,
-  mem: 512,
-  temp: 38,
-  completed: {},
-};
-
-function setMetric(id, val){ const n = $('#'+id); if(n) n.textContent = val; }
-function updateHUD(){
-  setMetric('mClock', state.clock.toFixed(1));
-  setMetric('mMem', Math.round(state.mem));
-  setMetric('mTemp', Math.round(state.temp));
-  setMetric('mScore', state.score);
-  const pills = $$('#progress .pill');
-  pills.forEach((p, i) => {
-    p.classList.toggle('done', !!state.completed[i]);
-    p.classList.toggle('active', i === state.moduleIndex && !state.completed[i]);
+function resize(){
+  DPR = Math.min(window.devicePixelRatio||1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  STAGE_W = W;
+  [ [bgCv,bgX], [scCv,scX] ].forEach(([cv,cx])=>{
+    cv.width = Math.floor(W*DPR); cv.height = Math.floor(H*DPR);
+    cx.setTransform(DPR,0,0,DPR,0,0);
   });
-  $('#modLabel').textContent = 'M' + (state.moduleIndex + 1);
+  buildDust();
+  stages.forEach(s => s.layout && s.layout());
+  cam.target = stageIndex*STAGE_W;
+  if(!cam.snap){ cam.x = cam.target; cam.snap = true; }
 }
-function addScore(n, reason){
-  state.score += n;
-  if(n > 0) Audio_.ok(); else if(n < 0) Audio_.err();
-  updateHUD();
-  if(reason) logmsg((n>0?'+':'') + n + ' — ' + reason, n > 0 ? 'good' : 'bad');
-}
-function animateMetrics(toClock, toMem, toTemp){
-  const from = { c: state.clock, m: state.mem, t: state.temp };
-  const t0 = performance.now(), dur = 700;
-  (function step(now){
-    const k = Math.min(1, (now - t0) / dur);
-    const e = 1 - Math.pow(1 - k, 3);
-    state.clock = from.c + (toClock - from.c) * e;
-    state.mem   = from.m + (toMem   - from.m) * e;
-    state.temp  = from.t + (toTemp  - from.t) * e;
-    updateHUD();
-    if(k < 1) requestAnimationFrame(step);
-  })(t0);
-}
+window.addEventListener('resize', resize);
 
-/* ------------------------------ canvas engine ------------------------------ */
-const cv = $('#cv');
-const ctx = cv.getContext('2d');
-let currentModule = null;
-let canvasW = 0, canvasH = 0;
-
-function resizeCanvas(){
-  const r = cv.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvasW = r.width; canvasH = r.height;
-  cv.width = Math.max(1, Math.floor(r.width * dpr));
-  cv.height = Math.max(1, Math.floor(r.height * dpr));
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-window.addEventListener('resize', resizeCanvas);
-
-let tGlobal = 0;
-function drawGrid(){
-  ctx.clearRect(0, 0, canvasW, canvasH);
-  const gap = 34;
-  ctx.save();
-  ctx.strokeStyle = 'rgba(79,209,197,0.055)';
-  ctx.lineWidth = 1;
-  for(let x=0; x<=canvasW; x+=gap){
-    ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,canvasH); ctx.stroke();
-  }
-  for(let y=0; y<=canvasH; y+=gap){
-    ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(canvasW,y+0.5); ctx.stroke();
-  }
-  ctx.restore();
-  // drifting scan pulse
-  const py = (tGlobal * 60) % (canvasH + 200) - 100;
-  const g = ctx.createLinearGradient(0, py-40, 0, py+40);
-  g.addColorStop(0,'rgba(79,209,197,0)');
-  g.addColorStop(.5,'rgba(79,209,197,0.05)');
-  g.addColorStop(1,'rgba(79,209,197,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, py-40, canvasW, 80);
-}
-function loop(now){
-  tGlobal = now / 1000;
-  drawGrid();
-  if(currentModule && typeof currentModule.draw === 'function'){
-    ctx.save();
-    try{ currentModule.draw(ctx, canvasW, canvasH, tGlobal); }catch(e){ /* keep loop alive */ }
-    ctx.restore();
-  }
-  requestAnimationFrame(loop);
-}
-
-/* ------------------------------ control panel + module shell ------------------------------ */
-const overlayEl = $('#overlay');
-const controlsEl = $('#controls');
-
-function setControls(items, note){
-  controlsEl.innerHTML = '';
-  for(const it of items){
-    if(!it) continue;
-    const b = el('button', { class:'btn ' + (it.kind || ''), onclick: it.onClick, id: it.id || null }, it.label);
-    if(it.disabled) b.setAttribute('disabled','');
-    controlsEl.append(b);
-  }
-  if(note) controlsEl.append(el('div',{class:'spacer'}), el('div',{class:'ctrl-note', html:note}));
-}
-function enableBtn(id, on=true){
-  const b = $('#'+id);
-  if(b){ if(on) b.removeAttribute('disabled'); else b.setAttribute('disabled',''); }
-}
-function setBtnLabel(id, txt){ const b = $('#'+id); if(b) b.textContent = txt; }
-
-const MODULES = [];
-
-function showModule(i){
-  state.moduleIndex = i;
-  resizeCanvas();
-  overlayEl.innerHTML = '';
-  overlayEl.scrollTop = 0;
-  currentModule = MODULES[i] || null;
-  updateHUD();
-  if(currentModule){
-    logmsg('<b>MODULE ' + (i+1) + '</b> — ' + currentModule.title, 'sys');
-    currentModule.init(overlayEl);
+/* ------------------------------ background dust + grid ------------------------------ */
+let dust = [];
+function buildDust(){
+  dust = [];
+  const n = Math.round((W*H)/26000);
+  for(let i=0;i<n;i++){
+    dust.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*5, vy:(Math.random()-0.5)*5, r:Math.random()*1.2+0.3, a:Math.random()*0.25+0.05 });
   }
 }
-function completeModule(i, summary){
-  if(state.completed[i]) return;
-  state.completed[i] = true;
-  Audio_.win();
-  updateHUD();
-  logmsg('<b>✓ MODULE ' + (i+1) + ' COMPLETE</b>' + (summary ? ' — ' + summary : ''), 'good');
-  // advance
-  const next = i + 1;
-  if(next < MODULES.length){
-    setTimeout(()=>showModule(next), 900);
-  } else {
-    setTimeout(showFinale, 900);
+let gridPhase = 0;
+function drawBG(dt){
+  bgX.clearRect(0,0,W,H);
+  // deep vignette
+  const g = bgX.createRadialGradient(W*0.5, H*0.42, 40, W*0.5, H*0.5, Math.max(W,H)*0.75);
+  g.addColorStop(0,'rgba(20,26,33,0.5)'); g.addColorStop(1,'rgba(13,15,18,0)');
+  bgX.fillStyle = g; bgX.fillRect(0,0,W,H);
+
+  // blueprint grid drifting with camera
+  const gp = 44;
+  gridPhase = (-cam.x*0.32) % gp;
+  bgX.strokeStyle = 'rgba(30,35,42,0.9)'; bgX.lineWidth = 1;
+  bgX.beginPath();
+  for(let x=gridPhase; x<=W; x+=gp){ bgX.moveTo(x+.5,0); bgX.lineTo(x+.5,H); }
+  for(let y=0; y<=H; y+=gp){ bgX.moveTo(0,y+.5); bgX.lineTo(W,y+.5); }
+  bgX.stroke();
+  // finer sub-grid
+  bgX.strokeStyle = 'rgba(30,35,42,0.4)';
+  const gp2 = gp/4;
+  bgX.beginPath();
+  for(let x=(gridPhase*0.32)%gp2; x<=W; x+=gp2){ bgX.moveTo(x+.5,0); bgX.lineTo(x+.5,H); }
+  bgX.stroke();
+
+  // dust
+  bgX.fillStyle = COL.cyan;
+  for(const d of dust){
+    d.x += d.vx*dt; d.y += d.vy*dt;
+    if(d.x<0) d.x+=W; if(d.x>W) d.x-=W; if(d.y<0) d.y+=H; if(d.y>H) d.y-=H;
+    bgX.globalAlpha = d.a*0.6;
+    bgX.beginPath(); bgX.arc(d.x,d.y,d.r,0,TAU); bgX.fill();
+  }
+  bgX.globalAlpha = 1;
+}
+
+/* ------------------------------ drawing helpers ------------------------------ */
+function rr(x,y,w,h,r){
+  r = Math.min(r, w/2, h/2);
+  scX.beginPath();
+  scX.moveTo(x+r,y);
+  scX.arcTo(x+w,y,x+w,y+h,r);
+  scX.arcTo(x+w,y+h,x,y+h,r);
+  scX.arcTo(x,y+h,x,y,r);
+  scX.arcTo(x,y,x+w,y,r);
+  scX.closePath();
+}
+function panel(x,y,w,h,r=10,fill='rgba(20,24,30,0.55)',stroke='rgba(30,35,42,1)',glow=null){
+  if(glow){ scX.shadowColor = glow; scX.shadowBlur = 22; }
+  rr(x,y,w,h,r);
+  scX.fillStyle = fill; scX.fill();
+  scX.shadowBlur = 0;
+  scX.strokeStyle = stroke; scX.lineWidth = 1; scX.stroke();
+}
+function line(x1,y1,x2,y2,color,alpha=1,w=1){
+  scX.strokeStyle = alpha===1?color:rgba(color,alpha); scX.lineWidth = w;
+  scX.beginPath(); scX.moveTo(x1,y1); scX.lineTo(x2,y2); scX.stroke();
+}
+function dot(x,y,r,color,glow=12,alpha=1){
+  scX.globalAlpha = alpha;
+  if(glow){ scX.shadowColor = color; scX.shadowBlur = glow; }
+  scX.fillStyle = color; scX.beginPath(); scX.arc(x,y,r,0,TAU); scX.fill();
+  scX.shadowBlur = 0; scX.globalAlpha = 1;
+}
+function txt(str,x,y,{size=11,color=COL.dim,font='mono',align='left',baseline='alphabetic',alpha=1,weight=''}={}){
+  scX.globalAlpha = alpha;
+  scX.font = weight + ' ' + size + 'px ' + (font==='sans'?SANS:MONO);
+  scX.fillStyle = color; scX.textAlign = align; scX.textBaseline = baseline;
+  scX.fillText(str, x, y);
+  scX.textAlign = 'left'; scX.textBaseline = 'alphabetic'; scX.globalAlpha = 1;
+}
+function track(str,x,y,{size=10,color=COL.dim,ls=2,align='left'}={}){
+  // letter-spaced label
+  scX.save(); scX.font = size+'px '+MONO; scX.fillStyle = color; scX.textAlign = align;
+  let cx = x;
+  if(align==='center'){ let w=0; for(const ch of str) w += scX.measureText(ch).width + ls; cx = x - w/2; }
+  for(const ch of str){ scX.fillText(ch, cx, y); cx += scX.measureText(ch).width + ls; }
+  scX.restore();
+}
+
+/* ------------------------------ particle system (pooled) ------------------------------ */
+const particles = [];
+const pool = [];
+function acquire(){
+  return pool.pop() || { ax:0,ay:0,bx:0,by:0,cx:0,cy:0, t:0, speed:0.6, color:COL.cyan, size:2.2, px:0,py:0, arrive:null, trail:6, curve:0 };
+}
+function emit(o){
+  const p = acquire();
+  p.ax=o.ax; p.ay=o.ay; p.bx=o.bx; p.by=o.by;
+  p.cx=o.cx!=null?o.cx:(o.ax+o.bx)/2 + (o.curve||0);
+  p.cy=o.cy!=null?o.cy:(o.ay+o.by)/2;
+  p.t=0; p.speed=o.speed||0.7; p.color=o.color||COL.cyan; p.size=o.size||2.2;
+  p.trail=o.trail!=null?o.trail:6; p.arrive=o.arrive||null;
+  p.px=o.ax; p.py=o.ay;
+  particles.push(p);
+  if(particles.length>460) release(particles.shift());
+}
+function release(p){ if(pool.length<300) pool.push(p); }
+function bez(p,t){
+  const mt=1-t;
+  return {
+    x: mt*mt*p.ax + 2*mt*t*p.cx + t*t*p.bx,
+    y: mt*mt*p.ay + 2*mt*t*p.cy + t*t*p.by,
+  };
+}
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.t += p.speed*dt;
+    if(p.t>=1){ if(p.arrive) p.arrive(); release(p); particles.splice(i,1); continue; }
+    const pos = bez(p,p.t);
+    p.px = lerp(p.px,pos.x,0.5); p.py = lerp(p.py,pos.y,0.5);
+  }
+}
+function drawParticles(){
+  for(const p of particles){
+    const pos = bez(p,p.t);
+    line(p.px,p.py,pos.x,pos.y,p.color,0.35,1.2);
+    dot(pos.x,pos.y,p.size,p.color,14);
+  }
+}
+
+/* ------------------------------ stages registry + state ------------------------------ */
+const stages = [];
+let stageIndex = 0;
+let stageT = 0;          // seconds spent in current stage
+let autoTour = true;
+const DWELL = 11;        // seconds per stage in the auto tour
+let finaleShown = false;
+
+/* ------------------------------ HUD wiring ------------------------------ */
+const playIcon = '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+let playing = true;
+function renderPlayBtn(){ $('#playBtn').innerHTML = playing ? playIcon : pauseIcon; }
+$('#playBtn').addEventListener('click', ()=>{ playing = !playing; renderPlayBtn(); Audio_.blip(); });
+renderPlayBtn();
+
+let navEls = [];
+function buildNav(){
+  const nav = $('#nav'); nav.innerHTML=''; navEls = [];
+  stages.forEach((s,i)=>{
+    const b = el('button', { class:'navdot', onclick:()=>{ jumpTo(i); } },
+      el('span',{class:'d'}), el('span',{class:'l'}, s.short));
+    nav.append(b); navEls.push(b);
+  });
+}
+function updateNav(){
+  navEls.forEach((b,i)=>{
+    b.classList.toggle('active', i===stageIndex);
+    b.classList.toggle('done', i<stageIndex);
+  });
+  const s = stages[stageIndex];
+  if(s){
+    $('#roName').textContent = s.short;
+    $('#roNum').textContent = 'Stage ' + String(stageIndex+1).padStart(2,'0') + ' / ' + String(stages.length).padStart(2,'0');
+    $('#midTitle').textContent = s.title;
+    $('#midText').innerHTML = s.desc;
+    $('#midBar').style.background = s.accent;
+    $('#midBar').style.boxShadow = '0 0 12px ' + s.accent;
+    $('#mid').classList.remove('fadein'); void $('#mid').offsetWidth; $('#mid').classList.add('fadein');
+  }
+  $('#progBar').style.width = ((stageIndex+1)/stages.length*100)+'%';
+}
+
+/* ------------------------------ controls panel ------------------------------ */
+function clearControls(){
+  const c = $('#controls'); c.innerHTML='';
+}
+function label(t){ return el('span',{class:'ctl-lab'}, t); }
+function ctlButton(t, on, cls=''){
+  const b = el('button',{class:'cb '+cls+' '+(on?'on':''), onclick:()=>{ Audio_.blip(); b.__act&&b.__act(b); }}, t);
+  return b;
+}
+function ctlSlider(val, min, max, step, onInput, accent){
+  const inp = el('input',{type:'range', min, max, step, value:val});
+  inp.addEventListener('input', ()=>onInput(parseFloat(inp.value)));
+  return inp;
+}
+function sep(){ return el('div',{class:'ctlsep'}); }
+
+/* ------------------------------ stage transitions ------------------------------ */
+function jumpTo(i){
+  if(i===stageIndex) return;
+  stageIndex = i; stageT = 0;
+  cam.target = i*STAGE_W;
+  const s = stages[i];
+  if(s && s.enter) s.enter();
+  updateNav(); buildControlsFor(i); Audio_.chime();
+}
+function nextStage(){
+  if(stageIndex < stages.length-1){ jumpTo(stageIndex+1); }
+  else { showFinale(); }
+}
+function buildControlsFor(i){
+  clearControls();
+  const s = stages[i];
+  if(s && s.controls) {
+    const ctl = $('#controls');
+    s.controls(ctl);
+    ctl.classList.remove('fadein'); void ctl.offsetWidth; ctl.classList.add('fadein');
   }
 }
 function showFinale(){
-  logmsg('<b>System pipeline verified end-to-end.</b> All 6 modules complete.', 'sys');
-  $('#finalScore').textContent = state.score;
+  if(finaleShown) return;
+  finaleShown = true;
+  autoTour = false;
   $('#finale').classList.add('show');
-  Audio_.win();
+  Audio_.chime();
 }
 $('#restartBtn').addEventListener('click', ()=>{
-  $('#finale').classList.remove('show');
-  state.score = 0; state.completed = {}; state.clock = 2.4; state.mem = 512; state.temp = 38;
-  clearLog();
-  showModule(0);
+  $('#finale').classList.remove('show'); finaleShown = false;
+  autoTour = true; playing = true; renderPlayBtn();
+  stages.forEach(s=>{ if(s.reset) s.reset(); });
+  stageIndex = 0; stageT = 0; cam.target = 0; cam.x = 0;
+  updateNav(); buildControlsFor(0);
 });
 
-/* ------------------------------ shared interaction helpers ------------------------------ */
-function makeChip(label, data, icon){
-  return el('div', {
-    class:'chip', draggable:'true', 'data-label':label, 'data-data':data,
-    onclick(e){
-      e.stopPropagation();
-      $$('.chip.sel').forEach(c=>c!==e.currentTarget && c.classList.remove('sel'));
-      e.currentTarget.classList.toggle('sel');
-      Audio_.select();
-    },
-    ondragstart(e){
-      e.dataTransfer.setData('text/plain', data);
-      e.dataTransfer.effectAllowed = 'move';
-      $$('.chip.sel').forEach(c=>c.classList.remove('sel'));
-      e.currentTarget.classList.add('sel');
-    }
-  }, icon ? el('span',{class:'ic'}, icon) : null, el('span',{},label));
-}
-function currentSelectedChip(){ return $('.chip.sel'); }
-function markUsed(chip){
-  chip.classList.remove('sel');
-  chip.classList.add('used','ok');
-}
-function shake(chip){ chip.classList.add('no'); setTimeout(()=>chip.classList.remove('no'), 320); }
+/* ------------------------------ main loop ------------------------------ */
+let last = performance.now();
+function frame(now){
+  let dt = (now-last)/1000; last = now;
+  if(dt > 0.05) dt = 0.05;            // clamp after tab switches → no jumps
+  if(document.hidden) dt = 0;
 
-/* a click/drop target zone. accept(chipData) -> {ok:bool, label:string} */
-function bindZone(zone, accept, onOk){
-  function attempt(dataStr, chipEl){
-    const res = accept(dataStr, chipEl);
-    if(res && res.ok){ onOk(res, chipEl); }
-    else {
-      Audio_.err();
-      if(chipEl){ shake(chipEl); if(res && res.msg) logmsg(res.msg, 'bad'); }
-    }
+  // camera eased toward target (exponential smoothing, framerate-independent)
+  const k = 1 - Math.pow(0.0009, dt);
+  cam.x += (cam.target - cam.x) * k;
+
+  // auto tour timing (paused while finale visible / user paused)
+  if(playing && autoTour && !finaleShown){
+    stageT += dt;
+    if(stageT > DWELL) nextStage();
+  } else {
+    stageT = 0;
   }
-  zone.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    const chip = currentSelectedChip();
-    if(!chip){ logmsg('Select a component first, then tap a slot to place it.', 'warn'); return; }
-    if(chip.classList.contains('used')) return;
-    attempt(chip.dataset.data, chip);
-  });
-  zone.addEventListener('dragover', (e)=>{ e.preventDefault(); zone.classList.add('hot'); });
-  zone.addEventListener('dragleave', ()=>zone.classList.remove('hot'));
-  zone.addEventListener('drop', (e)=>{
-    e.preventDefault(); zone.classList.remove('hot');
-    const data = e.dataTransfer.getData('text/plain');
-    const chip = $$('.chip').find(c=>c.dataset.data===data && !c.classList.contains('used') && !c.classList.contains('placed'));
-    attempt(data, chip);
-  });
-}
 
-/* insert a chip visual into a slot/zone */
-function fillZone(zone, chipEl, smallText){
-  zone.classList.add('filled');
-  zone.innerHTML = '';
-  const clone = chipEl.cloneNode(true);
-  clone.classList.remove('sel'); clone.classList.add('ok', 'placed'); clone.style.margin='0';
-  zone.append(clone);
-  if(smallText) zone.append(el('div',{class:'mini', style:{marginTop:'6px'}}, smallText));
+  // update visible stages + particles
+  for(const s of stages){ if(s.update) s.update(dt, cam); }
+  updateParticles(dt);
+
+  // render
+  drawBG(dt);
+  scX.clearRect(0,0,W,H);
+  scX.save();
+  scX.translate(-cam.x, 0);
+  for(let i=0;i<stages.length;i++){
+    const ox = i*STAGE_W;
+    if(ox - cam.x > W + 200) continue;           // cull right
+    if(ox - cam.x < -W - 200) continue;          // cull left
+    scX.save(); scX.translate(ox, 0);
+    stages[i].draw(scX, stageT, dt, i);
+    scX.restore();
+  }
+  drawParticles();
+  scX.restore();
+
+  requestAnimationFrame(frame);
 }
 
 /* =====================================================================
-   MODULE 1 — The Input & Signal Conversion Stage
+   STAGES
    ===================================================================== */
-const M1 = (() => {
-  let root, samples=0, irqs=0, pending=null, irqPulse=null, sorted={src:0,io:0};
-  let zoneSrc, zoneIO, pool;
+/* ---------------------------------------------------------------------
+   STAGE 3 — Motherboard Architecture & Tri-Bus Flow
+   --------------------------------------------------------------------- */
+stages.push({
+  short:'Board', title:'Motherboard & Tri-Bus Flow', accent:COL.cyan,
+  desc:'The motherboard interconnects every component: the <b>PSU</b> distributes power, <b>heat sinks</b> prevent thermal throttling, and the <b>PCH</b> hub links <b>PCIe</b> slots (GPU, NIC), <b>SATA</b> and <b>USB</b>. Three buses carry the traffic — <b>Address</b> (unidirectional), <b>Data</b> (bidirectional) and <b>Control</b> (strobes &amp; IRQs).',
+  clock:1, thermal:0.35,
+  enter(){}, reset(){},
+  geom(){
+    const cx=W/2, cy=H/2;
+    const railX1=cx-330, railX2=cx+300;
+    return { cx, cy, railX1, railX2, cpuX:cx-430, ramX:cx+330,
+      rails:{ addr: cy+70, data: cy+104, ctrl: cy+138 } };
+  },
+  update(dt){
+    this.thermal = 0.32 + 0.12*Math.sin(performance.now()/1400);
+    if(Math.random()<dt*2.4*this.clock) this.emitRail('addr', 1);
+    if(Math.random()<dt*2.0*this.clock) this.emitRail('data', Math.random()<0.5?1:-1);
+    if(Math.random()<dt*1.1*this.clock) this.emitRail('ctrl', 1);
+  },
+  emitRail(kind, dir){
+    const o=this.idx*STAGE_W, g=this.geom(), y=g.rails[kind];
+    const col = kind==='addr'?COL.cyan : kind==='data'?COL.amber : COL.magenta;
+    const ax = dir>0? g.railX1 : g.railX2, bx = dir>0? g.railX2 : g.railX1;
+    emit({ ax:o+ax, ay:y, bx:o+bx, by:y, cy:y-6, speed:0.55*this.clock, color:col, size:2.2, trail:8,
+      arrive:()=>Audio_.tick(kind==='data'?700:1000, 0.015, 0.03) });
+  },
+  fireIRQ(){
+    const o=this.idx*STAGE_W, g=this.geom();
+    emit({ ax:o+g.railX2, ay:g.rails.ctrl, bx:o+g.cpuX+50, by:g.rails.ctrl, cy:g.rails.ctrl+10, speed:0.85, color:COL.magenta, size:3.2, trail:10 });
+    Audio_.irq();
+  },
+  draw(ctx,t,dt,i){
+    const g=this.geom(); const {cx,cy,railX1,railX2,cpuX,ramX}=g; const o=0;
+    // chassis outline
+    panel(cx-470, cy-210, 940, 420, 16, 'rgba(15,18,22,0.5)', 'rgba(30,35,42,1)');
+    track('MOTHERBOARD  ·  SYSTEM BUS FABRIC', cx, cy-192, {size:9.5,color:COL.dim2,ls:3,align:'center'});
 
-  function bin8(v){ return v.toString(2).padStart(8,'0'); }
+    // ---- CPU block ----
+    panel(cpuX-60, cy-70, 120, 150, 12, 'rgba(0,240,255,0.05)', rgba(COL.cyan,0.5), 'rgba(0,240,255,0.35)');
+    txt('CPU', cpuX, cy-40, {size:16,color:COL.text,align:'center',weight:'600'});
+    txt('general', cpuX, cy-18, {size:9,color:COL.dim,align:'center'});
+    txt('purpose', cpuX, cy-6, {size:9,color:COL.dim,align:'center'});
+    line(cpuX-30, cy+16, cpuX+30, cy+16, COL.cyan, 0.35, 1);
+    txt('PC·MAR·MDR', cpuX, cy+38, {size:8.5,color:COL.dim,align:'center'});
+    txt('CIR·ACC·CU·ALU', cpuX, cy+52, {size:8.5,color:COL.dim,align:'center'});
 
-  function init(r){
-    root = r; samples = 0; irqs = 0; pending = null; irqPulse = null; sorted={src:0,io:0};
-    root.innerHTML = '';
+    // ---- RAM block ----
+    panel(ramX-10, cy-70, 120, 60, 12, 'rgba(0,240,255,0.04)', rgba(COL.cyan,0.35));
+    txt('DRAM', ramX+50, cy-42, {size:13,color:COL.text,align:'center',weight:'600'});
+    txt('volatile main memory', ramX+50, cy-24, {size:8.5,color:COL.dim,align:'center'});
+    // ROM
+    panel(ramX-10, cy-2, 120, 44, 12, 'rgba(255,255,255,0.02)', 'rgba(30,35,42,1)');
+    txt('ROM · BIOS', ramX+50, cy+18, {size:9.5,color:COL.dim,align:'center',baseline:'middle'});
 
-    zoneSrc = el('div',{class:'zone'}, el('div',{class:'zl'},'drop source files here'));
-    zoneIO  = el('div',{class:'zone'}, el('div',{class:'zl'},'drop live inputs here'));
-    pool    = el('div',{});
-
-    root.append(
-      el('div',{class:'mod-head'},
-        el('div',{class:'kicker'},'Module 01 · Input & Signal Conversion'),
-        el('h1',{},'Input & Signal Conversion'),
-        el('p',{html:'Two different worlds meet the computer. <b>Software source files</b> are translated <b>at compile time</b> by a compiler into machine code. <b>Live peripheral inputs</b> are <b>digitized at runtime</b> by hardware controllers — never by the compiler. Sort every chip, then operate the digitizer and raise interrupt requests (IRQs) on the bus.'})
-      ),
-      el('div',{class:'grid2', style:{marginBottom:'14px'}},
-        el('div',{class:'card'},
-          el('h3',{},'Compiler Node', el('span',{class:'tag'},'compile-time')),
-          el('p',{class:'mini'},'Accepts high-level SOURCE FILES. Translates .py / .cpp / .js → machine code BEFORE the program ever runs.'),
-          zoneSrc,
-          el('div',{class:'mini', id:'m1out', style:{marginTop:'8px', minHeight:'16px'}}, 'awaiting machine code…')
-        ),
-        el('div',{class:'card'},
-          el('h3',{},'Peripheral Controllers', el('span',{class:'tag'},'runtime')),
-          el('p',{class:'mini'},'Accept LIVE INPUTS. Hardware controllers digitize physical signals in real time and raise IRQs.'),
-          zoneIO,
-          el('div',{class:'mini', id:'m1out2', style:{marginTop:'8px', minHeight:'16px'}}, 'no live signal yet…')
-        )
-      ),
-      el('div',{class:'card', style:{marginBottom:'14px'}},
-        el('h3',{},'Input Palette', el('span',{class:'tag'},'tap to select · tap a slot to place')),
-        pool
-      ),
-      el('div',{class:'card'},
-        el('h3',{},'Hardware Digitization Bench', el('span',{class:'tag'},'analog → binary → IRQ')),
-        el('div',{class:'mini', style:{marginBottom:'8px'}},'Drag the slider to set an analog voltage, then use the control panel to DIGITIZE and FIRE IRQ.'),
-        el('input',{type:'range', min:'0', max:'255', value:'128', id:'m1slider'}),
-        el('div',{class:'row', style:{marginTop:'10px'}},
-          el('span',{class:'mini'},'Analog'),
-          el('span',{class:'binary', id:'m1analog'},'128'),
-          el('span',{class:'mini'},'→ Sample (8-bit)'),
-          el('span',{id:'m1bits'})
-        )
-      )
-    );
-
-    const chipDefs = [
-      {l:'main.py',        d:'src',   icon:'SRC'},
-      {l:'engine.cpp',     d:'src',   icon:'SRC'},
-      {l:'app.js',         d:'src',   icon:'SRC'},
-      {l:'Keyboard keystroke',    d:'io', icon:'LIVE'},
-      {l:'Valorant crosshair',    d:'io', icon:'LIVE'},
-      {l:'OCR camera scan',       d:'io', icon:'LIVE'},
-      {l:'Microphone audio',      d:'io', icon:'LIVE'},
+    // ---- component strip ----
+    const comps=[
+      {n:'PSU', s:'power grid'}, {n:'Cooling', s:'heat sink'}, {n:'PCH', s:'hub'},
+      {n:'PCIe · GPU', s:'parallel'}, {n:'PCIe · NIC', s:'network'}, {n:'SATA', s:'storage'}, {n:'USB', s:'peripherals'}
     ];
-    chipDefs.sort(()=>Math.random()-0.5);
-    chipDefs.forEach(c => pool.append(makeChip(c.l, c.d, c.icon)));
-
-    bindZone(zoneSrc, (data)=>{
-      if(['main.py','engine.cpp','app.js'].includes(data)) return {ok:true};
-      return {ok:false, msg:'<b>Rejected:</b> ' + data + ' is a runtime peripheral input — it must NOT go through the compiler.'};
-    }, (res, chip)=>{
-      markUsed(chip); sorted.src++;
-      fillZone(zoneSrc, chip, '→ compiled to machine code');
-      logmsg('<b>' + chip.dataset.label + '</b> → Compiler: high-level source translated at compile time into machine code.', 'good');
-      addScore(10, 'compile-time translation');
-      $('#m1out').innerHTML = 'machine code emitted for <b>' + chip.dataset.label + '</b>';
-      check();
+    const cwid=118, cgap=8, totalW=comps.length*cwid+(comps.length-1)*cgap, sx=cx-totalW/2;
+    comps.forEach((c,k)=>{
+      const x=sx+k*(cwid+cgap), y=cy-165, w=cwid, h=70;
+      const hot = (c.n==='Cooling');
+      panel(x,y,w,h,10, hot?rgba(COL.magenta,0.05):'rgba(255,255,255,0.02)', 'rgba(30,35,42,1)');
+      txt(c.n, x+12, y+26, {size:11,color:COL.text,weight:'600'});
+      txt(c.s, x+12, y+44, {size:8.5,color:COL.dim});
+      if(hot){ // thermal throttle meter
+        const p=this.thermal;
+        line(x+12, y+58, x+w-12, y+58, COL.line, 1, 2);
+        line(x+12, y+58, x+12+(w-24)*p, y+58, p>0.5?COL.magenta:COL.green, 1, 2);
+        txt('thermal', x+12, y+68, {size:8,color:COL.dim});
+      }
+      if(c.n==='PSU'){ // power traces
+        for(let q=0;q<3;q++) line(x+12+q*16, y+54, x+12+q*16, y+64, COL.amber, 0.4, 2);
+      }
+      // tap down toward rails
+      line(x+w/2, y+h, x+w/2, g.rails.ctrl-6, COL.line, 1, 1);
+      dot(x+w/2, g.rails.ctrl-6, 1.8, COL.dim, 0);
     });
 
-    bindZone(zoneIO, (data)=>{
-      if(['Keyboard keystroke','Valorant crosshair','OCR camera scan','Microphone audio'].includes(data)) return {ok:true};
-      return {ok:false, msg:'<b>Rejected:</b> ' + data + ' is a source file — it belongs to the compiler, not a peripheral controller.'};
-    }, (res, chip)=>{
-      markUsed(chip); sorted.io++;
-      fillZone(zoneIO, chip, '→ digitized live signal');
-      logmsg('<b>' + chip.dataset.label + '</b> → Peripheral controller digitizes the physical signal in real time.', 'good');
-      addScore(10, 'runtime input digitization');
-      $('#m1out2').innerHTML = 'live buffer active for <b>' + chip.dataset.label + '</b>';
-      check();
+    // ---- rails ----
+    const rails=[
+      {k:'addr', y:g.rails.addr, col:COL.cyan, name:'ADDRESS BUS', dir:'unidirectional  →'},
+      {k:'data', y:g.rails.data, col:COL.amber, name:'DATA BUS', dir:'bidirectional  ⇄'},
+      {k:'ctrl', y:g.rails.ctrl, col:COL.magenta, name:'CONTROL BUS', dir:'strobes / clock / IRQ'},
+    ];
+    rails.forEach(r=>{
+      line(railX1, r.y, railX2, r.y, r.col, 0.55, 2);
+      txt(r.name, railX1+6, r.y-8, {size:9,color:r.col});
+      txt(r.dir, railX2-6, r.y-8, {size:8.5,color:COL.dim,align:'right'});
+      // arrowheads
+      dot(railX2, r.y, 2.6, r.col, 10);
+      if(r.k==='addr'){ txt('▶', railX2-12, r.y+3, {size:9,color:r.col}); }
+      if(r.k==='data'){ txt('◀', railX1+8, r.y+3, {size:9,color:r.col}); txt('▶', railX2-12, r.y+3, {size:9,color:r.col}); }
     });
-
-    const slider = $('#m1slider');
-    slider.addEventListener('input', ()=>{
-      $('#m1analog').textContent = slider.value;
-      renderBits(parseInt(slider.value,10), false);
-    });
-    renderBits(128, false);
-
-    setControls([
-      { label:'DIGITIZE INPUT', id:'m1Dig', onClick: doDigitize },
-      { label:'FIRE IRQ', id:'m1Irq', disabled:true, onClick: doIrq },
-      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
-          if(check(true)) return;
-          logmsg('Verification failed — sort every chip (' + (sorted.src+sorted.io) + '/7) and fire at least 3 IRQs (' + irqs + '/3).', 'warn');
-        } },
-    ], 'Analog signal → hardware sampler → binary buffer → interrupt request.');
-  }
-
-  function renderBits(v, on){
-    const host = $('#m1bits'); if(!host) return;
-    host.innerHTML = '';
-    for(const ch of bin8(v)) host.append(el('span',{class:'bite'+(on?' on':'')}, ch));
-  }
-  function doDigitize(){
-    const slider = $('#m1slider'); if(!slider) return;
-    const v = parseInt(slider.value,10);
-    pending = v; samples++;
-    renderBits(v, true);
-    Audio_.tick();
-    logmsg('<b>DIGITIZE:</b> hardware sampled analog voltage ' + v + ' → binary buffer <span class="binary">' + bin8(v) + '</span> (8-bit).', 'sys');
-    enableBtn('m1Irq', true);
-  }
-  function doIrq(){
-    if(pending == null){ logmsg('Digitize a sample before firing an IRQ.', 'warn'); return; }
-    irqs++; Audio_.irq();
-    irqPulse = { x:0, active:true };
-    logmsg('<b>IRQ #' + irqs + '</b> — the controller raises an Interrupt Request straight onto the control bus, bypassing the compiler entirely.', 'good');
-    addScore(8, 'hardware IRQ #' + irqs);
-    enableBtn('m1Irq', false);
-    pending = null;
-    check();
-  }
-  function check(verbose){
-    const done = sorted.src + sorted.io;
-    if(done === 7 && irqs >= 3){ completeModule(0, 'compile-time vs runtime digitization mastered'); return true; }
-    if(verbose) logmsg('Status — components sorted ' + done + '/7 · IRQs ' + irqs + '/3', irqs>=3 ? 'info' : 'warn');
-    return false;
-  }
-  function draw(c, w, h){
-    const y = h - 46;
-    c.strokeStyle = 'rgba(79,209,197,0.45)'; c.lineWidth = 2;
-    c.beginPath(); c.moveTo(30, y); c.lineTo(w-30, y); c.stroke();
-    c.fillStyle = 'rgba(139,149,163,0.8)'; c.font = '10px ui-monospace, monospace';
-    c.fillText('SYSTEM BUS', 30, y-9);
-    c.fillText(irqs + '/3 IRQs', w-96, y-9);
-    if(irqPulse && irqPulse.active){
-      irqPulse.x += 7;
-      const px = 30 + (irqPulse.x % (w-60));
-      c.fillStyle = 'rgba(61,220,151,0.22)'; c.beginPath(); c.arc(px,y,11,0,Math.PI*2); c.fill();
-      c.fillStyle = '#3ddc97'; c.beginPath(); c.arc(px,y,5,0,Math.PI*2); c.fill();
-      if(irqPulse.x > w-60) irqPulse.active = false;
+    // connect CPU to rails
+    rails.forEach(r=> line(cpuX+60, r.y, railX1, r.y, COL.line, 1, 1));
+    // clock ticks on control bus
+    for(let k=0;k<8;k++){
+      const px = railX1 + (((t*0.4*this.clock + k/8)%1)*(railX2-railX1));
+      line(px, g.rails.ctrl-4, px, g.rails.ctrl+4, COL.cyan, 0.5, 1);
     }
+    // IRQ marker
+    txt('IRQ', g.cpuX-30, g.rails.ctrl+3, {size:9,color:COL.magenta});
+  },
+  controls(host){
+    host.append(label('Dispatch'));
+    const a=ctlButton('ADDRESS', false); a.__act=()=>this.emitRail('addr',1); host.append(a);
+    const d=ctlButton('DATA →', false,'warm'); d.__act=()=>this.emitRail('data',1); host.append(d);
+    const d2=ctlButton('← DATA', false,'warm'); d2.__act=()=>this.emitRail('data',-1); host.append(d2);
+    const c=ctlButton('CONTROL', false); c.__act=()=>this.emitRail('ctrl',1); host.append(c);
+    const ir=ctlButton('FIRE IRQ', false,'hot'); ir.__act=()=>this.fireIRQ(); host.append(ir);
+    host.append(sep());
+    host.append(label('Clock'));
+    host.append(ctlSlider(this.clock,0.4,2.4,0.1, v=>this.clock=v));
   }
-  return { title:'Input & Signal Conversion', init, draw };
-})();
-MODULES.push(M1);
+});
 
-/* =====================================================================
-   MODULE 2 — The Software Stack & Hardware Interactivity Layer
-   ===================================================================== */
-const M2 = (() => {
-  let root, placed = 0, stackDone = false, callDone = false, trapDone = false;
-  let sysBtnRefs = [];
+/* ---------------------------------------------------------------------
+   STAGE 4 — Memory Pyramid & Locality Simulation
+   --------------------------------------------------------------------- */
+stages.push({
+  short:'Memory', title:'Memory Pyramid & Locality', accent:COL.amber,
+  desc:'Data lives in a hierarchy of speed and cost. Non-volatile <b>ROM</b> holds the BIOS firmware; volatile <b>DRAM (RAM)</b> holds the working set; fast <b>SRAM</b> caches (L1/L2/L3) sit between. Below sits storage: magnetic <b>tape</b> (sequential), <b>HDD</b>, optical <b>CD</b>, and non-volatile random-access <b>SSD</b>.',
+  addr: 220, req:null, auto:false, cycles:0, lastHit:2, latencyFlash:0,
+  tier:[
+    {k:'REG',  name:'Registers',        lat:1,    col:COL.text},
+    {k:'L1',   name:'L1 Cache (SRAM)',  lat:3,    col:COL.green},
+    {k:'L2',   name:'L2 Cache (SRAM)',  lat:12,   col:COL.green},
+    {k:'L3',   name:'L3 Cache (SRAM)',  lat:40,   col:COL.green},
+    {k:'DRAM', name:'Main Memory (DRAM)', lat:200, col:COL.cyan},
+    {k:'SSD',  name:'Secondary Storage', lat:20000, col:COL.amber},
+  ],
+  enter(){}, reset(){ this.req=null; this.cycles=0; this.auto=false; },
+  geom(){
+    const cx=W/2, cy=H/2;
+    return { cx, cy, topY: cy-190, rowH: 40, baseW: 300, cx2: cx-40 };
+  },
+  hitLevel(addr){ // deterministic locality mapping 0..5
+    const h = Math.abs(Math.sin(addr*12.9898)*43758.5453);
+    const f = h - Math.floor(h);
+    if(f<0.42) return 1;             // L1
+    if(f<0.62) return 2;             // L2
+    if(f<0.76) return 3;             // L3
+    if(f<0.93) return 4;             // DRAM
+    return 5;                        // SSD
+  },
+  request(){
+    const lvl=this.hitLevel(this.addr);
+    this.lastHit=lvl;
+    const g=this.geom(), o=this.idx*STAGE_W;
+    const startY=g.topY, endY=g.topY + lvl*g.rowH;
+    this.req={ y:startY, target:endY, lvl, phase:'down', addr:this.addr };
+    this.cycles += this.tier[lvl].lat;
+    Audio_.tick(lvl<=3?1200:lvl===4?600:300, 0.04, 0.12, 'triangle');
+    if(lvl>=4) this.latencyFlash=1;
+  },
+  update(dt){
+    if(this.auto && !this.req && Math.random()<dt*0.9){ this.addr = Math.floor(Math.random()*1024); this.request(); }
+    if(this.req){
+      const g=this.geom(), o=this.idx*STAGE_W;
+      if(this.req.phase==='down'){
+        this.req.y += dt*260;
+        // emit a packet along the descent
+        if(Math.random()<dt*30) emit({ ax:o+g.cx2, ay:g.topY-40, bx:o+g.cx2, by:this.req.y, speed:2.2, color:this.tier[this.req.lvl].col, size:2, trail:4 });
+        if(this.req.y>=this.req.target){ this.req.phase='up'; }
+      } else {
+        this.req.y -= dt*420;
+        if(this.req.y<=g.topY-20) this.req=null;
+      }
+    }
+    this.latencyFlash=Math.max(0,this.latencyFlash-dt*1.5);
+  },
+  draw(ctx,t,dt,i){
+    const g=this.geom(); const {cx,cy,topY,rowH,baseW,cx2}=g;
+    track('MEMORY HIERARCHY', cx-300, topY-40, {size:9.5,color:COL.dim2,ls:3});
 
-  function init(r){
-    root = r; placed = 0; stackDone = false; callDone = false; trapDone = false; sysBtnRefs = [];
-    root.innerHTML = '';
+    // pyramid tiers
+    this.tier.forEach((tr,k)=>{
+      const w = baseW*(1 - k*0.11);
+      const y = topY + k*rowH;
+      const x = cx2 - w/2;
+      const hit = this.req && this.req.lvl===k;
+      panel(x, y-16, w, 32, 8, hit?rgba(tr.col,0.14):'rgba(255,255,255,0.02)', hit?tr.col:'rgba(30,35,42,1)', hit?tr.col:null);
+      txt(tr.k, x+14, y+4, {size:11,color:hit?tr.col:COL.text,weight:'600'});
+      txt(tr.name, x+58, y+4, {size:9.5,color:COL.dim});
+      txt(tr.lat+' cyc', x+w-14, y+4, {size:8.5,color:COL.dim,align:'right'});
+      // width ticks
+      if(k<this.tier.length-1) line(cx2, y+16, cx2, y+rowH-16, COL.line, 1, 1);
+    });
 
-    const stackChips = [
-      {l:'Application Software (Valorant / Chrome / Neovim)', d:'app', icon:'USER'},
-      {l:'OS Kernel (macOS / Windows / Linux) + Utilities',   d:'os',  icon:'KERNEL'},
-      {l:'Device Driver Translators',                         d:'drv', icon:'DRV'},
-      {l:'Hardware Control Registers',                        d:'hw',  icon:'HW'},
+    // CPU request source
+    panel(cx2-56, topY-70, 112, 30, 8, 'rgba(0,240,255,0.05)', rgba(COL.cyan,0.4));
+    txt('CPU REQUEST', cx2, topY-51, {size:9,color:COL.cyan,align:'center',baseline:'middle'});
+    txt('0x'+Math.floor(this.addr).toString(16).toUpperCase().padStart(3,'0'), cx2, topY-92, {size:12,color:COL.text,align:'center'});
+
+    // request particle
+    if(this.req){ dot(cx2, this.req.y, 3.4, this.tier[this.req.lvl].col, 16); }
+
+    // storage detail node (bottom-left)
+    const sx=cx-560, sy=cy+40;
+    panel(sx, sy-90, 250, 300, 12, 'rgba(15,18,22,0.5)', 'rgba(30,35,42,1)');
+    track('SECONDARY STORAGE', sx+16, sy-70, {size:9,color:COL.dim,ls:2});
+    const items=[
+      {n:'Magnetic Tape', s:'sequential', draw:(x,y)=>{ for(let q=0;q<6;q++){ dot(x+q*9, y, 1.8, COL.amber, 6); } }},
+      {n:'Hard Disk (HDD)', s:'magnetic · spinning', draw:(x,y)=>{ scX.beginPath(); scX.arc(x+22,y,14,-0.4,TAU-0.4); scX.strokeStyle=rgba(COL.amber,0.7); scX.lineWidth=1.4; scX.stroke(); dot(x+22,y,2,COL.amber,6); dot(x+22+Math.cos(t*6)*10,y+Math.sin(t*6)*10,1.5,COL.text,6); }},
+      {n:'Compact Disc (CD)', s:'optical', draw:(x,y)=>{ scX.beginPath(); scX.arc(x+22,y,14,0,TAU); scX.strokeStyle=rgba(COL.green,0.6); scX.lineWidth=1; scX.stroke(); scX.beginPath(); scX.arc(x+22,y,6,0,TAU); scX.stroke(); }},
+      {n:'SSD', s:'solid-state · random', draw:(x,y)=>{ for(let q=0;q<3;q++){ panel(x+q*22, y-10, 18, 20, 3, 'rgba(255,255,255,0.03)', rgba(COL.cyan,0.4)); } }},
     ];
-    const slotHints = [
-      'Runs in User Space · requests services',
-      'Provides GUI/CLI · manages processes, memory, files, networks',
-      'Translates OS requests into hardware register values',
-      'Physical memory-mapped control registers',
+    items.forEach((it,k)=>{
+      const y=sy-40+k*62;
+      txt(it.n, sx+16, y-16, {size:10,color:COL.text});
+      txt(it.s, sx+16, y-4, {size:8.5,color:COL.dim});
+      it.draw(sx+16, y+14);
+    });
+
+    // latency meter
+    const mx=cx-560, my=cy-190;
+    panel(mx, my, 250, 70, 12, 'rgba(15,18,22,0.5)', 'rgba(30,35,42,1)');
+    txt('Last hit', mx+16, my+24, {size:9,color:COL.dim});
+    txt(this.tier[this.lastHit].k, mx+16, my+48, {size:20,color:this.tier[this.lastHit].col,weight:'600'});
+    txt('cumulative cycles', mx+120, my+24, {size:8.5,color:COL.dim});
+    txt(String(this.cycles), mx+120, my+48, {size:20,color: (this.latencyFlash>0?COL.magenta:COL.text), weight:'600'});
+    txt(this.lastHit<=3?'cache hit — fast':'miss — slow path', mx+16, my+62, {size:8.5,color:this.lastHit<=3?COL.green:COL.magenta});
+  },
+  controls(host){
+    host.append(label('Data access'));
+    host.append(ctlSlider(this.addr, 0, 1024, 1, v=>this.addr=v));
+    const r=ctlButton('REQUEST', false); r.__act=(b)=>{ this.request(); b.classList.add('on'); setTimeout(()=>b.classList.remove('on'),300); }; host.append(r);
+    const au=ctlButton('AUTO', false); au.__act=(b)=>{ this.auto=!this.auto; b.classList.toggle('on', this.auto); }; host.append(au);
+    host.append(sep());
+    const rs=ctlButton('RESET CYCLES', false); rs.__act=()=>{ this.cycles=0; }; host.append(rs);
+  }
+});
+
+
+/* ---------------------------------------------------------------------
+   STAGE 1 — Live Input Digitization vs. Static Compilation
+   --------------------------------------------------------------------- */
+stages.push({
+  short:'Input', title:'Input & Signal Conversion', accent:COL.cyan,
+  desc:'At <b>compile time</b>, source code (Python / C++ / JS) is translated into machine code before the program runs. At <b>runtime</b>, hardware controllers digitize live physical signals into binary packets and push them onto the system bus — bypassing the compiler entirely.',
+  cp:0, compiling:false, keyT:0, scanT:0, aim:0.5, mic:0.5, flash:0,
+  enter(){}, reset(){ this.cp=0; this.compiling=false; this.aim=0.5; this.mic=0.5; },
+  geom(){
+    const cx=W/2, cy=H/2;
+    const pW=Math.min(420, W*0.34), ph=Math.min(H*0.54, 430);
+    const lx=cx-pW-34, rx=cx+34, py=cy-ph/2;
+    return {cx,cy,pW,ph,lx,rx,py};
+  },
+  ox(){ return this.idx*STAGE_W; },
+  emitTo(bx,by,color,speed){
+    emit({ ax:bx, ay:by, bx:bx, by:by+40, cx:bx-6, speed:speed||0.9, color, size:2.2, trail:5 });
+  },
+  spawnWidgetPacket(x,y,color){
+    const o=this.ox(); const g=this.geom();
+    const busY = g.py + g.ph - 26;
+    emit({ ax:o+x, ay:y, bx:o+g.rx+g.pW*0.55, by:busY, cx:o+x+30, cy:busY-60, speed:0.85, color, size:2.4, trail:7 });
+    Audio_.tick(color===COL.cyan?900:color===COL.amber?700:1200, 0.02, 0.03, 'triangle');
+  },
+  update(dt){
+    if(this.compiling){ this.cp=Math.min(1, this.cp+dt/1.7); if(this.cp>=1) this.compiling=false; }
+    this.keyT+=dt; this.scanT+=dt; this.flash=Math.max(0,this.flash-dt*2);
+    const g=this.geom();
+    // ambient key waves
+    if(Math.random()<dt*4) this.spawnWidgetPacket(g.rx+70, g.py+86, COL.cyan);
+    if(Math.random()<dt*1.2) this.spawnWidgetPacket(g.rx+70, g.py+206, COL.green);
+  },
+  draw(ctx,t,dt,i){
+    const g=this.geom(); const {cx,cy,pW,ph,lx,rx,py}=g;
+    // divider + captions
+    line(cx, cy-ph*0.6, cx, cy+ph*0.62, COL.line, 1, 1);
+    track('COMPILE-TIME', lx, py-24, {size:10,color:COL.dim,ls:3});
+    track('RUNTIME', rx, py-24, {size:10,color:COL.dim,ls:3});
+
+    /* ---------- LEFT: compiler ---------- */
+    panel(lx,py,pW,ph,12);
+    txt('Compiler Node', lx+18, py+30, {size:13,color:COL.text,weight:'600'});
+    txt('source  .py  .cpp  .js', lx+18, py+48, {size:10,color:COL.dim});
+
+    // code block (top)
+    const codeA = 1-this.cp;
+    const codeTop = py+72;
+    const codeRows=[ [0.86,COL.amber],[0.62,COL.cyan],[0.74,COL.green],[0.5,COL.dim],[0.8,COL.cyan],[0.58,COL.amber] ];
+    scX.save();
+    scX.globalAlpha = codeA;
+    codeRows.forEach((r,ri)=>{
+      const yy = codeTop + ri*20 - this.cp*ri*2;
+      line(lx+24, yy, lx+24 + pW*0.5*r[0], yy, r[1], 0.9, 3);
+      if(ri%2===0) line(lx+30, yy+7, lx+30 + pW*0.28, yy+7, COL.dim, 0.5, 2);
+    });
+    scX.restore();
+    // collapse arrow
+    const arrowY = codeTop + 6*20 + 6;
+    line(lx+pW/2, arrowY, lx+pW/2, arrowY+18, COL.dim2, 1-this.cp*0.6, 1);
+    dot(lx+pW/2, arrowY+20, 2.5, COL.cyan, 10, 1-this.cp*0.5);
+
+    // binary output grid
+    const binTop = arrowY+34, cols=16, cw=pW*0.82/cols;
+    const total=48, filled=Math.floor(this.cp*total);
+    for(let n=0;n<total;n++){
+      const r=Math.floor(n/cols), c=n%cols;
+      const x=lx+pW*0.09+c*cw, y=binTop+r*14;
+      const on = n<filled;
+      if(on){ txt(Math.random()<0.5?'0':'1', x, y, {size:9,color:COL.cyan,alpha:0.9}); }
+      else { line(x, y-2, x+cw*0.5, y-2, COL.dim2, 0.25, 2); }
+    }
+    txt(this.cp>=1?'machine code emitted':'translating…', lx+18, py+ph-16, {size:10,color: this.cp>=1?COL.green:COL.dim});
+
+    /* ---------- RIGHT: peripherals ---------- */
+    panel(rx,py,pW,ph,12);
+    txt('Peripheral Controllers', rx+18, py+30, {size:13,color:COL.text,weight:'600'});
+    txt('analog → digitize → IRQ', rx+18, py+48, {size:10,color:COL.dim});
+
+    const rows=[
+      {lab:'KEYBOARD', y:py+86, col:COL.cyan},
+      {lab:'MOUSE / AIM', y:py+146, col:COL.amber},
+      {lab:'OCR CAMERA', y:py+206, col:COL.green},
+      {lab:'MICROPHONE', y:py+266, col:COL.magenta},
     ];
-    const expected = ['app','os','drv','hw'];
-
-    const palette = el('div',{});
-    stackChips.slice().sort(()=>Math.random()-0.5).forEach(c=> palette.append(makeChip(c.l, c.d, c.icon)));
-
-    const stackHost = el('div',{style:{display:'flex', flexDirection:'column', gap:'10px'}});
-    for(let i=0;i<4;i++){
-      const slot = el('div',{class:'slot', 'data-i':i},
-        el('span',{class:'idx'}, String(i+1)),
-        el('span',{class:'mini'}, slotHints[i])
-      );
-      stackHost.append(slot);
-      bindZone(slot, (data)=>{
-        if(data === expected[i]) return {ok:true};
-        return {ok:false, msg:'<b>Out of order:</b> that layer does not sit at position ' + (i+1) + '. Layers stack top-down: App → OS → Drivers → Hardware.'};
-      }, (res, chip)=>{
-        markUsed(chip);
-        fillZone(slot, chip);
-        placed++;
-        logmsg('<b>' + chip.dataset.label + '</b> placed at stack level ' + (i+1) + '.', 'good');
-        addScore(12, 'stack layer ' + (i+1));
-        if(placed === 4){
-          stackDone = true;
-          logmsg('<b>Stack aligned.</b> Application → OS Kernel/Utilities → Device Drivers → Hardware Registers.', 'sys');
-          setBtnLabel('m2Call', 'ISSUE SYSTEM CALL');
-          enableBtn('m2Call', true);
+    rows.forEach((rw,ri)=>{
+      txt(rw.lab, rx+18, rw.y-16, {size:9,color:COL.dim});
+      line(rx+18, rw.y, rx+120, rw.y, COL.line, 1, 1);
+      if(ri===0){ // keystroke waveform
+        scX.beginPath();
+        for(let x=0;x<100;x++){
+          const yy = rw.y + Math.sin((x+t*120)*0.35)*3 * (Math.sin(t*6+ri)>0.4?1:0.25);
+          if(x===0) scX.moveTo(rx+18+x, yy); else scX.lineTo(rx+18+x, yy);
         }
-      });
+        scX.strokeStyle=COL.cyan; scX.globalAlpha=0.8; scX.lineWidth=1.4; scX.stroke(); scX.globalAlpha=1;
+      }
+      if(ri===1){ // crosshair
+        const gx = rx+18 + 100*this.aim;
+        dot(gx, rw.y, 2, COL.amber, 12);
+        line(gx-9, rw.y, gx+9, rw.y, COL.amber, 0.7, 1);
+        line(gx, rw.y-9, gx, rw.y+9, COL.amber, 0.7, 1);
+        scX.beginPath(); scX.arc(gx,rw.y,6,0,TAU); scX.strokeStyle = rgba(COL.amber,0.6); scX.lineWidth=1; scX.stroke();
+      }
+      if(ri===2){ // OCR scan
+        scX.strokeStyle=rgba(COL.green,0.6); scX.lineWidth=1; scX.strokeRect(rx+18, rw.y-10, 100, 20);
+        const sx = (this.scanT*1.6 % 1)*100;
+        line(rx+18+sx, rw.y-10, rx+18+sx, rw.y+10, COL.green, 0.9, 1.5);
+        for(let k=0;k<4;k++) line(rx+24, rw.y-6+k*4, rx+24+70*(0.5+0.4*Math.sin(k+t)), rw.y-6+k*4, COL.green, 0.3, 2);
+      }
+      if(ri===3){ // mic bars
+        for(let k=0;k<18;k++){
+          const amp = this.mic*14*(0.4+0.6*Math.abs(Math.sin(k*0.7+t*4)));
+          line(rx+18+k*5.6, rw.y-amp/2, rx+18+k*5.6, rw.y+amp/2, COL.magenta, 0.8, 2);
+        }
+      }
+      // wire to bus
+      line(rx+140, rw.y, rx+pW-30, rw.y, COL.line, 1, 1);
+      dot(rx+pW-30, rw.y, 2, rw.col, 8);
+    });
+
+    // bus bar
+    const busY = py+ph-26;
+    line(rx+18, busY, rx+pW-14, busY, COL.cyan, 0.5, 2);
+    txt('SYSTEM BUS  ·  bypasses compiler', rx+18, busY+16, {size:9,color:COL.dim});
+    // travelling pulses on bus
+    for(let k=0;k<3;k++){
+      const px = rx+18 + (((t*0.28 + k/3) % 1) * (pW-32));
+      dot(px, busY, 2.2, COL.cyan, 12, 0.9);
+    }
+  },
+  controls(host){
+    host.append(label('Compiler'));
+    const c = ctlButton('COMPILE', false);
+    c.__act = (b)=>{ this.compiling=true; this.cp=0; b.classList.add('on'); setTimeout(()=>b.classList.remove('on'), 1700); };
+    host.append(c);
+    host.append(sep());
+    host.append(label('Peripherals'));
+    const k = ctlButton('KEYSTROKE', false);
+    k.__act = ()=>{ const g=this.geom(); this.spawnWidgetPacket(g.rx+70, g.py+86, COL.cyan); this.flash=1; };
+    host.append(k);
+    const sc = ctlButton('SCAN', false);
+    sc.__act = ()=>{ const g=this.geom(); this.spawnWidgetPacket(g.rx+70, g.py+206, COL.green); };
+    host.append(sc);
+    host.append(sep());
+    host.append(label('Aim'));
+    host.append(ctlSlider(this.aim,0,1,0.01, v=>this.aim=v));
+    host.append(label('Mic'));
+    host.append(ctlSlider(this.mic,0,1,0.01, v=>this.mic=v));
+  }
+});
+
+/* ---------------------------------------------------------------------
+   STAGE 2 — Software Abstraction & Register Mapping
+   --------------------------------------------------------------------- */
+stages.push({
+  short:'Software', title:'Software Abstraction & Register Mapping', accent:COL.amber,
+  desc:'Applications request services; the <b>OS Kernel</b> (macOS / Windows / Linux) manages processes, memory, files and networks through GUI & CLI, with utilities (Task Manager, Compressor, Defragmenter, Firewall). A <b>system call</b> descends into kernel space, where a <b>device driver</b> — a low-level register translator — writes directly to hardware. Middleware (database APIs) sits far above and never touches a register.',
+  wave:null, activeApp:'',
+  enter(){}, reset(){ this.wave=null; },
+  geom(){
+    const cx=W/2, cy=H/2;
+    const bw=Math.min(560, W*0.46), bh=76;
+    return { cx, cy, bw, bh,
+      app: cy-176, os: cy-64, drv: cy+48, hw: cy+160,
+      lx: cx-bw/2 };
+  },
+  update(dt){
+    const g=this.geom();
+    if(this.wave){
+      this.wave.y += dt*300;
+      if(!this.wave.hitDriver && this.wave.y > g.drv){ this.wave.hitDriver=true; this.fireRegisters(g); }
+      if(this.wave.y > g.hw+40) this.wave=null;
+    }
+  },
+  fireRegisters(g){
+    const o=this.idx*STAGE_W;
+    const n=6, regW=44, gap=10, totalW=n*regW+(n-1)*gap, startX=g.cx-totalW/2;
+    for(let k=0;k<n;k++){
+      const x=startX+k*regW+regW/2;
+      emit({ ax:o+g.cx, ay:g.drv+8, bx:o+x, by:g.hw-8, cx:o+x, speed:1.1, color:COL.amber, size:2.4, trail:6, arrive:()=>Audio_.tick(1500,0.02,0.03,'square') });
+    }
+  },
+  fire(app){
+    const g=this.geom(); this.activeApp=app;
+    this.wave={ y:g.app, hitDriver:false, app };
+    Audio_.irq();
+  },
+  draw(ctx,t,dt,i){
+    const g=this.geom(); const {cx,cy,bw,bh,lx}=g;
+    // connectors between layers
+    [g.app,g.os,g.drv,g.hw].forEach((y,k)=>{ if(k<3) line(cx, y+bh/2, cx, [g.app,g.os,g.drv,g.hw][k+1]-bh/2, COL.line, 1, 1); });
+
+    // helper to draw a glass layer
+    function layer(y, title, tag){
+      panel(lx, y-bh/2, bw, bh, 12, 'rgba(24,28,34,0.5)');
+      line(lx+1, y-bh/2+1, lx+bw-1, y-bh/2+1, COL.text, 0.06, 1);
+      txt(title, lx+16, y-6, {size:12.5,color:COL.text,weight:'600'});
+      txt(tag, lx+16, y+12, {size:9.5,color:COL.dim});
+    }
+    layer(g.app, 'Application Software', 'user space · valorant / chrome / neovim');
+    layer(g.os,  'OS Kernel + Utilities', 'macOS / Windows / Linux · GUI + CLI · processes · memory · files · network');
+    layer(g.drv, 'Device Driver Translators', 'kernel space · writes hardware register values');
+    layer(g.hw,  'Hardware Control Registers', 'memory-mapped device registers');
+
+    // app chips
+    const apps=['Valorant','Chrome','Neovim'];
+    apps.forEach((a,k)=>{
+      const cwd=104, gap=12, totalW=apps.length*cwd+(apps.length-1)*gap;
+      const x=lx+bw-totalW-16 + k*(cwd+gap);
+      const on = this.activeApp===a;
+      panel(x, g.app-16, cwd, 32, 8, on?rgba(COL.amber,0.12):'rgba(255,255,255,0.02)', on?COL.amber:'rgba(30,35,42,1)', on?COL.amber:null);
+      txt(a, x+cwd/2, g.app+1, {size:10.5,color:on?COL.amber:COL.text,align:'center',baseline:'middle'});
+    });
+
+    // utilities orbit the OS layer
+    const utils=['Task Mgr','Compressor','Defragmenter','Firewall'];
+    utils.forEach((u,k)=>{
+      const ux = lx+16 + 120 + (k%2)*150, uy = g.os + (k<2?-14:14);
+      panel(ux, uy-9, 96, 18, 6, 'rgba(255,255,255,0.015)', 'rgba(30,35,42,1)');
+      txt('· '+u, ux+8, uy+3, {size:8.5,color:COL.dim});
+    });
+    txt('OS', lx+bw-30, g.os+3, {size:11,color:COL.dim2,align:'center'});
+
+    // driver translator icon
+    txt('◄ ►', lx+bw-40, g.drv+2, {size:12,color:COL.amber,alpha:0.6,align:'center'});
+
+    // hardware register nodes
+    const n=6, regW=44, gap=10, totalW=n*regW+(n-1)*gap, startX=cx-totalW/2;
+    for(let k=0;k<n;k++){
+      const x=startX+k*regW;
+      const on = this.wave && this.wave.hitDriver;
+      panel(x, g.hw-14, regW, 28, 6, on?rgba(COL.amber,0.10):'rgba(255,255,255,0.02)', on?rgba(COL.amber,0.5):'rgba(30,35,42,1)');
+      txt('R'+k, x+regW/2, g.hw+1, {size:9,color:on?COL.amber:COL.dim,align:'center',baseline:'middle'});
     }
 
-    const callHost = el('div',{id:'m2CallHost'});
-    const trapHost = el('div',{id:'m2TrapHost'});
-
-    root.append(
-      el('div',{class:'mod-head'},
-        el('div',{class:'kicker'},'Module 02 · Software Stack & Interactivity'),
-        el('h1',{},'The Software Stack & Hardware Layer'),
-        el('p',{html:'Software is layered. Applications make requests; the <b>Operating System</b> manages processes, memory, files and networks; <b>Device Drivers</b> translate those requests into hardware register values. Drivers are NOT middleware — middleware is a higher-level, database/API abstraction that never touches a control register.'})
-      ),
-      el('div',{class:'grid2', style:{marginBottom:'14px'}},
-        el('div',{class:'card'},
-          el('h3',{},'Layer Alignment', el('span',{class:'tag'},'top → bottom')),
-          stackHost
-        ),
-        el('div',{class:'card'},
-          el('h3',{},'Component Palette', el('span',{class:'tag'},'tap-select · tap-slot')),
-          palette,
-          el('div',{style:{marginTop:'14px'}}, callHost),
-          el('div',{style:{marginTop:'14px'}}, trapHost)
-        )
-      )
-    );
-
-    setControls([
-      { label:'ISSUE SYSTEM CALL', id:'m2Call', disabled:true, onClick: startCall },
-      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
-          if(stackDone && callDone && trapDone){ completeModule(1, 'software stack, system call & driver semantics mastered'); return; }
-          logmsg('Verification failed — complete the stack, the system call route, and the diagnostic trap.', 'warn');
-        } },
-    ], 'User Space → Kernel Space → Hardware, one layer at a time.');
-  }
-
-  function startCall(){
-    if(!stackDone) return;
-    const host = $('#m2CallHost'); if(!host) return;
-    host.innerHTML = '';
-    const steps = [
-      { key:'user',  label:'① User Space: application issues a SYSTEM CALL (mode switch trap)' },
-      { key:'kern',  label:'② Kernel Space: OS validates the request & dispatches it' },
-      { key:'drv',   label:'③ Device Driver writes the value into the hardware control register' },
-    ];
-    const order = ['user','kern','drv'];
-    let next = 0;
-    const box = el('div',{class:'zone'}, el('div',{class:'zl'},'System-Call Router — click in order'));
-    host.append(el('h3',{style:{margin:'0 0 8px'}},'System Call Routing'), box);
-    const shuffled = steps.slice().sort(()=>Math.random()-0.5);
-    shuffled.forEach(s=>{
-      const b = el('button',{class:'opt', onclick:()=>{
-        if(s.key === order[next] && !b.classList.contains('ok')){
-          b.classList.add('ok'); next++;
-          logmsg('System call routed: ' + s.label.replace(/^[①②③]\s*/,'') , 'good');
-          addScore(10, 'system call step');
-          Audio_.tick();
-          if(next === 3){
-            callDone = true;
-            logmsg('<b>System call complete</b> — User Space → Kernel Space → Hardware. The privileged boundary was crossed exactly once, in the right direction.', 'sys');
-            showTrap();
-          }
-        } else {
-          b.classList.add('no'); setTimeout(()=>b.classList.remove('no'),320);
-          Audio_.err();
-          logmsg('<b>Wrong order:</b> a system call always travels DOWN: User Space → Kernel Space → Hardware.', 'bad');
-        }
-      }}, s.label);
-      box.append(b);
-    });
-  }
-
-  function showTrap(){
-    const host = $('#m2TrapHost'); if(!host) return;
-    host.innerHTML = '';
-    host.append(
-      el('h3',{style:{margin:'0 0 8px'}},'Diagnostic Trap'),
-      el('p',{class:'mini'},'Which statement correctly describes a Device Driver?')
-    );
-    const opts = [
-      { t:'A low-level program that reads/writes specific hardware control registers, translating OS requests into device-specific signals.', ok:true },
-      { t:'A higher-level software layer that provides database and API connectivity between separate applications (middleware).', ok:false },
-      { t:'A utility that defragments the disk and frees cache memory.', ok:false },
-    ];
-    opts.sort(()=>Math.random()-0.5).forEach(o=>{
-      host.append(el('button',{class:'opt', onclick:(e)=>{
-        if(trapDone) return;
-        const b = e.currentTarget;
-        if(o.ok){
-          b.classList.add('ok'); trapDone = true;
-          logmsg('<b>Correct.</b> A driver is a hardware register translator — distinct from middleware, which sits above the OS.', 'good');
-          addScore(15, 'driver vs middleware');
-        } else {
-          b.classList.add('no');
-          logmsg('<b>Incorrect.</b> That describes middleware or a utility, not a driver. Drivers speak directly to control registers.', 'bad');
-          addScore(-5, 'confused driver with higher-level software');
-        }
-      }}, o.t));
-    });
-  }
-  return { title:'Software Stack & Hardware Layer', init };
-})();
-MODULES.push(M2);
-
-/* =====================================================================
-   MODULE 3 — Motherboard Infrastructure & The Tri-Bus Router
-   ===================================================================== */
-const M3 = (() => {
-  let root, placed = 0, round = 0, correct = 0, TOTAL_ROUNDS = 6;
-  let busPulses = [], activeBus = null, boardDone = false;
-  const ROUNDS = [
-    { q:'CPU must tell RAM <b>which location</b> to read (address 0x1F).', a:'addr' },
-    { q:'Carry the data word <b>0b1011 0010</b> from a RAM cell into a CPU register.', a:'data' },
-    { q:'Assert the <b>READ line</b> with a clock pulse, and receive the pending <b>IRQ</b>.', a:'ctrl' },
-    { q:'CPU publishes the address of a <b>memory-mapped I/O register</b> on the NIC.', a:'addr' },
-    { q:'Carry <b>machine-code instruction bytes</b> from storage up to the CPU.', a:'data' },
-    { q:'Send a <b>WRITE control signal</b> so DRAM commits the bus value.', a:'ctrl' },
-  ];
-  const BUS_INFO = {
-    addr:{ name:'Address Bus', col:'#4fd1c5', dir:'UNIDIRECTIONAL (CPU → memory/MMIO) — carries addresses only.' },
-    data:{ name:'Data Bus',    col:'#ffcb6b', dir:'BIDIRECTIONAL — carries data words AND machine-code instructions both ways.' },
-    ctrl:{ name:'Control Bus', col:'#ff6b6b', dir:'UNIDIRECTIONAL — carries read/write signals, clock timing, and hardware IRQs.' },
-  };
-
-  function init(r){
-    root = r; placed = 0; round = 0; correct = 0; busPulses = []; activeBus = null; boardDone = false;
-    root.innerHTML = '';
-
-    const sockets = [
-      { d:'psu',  label:'Power Rail',       hint:'case foundation · PSU energy balancing' },
-      { d:'cool', label:'Thermal Header',   hint:'fans / heat sinks · prevent thermal throttling' },
-      { d:'pch',  label:'Chipset',          hint:'Platform Controller Hub (PCH)' },
-      { d:'gpu',  label:'PCIe x16 Slot',    hint:'expansion · high-bandwidth graphics' },
-      { d:'nic',  label:'PCIe x1 Slot',     hint:'expansion · Network Interface Card (NIC)' },
-      { d:'sata', label:'SATA Ports',       hint:'storage drives' },
-      { d:'usb',  label:'USB Header',       hint:'external peripherals' },
-    ];
-    const chips = [
-      {l:'Power Supply Unit (PSU)', d:'psu',  icon:'PWR'},
-      {l:'Cooling Fan / Heat Sink',  d:'cool', icon:'THERM'},
-      {l:'Platform Controller Hub',  d:'pch',  icon:'PCH'},
-      {l:'GPU',                      d:'gpu',  icon:'PCIe'},
-      {l:'Network Interface Card',   d:'nic',  icon:'PCIe'},
-      {l:'SATA (Storage)',           d:'sata', icon:'I/O'},
-      {l:'USB Controller',           d:'usb',  icon:'I/O'},
-    ];
-
-    const palette = el('div',{});
-    chips.slice().sort(()=>Math.random()-0.5).forEach(c=> palette.append(makeChip(c.l, c.d, c.icon)));
-
-    const boardHost = el('div',{style:{display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:'8px'}});
-    sockets.forEach(s=>{
-      const slot = el('div',{class:'slot', style:{flexDirection:'column', alignItems:'flex-start', minHeight:'74px'}},
-        el('span',{class:'mini', style:{color:'var(--dim)'}}, s.label),
-        el('span',{class:'mini'}, s.hint)
-      );
-      boardHost.append(slot);
-      bindZone(slot, (data)=>{
-        if(data === s.d) return {ok:true};
-        return {ok:false, msg:'<b>Wrong socket:</b> that component does not belong in the ' + s.label + '.'};
-      }, (res, chip)=>{
-        markUsed(chip); placed++;
-        fillZone(slot, chip);
-        logmsg('<b>' + chip.dataset.label + '</b> seated in ' + s.label + '.', 'good');
-        addScore(8, 'component seated');
-        if(placed === sockets.length){
-          boardDone = true;
-          logmsg('<b>Infrastructure online.</b> PSU, cooling, PCH, PCIe devices, SATA and USB all interlinked.', 'sys');
-          if(round === 0){ logmsg('Tri-Bus Dispatcher armed — dispatch each signal on the correct bus.', 'sys'); startRound(); }
-        }
-      });
-    });
-
-    const busHost = el('div',{id:'m3bus'});
-    const qHost = el('div',{id:'m3q'});
-
-    root.append(
-      el('div',{class:'mod-head'},
-        el('div',{class:'kicker'},'Module 03 · Motherboard & System Buses'),
-        el('h1',{},'Motherboard Infrastructure & Tri-Bus Router'),
-        el('p',{html:'The motherboard interconnects every component. Three system buses carry all CPU traffic: the <b>Address Bus</b> (unidirectional, addresses only), the <b>Data Bus</b> (bidirectional, data &amp; instructions), and the <b>Control Bus</b> (unidirectional, read/write signals, clock timing and IRQs).'})
-      ),
-      el('div',{class:'card', style:{marginBottom:'14px'}},
-        el('h3',{},'Infrastructure Routing Board', el('span',{class:'tag'},'tap to select · tap a socket')),
-        boardHost,
-        el('div',{style:{marginTop:'12px'}}, palette)
-      ),
-      el('div',{class:'card'},
-        el('h3',{},'Tri-Bus Dispatcher', el('span',{class:'tag'},'core loop')),
-        el('div',{class:'mini', id:'m3prog'},'Complete the routing board to arm the dispatcher.'),
-        qHost,
-        busHost
-      )
-    );
-
-    setControls([
-      { label:'DISPATCH BUS SIGNAL', id:'m3Dispatch', disabled:true, onClick:()=> logmsg('Pick a bus lane by tapping ADDRESS / DATA / CONTROL for the pending task.', 'warn') },
-      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
-          if(boardDone && correct >= TOTAL_ROUNDS){ completeModule(2, 'motherboard & tri-bus routing mastered'); return; }
-          logmsg('Verification failed — board ' + (boardDone?'OK':'incomplete') + ' · dispatches ' + correct + '/' + TOTAL_ROUNDS + '.', 'warn');
-        } },
-    ], 'Route each signal on Address / Data / Control.');
-  }
-
-  function startRound(){
-    const qHost = $('#m3q'), busHost = $('#m3bus');
-    if(!qHost || !busHost) return;
-    if(round >= TOTAL_ROUNDS){
-      qHost.innerHTML = '<div class="mini" style="color:var(--good)">All dispatch tasks cleared.</div>';
-      busHost.innerHTML = '';
-      return;
+    // system-call wave
+    if(this.wave){
+      const y=this.wave.y;
+      line(lx-10, y, lx+bw+10, y, COL.cyan, 0.8, 2);
+      for(let k=0;k<3;k++){
+        const rr2 = ((t*1.4 + k*0.3)%1)*40;
+        scX.beginPath(); scX.arc(cx, y, rr2, 0, TAU);
+        scX.strokeStyle = rgba(COL.cyan, 0.35*(1-rr2/40)); scX.lineWidth=1; scX.stroke();
+      }
+      dot(cx, y, 3.5, COL.cyan, 16);
+      txt('SYSTEM CALL  ·  '+ (this.wave.app||''), lx+bw+16, y+3, {size:9.5,color:COL.cyan});
     }
-    const cur = ROUNDS[round];
-    qHost.innerHTML = '';
-    qHost.append(el('div',{class:'card', style:{marginTop:'12px', background:'var(--panel2)'}},
-      el('h3',{},'Dispatch Task ' + (round+1) + ' / ' + TOTAL_ROUNDS),
-      el('p',{class:'mini', html:cur.q, style:{fontSize:'13px', color:'var(--text)'}})
-    ));
-    busHost.innerHTML = '';
-    const lanes = ['addr','data','ctrl'];
-    const laneHost = el('div',{class:'row', style:{marginTop:'10px'}});
-    lanes.sort(()=>Math.random()-0.5).forEach(k=>{
-      const info = BUS_INFO[k];
-      laneHost.append(el('button',{class:'opt', style:{width:'auto', flex:'1', textAlign:'center'},
-        onclick:()=> choose(k, cur.a)}));
-      // set label/colour after creation
-      laneHost.lastChild.textContent = info.name;
-      laneHost.lastChild.style.borderColor = info.col + '55';
-    });
-    busHost.append(el('div',{class:'mini', style:{marginTop:'8px'}},'Select the correct bus lane:'), laneHost);
-    enableBtn('m3Dispatch', true);
-  }
 
-  function choose(k, answer){
-    const info = BUS_INFO[k];
-    if(k === answer){
-      correct++; round++;
-      activeBus = k;
-      busPulses.push({bus:k, x:0, col:info.col});
-      Audio_.ok();
-      logmsg('<b>' + info.name + ' ✓</b> — ' + info.dir, 'good');
-      addScore(12, 'correct bus dispatch');
-      startRound();
-      if(correct >= TOTAL_ROUNDS && boardDone){
-        setTimeout(()=>completeModule(2, 'motherboard & tri-bus routing mastered'), 500);
+    /* ---------- middleware branch (NOT a driver) ---------- */
+    const mwx = cx + bw/2 + 60, mwy = g.os - 20;
+    panel(mwx, mwy, 190, 96, 12, 'rgba(255,0,85,0.03)', rgba(COL.magenta,0.35));
+    txt('Middleware / DB API', mwx+14, mwy+24, {size:11,color:COL.magenta,weight:'600'});
+    txt('connection layer between', mwx+14, mwy+44, {size:9,color:COL.dim});
+    txt('separate applications — sits', mwx+14, mwy+58, {size:9,color:COL.dim});
+    txt('far ABOVE the hardware.', mwx+14, mwy+72, {size:9,color:COL.dim});
+    txt('✗  not a driver', mwx+14, mwy+90, {size:9.5,color:COL.magenta});
+    // dashed link to OS but NOT to hardware
+    scX.setLineDash([4,4]);
+    line(mwx, mwy+40, cx+bw/2, mwy+40, COL.magenta, 0.4, 1);
+    scX.setLineDash([]);
+    dot(cx+bw/2, mwy+40, 2.5, COL.magenta, 8);
+  },
+  controls(host){
+    host.append(label('Fire system call'));
+    ['Valorant','Chrome','Neovim'].forEach(a=>{
+      const b=ctlButton(a, false, 'warm'); b.__act=()=>{ this.fire(a); b.classList.add('on'); setTimeout(()=>b.classList.remove('on'),1400); };
+      host.append(b);
+    });
+  }
+});
+
+
+
+/* ---------------------------------------------------------------------
+   STAGE 5 — Microarchitecture Machine Cycle & Circuit Engine
+   --------------------------------------------------------------------- */
+stages.push({
+  short:'CPU', title:'Machine Cycle & Circuit Engine', accent:COL.green,
+  desc:'Inside the CPU the <b>Fetch → Decode → Execute</b> loop runs endlessly: the <b>PC</b> feeds an address to the <b>MAR</b>, memory returns data to the <b>MDR</b> and <b>CIR</b>, the <b>CU</b> decodes the opcode into control signals, and the <b>ALU</b> computes into the <b>ACC</b>. Zoom out and it is all <b>NPN transistors</b> forming gates — combinational logic (adders, muxes) and sequential logic (flip-flops, latches).',
+  step:0, auto:false, acc:0, zoom:false, PC:0, ACC:0, MDR:'--', CIR:'--', CU:'idle', ALU:0,
+  STEPS:[
+    {t:'FETCH · PC → MAR',      a:'PC',  b:'MAR'},
+    {t:'FETCH · MAR → Bus → RAM', a:'MAR', b:'RAM'},
+    {t:'FETCH · RAM → Bus → MDR', a:'RAM', b:'MDR'},
+    {t:'FETCH · MDR → CIR',     a:'MDR', b:'CIR'},
+    {t:'FETCH · PC ← PC + 1',   a:'PC',  b:'PC'},
+    {t:'DECODE · CU reads CIR', a:'CIR', b:'CU'},
+    {t:'EXECUTE · ALU computes',a:'CU',  b:'ALU'},
+    {t:'EXECUTE · ALU → ACC',   a:'ALU', b:'ACC'},
+  ],
+  enter(){}, reset(){ this.step=0; this.auto=false; this.PC=0; this.ACC=0; this.MDR='--'; this.CIR='--'; this.CU='idle'; this.ALU=0; },
+  geom(){
+    const cx=W/2, cy=H/2;
+    const N={
+      PC:  {x:cx-320, y:cy-120}, MAR:{x:cx-140,y:cy-120}, RAM:{x:cx+150,y:cy-120},
+      MDR: {x:cx-40,  y:cy+10},  CIR:{x:cx-180,y:cy+10},  CU: {x:cx-360,y:cy+10},
+      ALU: {x:cx-320, y:cy+140}, ACC:{x:cx-140,y:cy+140},
+    };
+    return { cx, cy, N };
+  },
+  advance(){
+    const s=this.STEPS[this.step];
+    const g=this.geom(), o=this.idx*STAGE_W;
+    if(s.a!==s.b){
+      const A=g.N[s.a], B=g.N[s.b];
+      emit({ ax:o+A.x+34, ay:A.y, bx:o+B.x-34, by:B.y, cx:o+(A.x+B.x)/2, cy:(A.y+B.y)/2-24, speed:1.3, color:COL.cyan, size:2.6, trail:7 });
+    } else {
+      dot(o+g.N[s.a].x, g.N[s.a].y, 4, COL.green, 16);
+      emit({ ax:o+g.N[s.a].x, ay:g.N[s.a].y-20, bx:o+g.N[s.a].x, by:g.N[s.a].y-20, speed:1, color:COL.green, size:3, trail:0 });
+    }
+    // apply register effects
+    if(s.b==='MAR') this.MDR=this.MDR;
+    if(s.b==='MDR'){ this.MDR='LDA 5'; }
+    if(s.b==='CIR'){ this.CIR='LDA 5'; }
+    if(s.a==='PC'&&s.b==='PC'){ this.PC=this.PC+1; }
+    if(s.b==='CU'){ this.CU='LDA'; }
+    if(s.b==='ALU'){ this.ALU=5; this.CU='execute'; }
+    if(s.b==='ACC'){ this.ACC=5; this.CU='idle'; this.CIR='--'; }
+    Audio_.tick(700+this.step*40, 0.03, 0.05, 'triangle');
+    this.step=(this.step+1)%this.STEPS.length;
+  },
+  update(dt){
+    if(this.auto){ this.acc+=dt; if(this.acc>0.85){ this.acc=0; this.advance(); } }
+  },
+  nodeBox(x,y,label,val,col,active){
+    panel(x-38, y-24, 76, 48, 9, active?rgba(col,0.13):'rgba(255,255,255,0.02)', active?col:'rgba(30,35,42,1)', active?col:null);
+    txt(label, x, y-6, {size:10.5,color:active?col:COL.text,align:'center',weight:'600'});
+    txt(String(val), x, y+13, {size:10,color:COL.dim,align:'center'});
+  },
+  draw(ctx,t,dt,i){
+    const g=this.geom(); const {cx,cy,N}=g; const o=0;
+    // external RAM
+    panel(N.RAM.x-38, N.RAM.y-30, 76, 60, 10, 'rgba(0,240,255,0.04)', rgba(COL.cyan,0.4));
+    txt('RAM', N.RAM.x, N.RAM.y-8, {size:11,color:COL.text,align:'center',weight:'600'});
+    txt('0x00 LDA 5', N.RAM.x, N.RAM.y+8, {size:8,color:COL.dim,align:'center'});
+    txt('0x01 ADD 3', N.RAM.x, N.RAM.y+19, {size:8,color:COL.dim,align:'center'});
+
+    // wires
+    const wires=[['PC','MAR'],['MAR','RAM'],['RAM','MDR'],['MDR','CIR'],['CIR','CU'],['CU','ALU'],['ALU','ACC'],['CU','MDR']];
+    wires.forEach(([a,b])=>{ const A=N[a],B=N[b]; line(A.x,A.y,B.x,B.y,COL.line,1,1); });
+
+    const cur=this.STEPS[this.step];
+    // node boxes
+    this.nodeBox(N.PC.x,N.PC.y,'PC',this.PC,COL.cyan, cur.a==='PC'||cur.b==='PC');
+    this.nodeBox(N.MAR.x,N.MAR.y,'MAR',this.PC,COL.cyan, cur.a==='MAR'||cur.b==='MAR');
+    this.nodeBox(N.MDR.x,N.MDR.y,'MDR',this.MDR,COL.amber, cur.a==='MDR'||cur.b==='MDR');
+    this.nodeBox(N.CIR.x,N.CIR.y,'CIR',this.CIR,COL.amber, cur.a==='CIR'||cur.b==='CIR');
+    this.nodeBox(N.CU.x,N.CU.y,'CU',this.CU,COL.green, cur.a==='CU'||cur.b==='CU');
+    this.nodeBox(N.ALU.x,N.ALU.y,'ALU',this.ALU,COL.green, cur.a==='ALU'||cur.b==='ALU');
+    this.nodeBox(N.ACC.x,N.ACC.y,'ACC',this.ACC,COL.amber, cur.b==='ACC');
+
+    // current micro-step caption
+    txt('▶ '+cur.t, cx+250, cy-190, {size:11,color:COL.cyan});
+
+    // ---- transistor → gate zoom inset ----
+    if(this.zoom){
+      const zx=cx+220, zy=cy-140, zw=420, zh=300;
+      panel(zx, zy, zw, zh, 14, 'rgba(11,13,16,0.92)', 'rgba(30,35,42,1)', 'rgba(0,255,136,0.25)');
+      track('ZOOM · SILICON → LOGIC → ALU / REGISTERS', zx+16, zy+22, {size:8.5,color:COL.green,ls:2});
+      // NPN transistors → AND gate
+      const y1=zy+64;
+      txt('NPN', zx+18, y1+4, {size:9,color:COL.dim});
+      for(let k=0;k<2;k++){
+        const tx=zx+70+k*30;
+        line(tx, y1-12, tx, y1+12, COL.green, 0.8, 2);
+        line(tx-8, y1-4, tx+8, y1-4, COL.green, 0.6, 1.5);
+        line(tx-8, y1+6, tx+8, y1+6, COL.green, 0.6, 1.5);
+        dot(tx, y1-12, 1.8, COL.green, 6); dot(tx, y1+12, 1.8, COL.green, 6);
+      }
+      txt('→', zx+145, y1+4, {size:12,color:COL.dim});
+      panel(zx+165, y1-14, 66, 28, 7, 'rgba(255,255,255,0.02)', rgba(COL.green,0.4));
+      txt('AND', zx+198, y1+1, {size:10,color:COL.green,align:'center',baseline:'middle'});
+      txt('OR', zx+250, y1+1, {size:10,color:COL.green});
+      txt('NOT', zx+286, y1+1, {size:10,color:COL.green});
+      // combinational → ALU
+      const y2=zy+140;
+      panel(zx+18+92, y2-16, 90, 32, 7, 'rgba(255,255,255,0.02)', rgba(COL.amber,0.4));
+      txt('Adder / MUX', zx+18+92+45, y2+1, {size:9,color:COL.amber,align:'center',baseline:'middle'});
+      txt('COMBINATIONAL → ALU', zx+18, y2+1, {size:8.5,color:COL.dim});
+      // sequential → registers
+      const y3=zy+196;
+      panel(zx+18+92, y3-16, 90, 32, 7, 'rgba(255,255,255,0.02)', rgba(COL.cyan,0.4));
+      txt('Flip-Flop / Latch', zx+18+92+45, y3+1, {size:9,color:COL.cyan,align:'center',baseline:'middle'});
+      txt('SEQUENTIAL → REGISTERS', zx+18, y3+1, {size:8.5,color:COL.dim});
+      // animated state flips
+      for(let k=0;k<5;k++){
+        const bx=zx+18+k*78, by=zy+zh-34;
+        const on = ((t*3 + k) % 5) < 2.6;
+        panel(bx, by-10, 62, 20, 5, on?rgba(COL.green,0.14):'rgba(255,255,255,0.02)', on?COL.green:'rgba(30,35,42,1)');
+        txt(on?'1':'0', bx+31, by+1, {size:10,color:on?COL.green:COL.dim,align:'center',baseline:'middle'});
       }
     } else {
-      Audio_.err();
-      logmsg('<b>' + info.name + ' ✗</b> — ' + info.dir, 'bad');
-      addScore(-4, 'mis-routed signal');
+      txt('click  ZOOM  to expand silicon → gates', cx+240, cy-190, {size:9,color:COL.dim2});
     }
+  },
+  controls(host){
+    host.append(label('Machine cycle'));
+    const s=ctlButton('STEP', false); s.__act=()=>this.advance(); host.append(s);
+    const a=ctlButton('AUTO-RUN', false); a.__act=(b)=>{ this.auto=!this.auto; b.classList.toggle('on', this.auto); }; host.append(a);
+    const r=ctlButton('RESET', false); r.__act=()=>this.reset(); host.append(r);
+    host.append(sep());
+    const z=ctlButton('ZOOM CIRCUIT', false); z.__act=(b)=>{ this.zoom=!this.zoom; b.classList.toggle('on', this.zoom); }; host.append(z);
   }
+});
 
-  function draw(c, w, h){
-    const lanes = [
-      { k:'addr', y:h*0.46 },
-      { k:'data', y:h*0.56 },
-      { k:'ctrl', y:h*0.66 },
-    ];
-    lanes.forEach(l=>{
-      const info = BUS_INFO[l.k];
-      c.strokeStyle = info.col + (activeBus===l.k ? 'cc' : '55');
-      c.lineWidth = activeBus===l.k ? 3 : 2;
-      c.beginPath(); c.moveTo(24, l.y); c.lineTo(w-24, l.y); c.stroke();
-      c.fillStyle = info.col; c.font = '10px ui-monospace, monospace';
-      c.fillText(info.name.toUpperCase(), 26, l.y - 7);
-    });
-    busPulses.forEach(p=>{
-      p.x += 9;
-      const info = BUS_INFO[p.bus];
-      const ly = lanes.find(l=>l.k===p.bus).y;
-      const px = 24 + (p.x % (w-48));
-      c.fillStyle = info.col; c.beginPath(); c.arc(px, ly, 5, 0, Math.PI*2); c.fill();
-      c.fillStyle = info.col + '33'; c.beginPath(); c.arc(px, ly, 12, 0, Math.PI*2); c.fill();
-    });
-    busPulses = busPulses.filter(p=> p.x < w);
-  }
-  return { title:'Motherboard & Tri-Bus Router', init, draw };
-})();
-MODULES.push(M3);
-
-/* =====================================================================
-   MODULE 4 — Memory Hierarchy & Cache Multi-Tier Blitz
-   ===================================================================== */
-const M4 = (() => {
-  let root, bootStep = 0, bootDone = false, sortedCount = 0, storageDone = false;
-  let cacheRound = 0, expectedTier = 0, hitIndex = 0, cycles = 0, cacheDone = false, cacheUnlocked = false;
-  const CACHE_ROUNDS = 3;
-  const TIERS = [
-    { k:'reg',  label:'Registers (CPU internal)', lat:1 },
-    { k:'l1',   label:'L1 Cache (SRAM)',          lat:3 },
-    { k:'l2',   label:'L2 Cache (SRAM)',          lat:12 },
-    { k:'l3',   label:'L3 Cache (SRAM)',          lat:40 },
-    { k:'dram', label:'Main Memory (DRAM)',       lat:200 },
-    { k:'ssd',  label:'Secondary Storage (SSD)',  lat:20000 },
-  ];
-
-  function init(r){
-    root = r; bootStep = 0; bootDone = false; sortedCount = 0; storageDone = false;
-    cacheRound = 0; cacheDone = false; cycles = 0; cacheUnlocked = false;
-    root.innerHTML = '';
-
-    // ---- boot sequence ----
-    const bootHost = el('div',{id:'m4boot'});
-    const bootSteps = [
-      '⏻ POWER ON — verify ROM holds non-volatile firmware',
-      'ROM → load BIOS firmware into execution',
-      'POST — initialize memory, PCIe, storage & peripherals',
-      'SSD → load the OPERATING SYSTEM into volatile RAM (DRAM)',
-    ];
-
-    // ---- storage sorter ----
-    const bins = [
-      { d:'mag', label:'Magnetic',   hint:'spinning platters / tape' },
-      { d:'opt', label:'Optical',    hint:'laser pit & land' },
-      { d:'sol', label:'Solid-State / Electric', hint:'flash cells, no moving parts' },
-    ];
-    const storeChips = [
-      { l:'Hard Disk Drive (HDD)', d:'mag', icon:'MAG' },
-      { l:'Magnetic Tape (sequential)', d:'mag', icon:'SEQ' },
-      { l:'Compact Disc (CD)', d:'opt', icon:'OPT' },
-      { l:'Solid State Drive (SSD)', d:'sol', icon:'FLASH' },
-    ];
-    const binHost = el('div',{class:'grid3'});
-    const storePalette = el('div',{});
-    storeChips.slice().sort(()=>Math.random()-0.5).forEach(c=> storePalette.append(makeChip(c.l, c.d, c.icon)));
-    bins.forEach(b=>{
-      const slot = el('div',{class:'zone', style:{minHeight:'96px'}},
-        el('div',{class:'zl'}, b.label),
-        el('div',{class:'mini'}, b.hint)
-      );
-      binHost.append(slot);
-      bindZone(slot, (data)=>{
-        if(data === b.d) return {ok:true};
-        return {ok:false, msg:'<b>Wrong medium:</b> that device does not use ' + b.label + ' storage.'};
-      }, (res, chip)=>{
-        markUsed(chip); sortedCount++;
-        fillZone(slot, chip);
-        logmsg('<b>' + chip.dataset.label + '</b> → ' + b.label + ' storage.', 'good');
-        addScore(10, 'storage classification');
-        if(sortedCount === storeChips.length){
-          storageDone = true;
-          logmsg('<b>Storage classified.</b> Note: tape & HDD are magnetic (HDD random, tape sequential); CD is optical; SSD is non-volatile, electric, random-access.', 'sys');
-          unlockCache();
-        }
-      });
-    });
-
-    const cacheHost = el('div',{id:'m4cache'});
-
-    root.append(
-      el('div',{class:'mod-head'},
-        el('div',{class:'kicker'},'Module 04 · Memory Hierarchy & Cache'),
-        el('h1',{},'Memory Hierarchy & Cache Blitz'),
-        el('p',{html:'Non-volatile <b>ROM</b> holds the BIOS firmware that boots the machine; volatile <b>RAM/DRAM</b> holds the running OS and active data. To beat DRAM latency the CPU keeps a pyramid of fast <b>SRAM caches</b> — L1, L2, L3 — exploiting locality of reference.'})
-      ),
-      el('div',{class:'grid2', style:{marginBottom:'14px'}},
-        el('div',{class:'card'},
-          el('h3',{},'Boot Sequence', el('span',{class:'tag'},'ROM → RAM')),
-          bootHost
-        ),
-        el('div',{class:'card'},
-          el('h3',{},'Storage Classification', el('span',{class:'tag'},'physical mechanism')),
-          binHost,
-          el('div',{style:{marginTop:'12px'}}, storePalette)
-        )
-      ),
-      el('div',{class:'card'},
-        el('h3',{},'Multi-Level Cache Arcade', el('span',{class:'tag'},'locality of reference')),
-        el('div',{class:'mini', id:'m4cacheProg'},'Complete boot & storage classification to unlock.'),
-        cacheHost
-      )
-    );
-
-    // build boot buttons (ordered)
-    const order = bootSteps.slice();
-    const shuffledBoot = order.slice().sort(()=>Math.random()-0.5);
-    shuffledBoot.forEach((label, idx)=>{
-      const b = el('button',{class:'opt', onclick:()=>{
-        if(label === order[bootStep] && !b.classList.contains('ok')){
-          b.classList.add('ok'); bootStep++;
-          Audio_.tick();
-          logmsg('<b>Boot step ' + bootStep + ':</b> ' + label.replace(/^[⏻]\s*/,'') , 'good');
-          addScore(9, 'boot step');
-          if(bootStep === order.length){
-            bootDone = true;
-            logmsg('<b>Boot complete.</b> Non-volatile ROM firmware initialized hardware, then the volatile OS was loaded into DRAM.', 'sys');
-            unlockCache();
-          }
-        } else {
-          b.classList.add('no'); setTimeout(()=>b.classList.remove('no'),320);
-          Audio_.err();
-          logmsg('<b>Out of order:</b> firmware must run from ROM before the volatile OS is loaded into RAM.', 'bad');
-        }
-      }}, label);
-      bootHost.append(b);
-    });
-
-    setControls([
-      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
-          if(bootDone && storageDone && cacheDone){ completeModule(3, 'memory hierarchy & cache tiers mastered'); return; }
-          logmsg('Verification failed — boot ' + (bootDone?'OK':'×') + ' · storage ' + (storageDone?'OK':'×') + ' · cache ' + (cacheDone?'OK':'×') + '.', 'warn');
-        } },
-    ], 'Registers → L1 → L2 → L3 → DRAM → SSD.');
-  }
-
-  function unlockCache(){
-    if(!bootDone || !storageDone || cacheUnlocked) return;
-    cacheUnlocked = true;
-    const prog = $('#m4cacheProg');
-    if(prog) prog.textContent = 'CPU issuing data requests — search the pyramid in order.';
-    startCacheRound();
-  }
-
-  function startCacheRound(){
-    const host = $('#m4cache'); if(!host) return;
-    if(cacheRound >= CACHE_ROUNDS){
-      cacheDone = true;
-      host.innerHTML = '<div class="mini" style="color:var(--good)">All cache lookups resolved. Total cycles spent: ' + cycles + '.</div>';
-      return;
+/* ---------------------------------------------------------------------
+   STAGE 6 — Visual Output Pipeline & Display Calibration
+   --------------------------------------------------------------------- */
+stages.push({
+  short:'Display', title:'Output Pipeline & Display Calibration', accent:COL.magenta,
+  desc:'The <b>GPU</b> renders in parallel into a frame buffer, pushed to the display as pixels. Display technologies trade quality against power: <b>contrast ratio ascends</b> CRT → LCD → OLED → micro-LED, while <b>power consumption descends</b> CRT &gt; LCD &gt; OLED &gt; micro-LED.',
+  tech:'crt', techK:{crt:1,lcd:0,oled:0,uled:0},
+  TECHS:{
+    crt:  {name:'CRT',      contrast:1, power:4, col:COL.dim},
+    lcd:  {name:'LCD',      contrast:2, power:3, col:COL.cyan},
+    oled: {name:'OLED',     contrast:3, power:2, col:COL.green},
+    uled: {name:'micro-LED',contrast:4, power:1, col:COL.amber},
+  },
+  enter(){}, reset(){ this.tech='crt'; this.techK={crt:1,lcd:0,oled:0,uled:0}; },
+  geom(){ const cx=W/2, cy=H/2; return { cx, cy }; },
+  update(dt){
+    for(const k in this.techK){ const tgt = k===this.tech?1:0; this.techK[k] += (tgt-this.techK[k])*(1-Math.pow(0.0008,dt)); }
+    if(Math.random()<dt*3){
+      const o=this.idx*STAGE_W, g=this.geom();
+      emit({ ax:o+g.cx-330, ay:g.cy-80, bx:o+g.cx+180, by:g.cy-80, cy:g.cy-120, speed:1.1, color:COL.amber, size:2.4, trail:7 });
     }
-    hitIndex = Math.floor(Math.random()*5); // usually a cache hit, sometimes DRAM/SSD
-    expectedTier = 0;
-    const target = TIERS[hitIndex];
-    host.innerHTML = '';
-    host.append(
-      el('div',{class:'card', style:{marginTop:'12px', background:'var(--panel2)'}},
-        el('h3',{},'Request ' + (cacheRound+1) + ' / ' + CACHE_ROUNDS + ' — lookup: <span style="font-family:var(--mono)">0x' + Math.floor(Math.random()*65536).toString(16).padStart(4,'0').toUpperCase() + '</span>'),
-        el('div',{class:'mini', html:'Search the hierarchy top-down. Stop when the block is found (a <b>hit</b>).', style:{marginBottom:'8px'}}),
-        el('div',{class:'row', id:'m4tierHost', style:{marginTop:'4px'}})
-      )
-    );
-    const tierHost = $('#m4tierHost');
-    const shuffled = TIERS.map((t,i)=>({t,i})).sort(()=>Math.random()-0.5);
-    shuffled.forEach(({t,i})=>{
-      tierHost.append(el('button',{class:'opt', style:{width:'auto'},
-        onclick:(e)=> lookup(e.currentTarget, i)}));
-      tierHost.lastChild.textContent = t.label;
-    });
-  }
+  },
+  draw(ctx,t,dt,i){
+    const g=this.geom(); const {cx,cy}=g;
+    const T=this.TECHS[this.tech];
 
-  function lookup(btn, idx){
-    if(idx === expectedTier){
-      const t = TIERS[idx];
-      cycles += t.lat;
-      btn.classList.add('ok');
-      Audio_.tick();
-      logmsg('Lookup → <b>' + t.label + '</b> (+' + t.lat + ' cycles).', 'info');
-      expectedTier++;
-      if(idx === hitIndex){
-        Audio_.ok();
-        logmsg('<b>HIT</b> at ' + t.label + '. ' + (idx <= 2 ? 'SRAM cache erased the DRAM bottleneck via locality of reference.' : 'Missed all caches — a costly trip down the hierarchy.'), idx <= 2 ? 'good' : 'warn');
-        addScore(idx <= 2 ? 15 : 6, 'cache lookup resolved');
-        cacheRound++;
-        setTimeout(startCacheRound, 550);
-      } else if(expectedTier >= TIERS.length){
-        logmsg('Searched to the bottom with no hit.', 'warn');
-        cacheRound++; setTimeout(startCacheRound, 550);
-      }
-    } else {
-      btn.classList.add('no'); setTimeout(()=>btn.classList.remove('no'),320);
-      Audio_.err();
-      logmsg('<b>Out of order:</b> the hierarchy descends Registers → L1 → L2 → L3 → DRAM → SSD.', 'bad');
-      addScore(-3, 'searched hierarchy out of order');
-    }
-  }
-
-  function draw(c, w, h){
-    // pyramid of cache tiers
-    const cx = w*0.5;
-    const top = h*0.30;
-    const rows = 6;
-    for(let i=0;i<rows;i++){
-      const rw = 40 + i*30;
-      const y = top + i*22;
-      const isHit = i === hitIndex && cacheRound < CACHE_ROUNDS && bootDone && storageDone;
-      c.fillStyle = isHit ? 'rgba(79,209,197,0.35)' : 'rgba(79,209,197,0.10)';
-      c.strokeStyle = 'rgba(79,209,197,0.35)'; c.lineWidth = 1;
-      c.fillRect(cx - rw/2, y, rw, 18);
-      c.strokeRect(cx - rw/2 + 0.5, y + 0.5, rw, 18);
-    }
-  }
-  return { title:'Memory Hierarchy & Cache', init, draw };
-})();
-MODULES.push(M4);
-
-/* =====================================================================
-   MODULE 5 — Microarchitecture Machine Cycle & Circuit Builder
-   ===================================================================== */
-const M5 = (() => {
-  let root, transistorsDone=false, gatesDone=false, aluDone=false, regDone=false;
-  let insPtr=0, micro=0, machineDone=false, cyclesRun=0;
-  const PROG = [ {op:'LDA', arg:5}, {op:'ADD', arg:3} ];
-  const PHASES = ['F1','F2','F3','F4','D','E'];
-  const R = { PC:0, MAR:0, MDR:'--', CIR:'--', ACC:0, ALU:0, CU:'idle' };
-
-  function init(r){
-    root = r;
-    transistorsDone = gatesDone = aluDone = regDone = false;
-    insPtr = 0; micro = 0; machineDone = false; cyclesRun = 0;
-    R.PC=0; R.MAR=0; R.MDR='--'; R.CIR='--'; R.ACC=0; R.ALU=0; R.CU='idle';
-    root.innerHTML = '';
-
-    const palette = el('div',{});
-    const chipDefs = [
-      {l:'NPN Transistor ×2',        d:'npn',  icon:'SILICON'},
-      {l:'AND Gate',                 d:'and',  icon:'GATE'},
-      {l:'OR Gate',                  d:'or',   icon:'GATE'},
-      {l:'NOT Gate',                 d:'not',  icon:'GATE'},
-      {l:'Adder (full adder)',       d:'add',  icon:'COMB'},
-      {l:'Multiplexer (2:1 MUX)',    d:'mux',  icon:'COMB'},
-      {l:'Flip-Flop (D type)',       d:'ff',   icon:'SEQ'},
-      {l:'Latch (SR)',               d:'latch',icon:'SEQ'},
-    ];
-    chipDefs.slice().sort(()=>Math.random()-0.5).forEach(c=> palette.append(makeChip(c.l, c.d, c.icon)));
-
-    const zT = el('div',{class:'zone'}, el('div',{class:'ph zl'},'Layer 1 · Silicon — place NPN transistors'));
-    const zG = el('div',{class:'zone locked', style:{opacity:'.35', pointerEvents:'none'}}, el('div',{class:'ph zl'},'Layer 2 · Logic Gates — place AND, OR, NOT'));
-    const zA = el('div',{class:'zone locked', style:{opacity:'.35', pointerEvents:'none'}}, el('div',{class:'ph zl'},'Layer 3a · Combinational → ALU — place Adder + MUX'));
-    const zR = el('div',{class:'zone locked', style:{opacity:'.35', pointerEvents:'none'}}, el('div',{class:'ph zl'},'Layer 3b · Sequential → Registers — place Flip-Flop + Latch'));
-
-    function unlock(z){ z.classList.remove('locked'); z.style.opacity='1'; z.style.pointerEvents='auto'; }
-
-    multiZone(zT, ['npn'], ()=>{
-      transistorsDone = true;
-      logmsg('<b>Silicon layer built.</b> NPN transistors are the physical switches from which all logic is made.', 'sys');
-      addScore(10,'silicon layer'); unlock(zG);
-    });
-    multiZone(zG, ['and','or','not'], ()=>{
-      gatesDone = true;
-      logmsg('<b>Gate layer built.</b> Transistors combine into AND, OR and NOT logic gates.', 'sys');
-      addScore(15,'logic gates'); unlock(zA); unlock(zR);
-    });
-    multiZone(zA, ['add','mux'], ()=>{
-      aluDone = true;
-      logmsg('<b>ALU assembled.</b> Combinational logic (adders + multiplexers) performs arithmetic & logic.', 'sys');
-      addScore(15,'ALU combinational logic'); tryEnableMachine();
-    });
-    multiZone(zR, ['ff','latch'], ()=>{
-      regDone = true;
-      logmsg('<b>Registers assembled.</b> Sequential logic (flip-flops + latches) stores state — PC, MDR, CIR, ACC.', 'sys');
-      addScore(15,'register sequential logic'); tryEnableMachine();
-    });
-
-    // register readout
-    const regHost = el('div',{class:'grid3', id:'m5regs'});
-
-    root.append(
-      el('div',{class:'mod-head'},
-        el('div',{class:'kicker'},'Module 05 · Microarchitecture & Machine Cycle'),
-        el('h1',{},'Machine Cycle & Circuit Builder'),
-        el('p',{html:'Every computation begins with silicon. NPN transistors form logic gates; gates form <b>combinational</b> logic (adders, multiplexers → ALU) and <b>sequential</b> logic (flip-flops, latches → registers). Then the CPU runs the <b>Fetch → Decode → Execute</b> cycle.'})
-      ),
-      el('div',{class:'grid2', style:{marginBottom:'14px'}},
-        el('div',{class:'card'},
-          el('h3',{},'Sub-Logic Circuit Builder', el('span',{class:'tag'},'bottom-up')),
-          el('div',{style:{display:'flex', flexDirection:'column', gap:'10px'}}, zT, zG, zA, zR),
-          el('div',{style:{marginTop:'12px'}}, palette)
-        ),
-        el('div',{class:'card', id:'m5machine'},
-          el('h3',{},'Machine Cycle Simulator', el('span',{class:'tag'},'Fetch → Decode → Execute')),
-          el('div',{class:'mini', id:'m5prog'},'Assemble the ALU and registers to arm the machine cycle.'),
-          regHost,
-          el('div',{class:'card', style:{marginTop:'12px', background:'var(--panel2)'}},
-            el('h3',{},'RAM (machine code in memory)'),
-            el('div',{class:'kv'}, el('span',{class:'vk'},'0x00'), el('span',{id:'m5ram0'},'LDA 5')),
-            el('div',{class:'kv'}, el('span',{class:'vk'},'0x01'), el('span',{id:'m5ram1'},'ADD 3')),
-            el('div',{class:'kv'}, el('span',{class:'vk'},'0x02'), el('span',{},'HALT'))
-          )
-        )
-      )
-    );
-
-    renderRegs();
-    setControls([
-      { label:'STEP MACHINE CYCLE', id:'m5Step', disabled:true, onClick: step },
-      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
-          if(aluDone && regDone && machineDone){ completeModule(4, 'circuit architecture & machine cycle mastered'); return; }
-          logmsg('Verification failed — ALU ' + (aluDone?'OK':'×') + ' · Registers ' + (regDone?'OK':'×') + ' · cycle ' + (machineDone?'OK':'×') + '.', 'warn');
-        } },
-    ], 'PC → MAR → Address Bus → RAM → MDR → CIR → CU → ALU → ACC.');
-  }
-
-  function multiZone(zone, req, onAll){
-    const got = new Set();
-    bindZone(zone, (data)=>{
-      if(!req.includes(data)) return {ok:false, msg:'<b>Wrong layer:</b> that component does not belong here.'};
-      if(got.has(data)) return {ok:false, msg:'That component is already placed.'};
-      return {ok:true};
-    }, (res, chip)=>{
-      got.add(chip.dataset.data);
-      markUsed(chip);
-      const clone = chip.cloneNode(true);
-      clone.classList.remove('sel'); clone.classList.add('ok'); clone.style.margin = '3px';
-      const ph = zone.querySelector('.ph'); if(ph) ph.remove();
-      zone.append(clone);
-      logmsg('<b>' + chip.dataset.label + '</b> added to ' + (zone.querySelector('.zl')?.textContent || 'layer') + '.', 'good');
-      addScore(8, 'circuit component');
-      if(got.size === req.length){ zone.classList.add('filled'); onAll(); }
-    });
-  }
-
-  function tryEnableMachine(){
-    if(aluDone && regDone){
-      const p = $('#m5prog');
-      if(p) p.textContent = 'CPU armed. Use STEP MACHINE CYCLE to run the program.';
-      enableBtn('m5Step', true);
-    }
-  }
-
-  function renderRegs(){
-    const host = $('#m5regs'); if(!host) return;
-    host.innerHTML = '';
-    const items = [
-      ['PC (Program Counter)', R.PC, 'next instruction address'],
-      ['MAR (Memory Address Reg)', R.MAR, 'address on the bus'],
-      ['MDR (Memory Data Reg)', R.MDR, 'data from/to memory'],
-      ['CIR (Current Instr Reg)', R.CIR, 'instruction being decoded'],
-      ['ACC (Accumulator)', R.ACC, 'ALU result holder'],
-      ['CU (Control Unit)', R.CU, 'decoded control state'],
-    ];
-    items.forEach(([k,v,sub])=>{
-      host.append(el('div',{class:'card', style:{background:'var(--panel2)', padding:'10px'}},
-        el('div',{class:'mini'}, k),
-        el('div',{class:'binary', style:{fontSize:'18px', marginTop:'4px'}}, String(v)),
-        el('div',{class:'mini'}, sub)
-      ));
-    });
-  }
-
-  function step(){
-    if(machineDone){ logmsg('Machine cycle finished. All instructions executed.', 'sys'); return; }
-    if(!(aluDone && regDone)){ logmsg('Assemble the ALU and registers first.', 'warn'); return; }
-    const ins = PROG[insPtr];
-    const ph = PHASES[micro];
-    Audio_.tick();
-    switch(ph){
-      case 'F1':
-        R.MAR = R.PC;
-        logmsg('<b>FETCH 1/4:</b> MAR ← PC, placing address <b>0x0' + R.PC + '</b> on the Address Bus.', 'info'); break;
-      case 'F2':
-        R.MDR = ins.op + ' ' + ins.arg;
-        logmsg('<b>FETCH 2/4:</b> RAM returns <b>' + R.MDR + '</b> on the Data Bus into the MDR.', 'info'); break;
-      case 'F3':
-        R.CIR = R.MDR;
-        logmsg('<b>FETCH 3/4:</b> CIR ← MDR (raw instruction register now holds the machine code).', 'info'); break;
-      case 'F4':
-        R.PC = R.PC + 1;
-        logmsg('<b>FETCH 4/4:</b> PC ← PC + 1 → <b>' + R.PC + '</b>.', 'info'); break;
-      case 'D':
-        R.CU = ins.op;
-        logmsg('<b>DECODE:</b> CU splits the opcode <b>' + ins.op + '</b> into electrical control signals.', 'sys'); break;
-      case 'E':
-        if(ins.op === 'LDA'){
-          R.ACC = ins.arg; R.ALU = ins.arg;
-          logmsg('<b>EXECUTE:</b> ALU passes operand → ACC ← <b>' + R.ACC + '</b>.', 'good');
-        } else {
-          const prior = R.ACC;
-          R.ALU = prior + ins.arg; R.ACC = R.ALU;
-          logmsg('<b>EXECUTE:</b> ALU adds ' + prior + ' + ' + ins.arg + ' → ACC ← <b>' + R.ACC + '</b>.', 'good');
-        }
-        addScore(10, 'instruction executed'); break;
-    }
-    micro++;
-    if(micro >= PHASES.length){
-      micro = 0;
-      insPtr++;
-      cyclesRun++;
-      logmsg('<b>Cycle ' + cyclesRun + ' complete.</b>', 'sys');
-    }
-    renderRegs();
-    if(insPtr >= PROG.length){
-      machineDone = true;
-      logmsg('<b>Program complete — ACC = ' + R.ACC + '.</b> Fetch → Decode → Execute ran to completion.', 'good');
-      addScore(20, 'machine cycle complete');
-      enableBtn('m5Step', false);
-    }
-  }
-
-  function draw(c, w, h){
-    // draw the datapath as blocks
-    const blocks = [
-      { x:60,  y:70,  t:'CU' },
-      { x:60,  y:150, t:'ALU' },
-      { x:60,  y:230, t:'REGISTERS' },
-      { x:w-190, y:150, t:'RAM' },
-    ];
-    c.font = '11px ui-monospace, monospace';
-    blocks.forEach(b=>{
-      c.fillStyle = 'rgba(255,203,107,0.10)';
-      c.strokeStyle = 'rgba(255,203,107,0.4)';
-      c.fillRect(b.x, b.y, 120, 44);
-      c.strokeRect(b.x+0.5, b.y+0.5, 120, 44);
-      c.fillStyle = '#ffcb6b';
-      c.fillText(b.t, b.x+10, b.y+27);
-    });
-    c.strokeStyle = 'rgba(79,209,197,0.4)'; c.lineWidth = 2;
-    c.beginPath(); c.moveTo(180, 172); c.lineTo(w-190, 172); c.stroke();
-    c.fillStyle = 'rgba(139,149,163,0.9)';
-    c.fillText('System Buses', w*0.5-38, 164);
-  }
-  return { title:'Machine Cycle & Circuit Builder', init, draw };
-})();
-MODULES.push(M5);
-
-/* =====================================================================
-   MODULE 6 — Output Display Pipeline & Thermal Energy Balancing
-   ===================================================================== */
-const M6 = (() => {
-  let root, rendered = false, calibDone = false, scan = 0;
-  const DISP = [
-    { k:'crt', label:'CRT',       contrast:1, power:4 },
-    { k:'lcd', label:'LCD',       contrast:2, power:3 },
-    { k:'oled',label:'OLED',      contrast:3, power:2 },
-    { k:'uled',label:'micro-LED', contrast:4, power:1 },
-  ];
-  const CONTRAST_ORDER = ['crt','lcd','oled','uled']; // ascending
-  const POWER_ORDER    = ['crt','lcd','oled','uled']; // descending power = same sequence
-
-  function init(r){
-    root = r; rendered = false; calibDone = false; scan = 0;
-    root.innerHTML = '';
-
-    const palette = el('div',{});
-    // two chip sets: one for the contrast row, one for the power row
-    DISP.concat(DISP).sort(()=>Math.random()-0.5).forEach(d=> palette.append(makeChip(d.label, d.k, 'DISPLAY')));
-
-    const cRow = el('div',{class:'row'});
-    const pRow = el('div',{class:'row'});
-    buildOrderRow(cRow, 'contrast', CONTRAST_ORDER);
-    buildOrderRow(pRow, 'power', POWER_ORDER);
-
-    const barHost = el('div',{style:{marginTop:'10px'}});
-    DISP.forEach(d=>{
-      barHost.append(
-        el('div',{class:'mini', style:{marginTop:'8px'}}, d.label + ' — contrast ' + d.contrast + '/4'),
-        el('div',{class:'bar'}, el('i',{style:{width:(d.contrast/4*100)+'%', background:'var(--accent)'}})),
-        el('div',{class:'mini', style:{marginTop:'4px'}}, 'power draw ' + d.power + '/4'),
-        el('div',{class:'bar'}, el('i',{style:{width:(d.power/4*100)+'%', background:'#ff6b6b'}}))
-      );
-    });
-
-    root.append(
-      el('div',{class:'mod-head'},
-        el('div',{class:'kicker'},'Module 06 · Output & Thermal Energy'),
-        el('h1',{},'Output Display Pipeline & Thermal Balancing'),
-        el('p',{html:'The <b>GPU</b> renders frames into a buffer; the pipeline pushes those pixels to a display. Display technologies trade quality against power: as <b>contrast ratio climbs</b> (CRT &lt; LCD &lt; OLED &lt; micro-LED), <b>power consumption falls</b> (CRT &gt; LCD &gt; OLED &gt; micro-LED).'})
-      ),
-      el('div',{class:'grid2', style:{marginBottom:'14px'}},
-        el('div',{class:'card'},
-          el('h3',{},'Display Calibration Matrix', el('span',{class:'tag'},'tap-select · tap-slot')),
-          el('p',{class:'mini'},'Contrast Ratio — ascending (low → high):'),
-          cRow,
-          el('p',{class:'mini', style:{marginTop:'12px'}},'Power Consumption — descending (high → low):'),
-          pRow,
-          el('div',{style:{marginTop:'14px'}}, palette)
-        ),
-        el('div',{class:'card'},
-          el('h3',{},'Panel Comparison', el('span',{class:'tag'},'teal = contrast · red = power')),
-          barHost
-        )
-      )
-    );
-
-    setControls([
-      { label:'RENDER FRAME BUFFER', id:'m6Render', onClick: renderFrame },
-      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
-          if(rendered && calibDone){ completeModule(5, 'output pipeline & display matrix mastered'); return; }
-          logmsg('Verification failed — frame ' + (rendered?'rendered':'pending') + ' · matrix ' + (calibDone?'OK':'incomplete') + '.', 'warn');
-        } },
-    ], 'GPU frame buffer → display panel.');
-  }
-
-  function buildOrderRow(row, kind, order){
-    const host = el('div',{style:{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'6px', marginTop:'6px'}});
-    order.forEach((_, i)=>{
-      const slot = el('div',{class:'slot', style:{justifyContent:'center', minHeight:'44px'}},
-        el('span',{class:'mini'}, '#' + (i+1)));
-      host.append(slot);
-      bindZone(slot, (data)=>{
-        if(data === order[i]) return {ok:true};
-        return {ok:false, msg:'<b>Wrong position:</b> ' + (kind==='contrast' ? 'contrast ratio increases' : 'power consumption decreases') + ' CR T → LCD → OLED → micro-LED.'};
-      }, (res, chip)=>{
-        markUsed(chip);
-        fillZone(slot, chip);
-        const d = DISP.find(x=>x.k===chip.dataset.data);
-        logmsg('<b>' + d.label + '</b> placed at rank ' + (i+1) + ' in the ' + kind + ' order.', 'good');
-        addScore(6, kind + ' ordering');
-        checkCalib();
-      });
-    });
-    row.append(host);
-  }
-
-  function checkCalib(){
-    // both rows filled with correct chips => all slots filled
-    const filled = $$('#overlay .slot.filled').length;
-    if(filled >= 8 && !calibDone){ calibDone = true; logmsg('<b>Calibration matrix complete.</b> Quality ascends CRT→LCD→OLED→micro-LED while power descends the same way.', 'sys'); addScore(15,'display matrix verified'); }
-  }
-
-  function renderFrame(){
-    rendered = true;
-    scan = 0;
-    Audio_.boot();
-    logmsg('<b>RENDER FRAME:</b> GPU computed pixel frame buffer and pushed it through the display pipeline to the panel.', 'good');
-    addScore(12, 'frame buffer rendered');
-  }
-
-  function draw(c, w, h, t){
-    // monitor on the right
-    const mx = w - 300, my = 80, mw = 240, mh = 150;
-    c.fillStyle = 'rgba(20,23,28,0.9)';
-    c.strokeStyle = 'rgba(79,209,197,0.5)'; c.lineWidth = 2;
-    c.fillRect(mx, my, mw, mh);
-    c.strokeRect(mx+0.5, my+0.5, mw, mh);
-    c.fillStyle = 'rgba(139,149,163,0.9)'; c.font = '10px ui-monospace, monospace';
-    c.fillText('DISPLAY PANEL', mx+8, my-8);
-
-    if(rendered){
-      // framebuffer picture
-      const g = c.createLinearGradient(mx, my, mx+mw, my+mh);
-      g.addColorStop(0, '#0b3b39'); g.addColorStop(0.5, '#4fd1c5'); g.addColorStop(1, '#123');
-      c.fillStyle = g; c.fillRect(mx+6, my+6, mw-12, mh-12);
-      c.fillStyle = 'rgba(0,0,0,0.55)';
-      c.beginPath(); c.moveTo(mx+mw*0.35, my+mh-24); c.lineTo(mx+mw*0.5, my+26); c.lineTo(mx+mw*0.65, my+mh-24); c.closePath(); c.fill();
-      // scanline sweep
-      scan += 4; if(scan > mh) scan = 0;
-      c.fillStyle = 'rgba(255,255,255,0.12)';
-      c.fillRect(mx+6, my+6+scan, mw-12, 3);
-    } else {
-      c.fillStyle = 'rgba(139,149,163,0.5)';
-      c.fillText('no signal', mx+mw/2-28, my+mh/2);
-    }
     // GPU block
-    c.fillStyle = 'rgba(79,209,197,0.10)';
-    c.strokeStyle = 'rgba(79,209,197,0.4)';
-    c.fillRect(60, 90, 140, 60); c.strokeRect(60.5, 90.5, 140, 60);
-    c.fillStyle = '#4fd1c5'; c.font = '11px ui-monospace, monospace';
-    c.fillText('GPU', 68, 112);
-    c.fillStyle = 'rgba(139,149,163,0.8)';
-    c.fillText('parallel pixel rendering', 68, 130);
-    if(rendered){
-      c.strokeStyle = 'rgba(255,203,107,0.7)'; c.lineWidth = 2;
-      c.beginPath(); c.moveTo(200, 120); c.lineTo(mx, 120); c.stroke();
+    panel(cx-400, cy-110, 120, 70, 12, 'rgba(0,240,255,0.05)', rgba(COL.cyan,0.4));
+    txt('GPU', cx-340, cy-78, {size:15,color:COL.text,align:'center',weight:'600'});
+    txt('parallel rendering', cx-340, cy-60, {size:8.5,color:COL.dim,align:'center'});
+    // parallel cores
+    for(let k=0;k<8;k++){ const px=cx-372+(k%4)*16, py=cy-96+Math.floor(k/4)*10; dot(px,py,1.6,COL.cyan,6,0.7); }
+
+    // frame buffer grid
+    const fx=cx-240, fy=cy-110, fw=120, fh=70;
+    panel(fx, fy, fw, fh, 8, 'rgba(11,13,16,0.8)', 'rgba(30,35,42,1)');
+    const cols=14, rows=8;
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+      const v = 0.5+0.5*Math.sin(c*0.7 + r*0.4 + t*2);
+      scX.fillStyle = rgba(c/cols>0.3 && c/cols<0.7 ? COL.amber : COL.cyan, 0.15+0.5*v);
+      scX.fillRect(fx+6+c*((fw-12)/cols), fy+6+r*((fh-12)/rows), (fw-12)/cols-1, (fh-12)/rows-1);
     }
+    txt('FRAME BUFFER', fx+fw/2, fy+fh+14, {size:8.5,color:COL.dim,align:'center'});
+    line(fx+fw, cy-75, cx-40, cy-75, COL.amber, 0.6, 2);
+
+    // display panel
+    const dx=cx+40, dy=cy-105, dw=280, dh=158;
+    const br = 10 - this.techK.crt*0 + this.techK.crt*8; // CRT more rounded
+    panel(dx, dy, dw, dh, br, 'rgba(8,9,11,0.95)', 'rgba(30,35,42,1)');
+    // content region
+    const ix=dx+8, iy=dy+8, iw=dw-16, ih=dh-16;
+    const grad = scX.createLinearGradient(ix,iy,ix+iw,iy+ih);
+    grad.addColorStop(0,'#03151a'); grad.addColorStop(0.5,'#0a3a44'); grad.addColorStop(1,'#020a0d');
+    scX.save();
+    rr(ix,iy,iw,ih, br>4?6:2); scX.clip();
+    scX.fillStyle = grad; scX.fillRect(ix,iy,iw,ih);
+    // scene: horizon + triangle
+    scX.fillStyle = rgba(COL.cyan,0.5);
+    scX.beginPath(); scX.moveTo(ix+iw*0.32, iy+ih-24); scX.lineTo(ix+iw*0.5, iy+30); scX.lineTo(ix+iw*0.68, iy+ih-24); scX.closePath(); scX.fill();
+    line(ix, iy+ih-24, ix+iw, iy+ih-24, COL.amber, 0.5, 2);
+    // per-tech overlay
+    if(this.techK.crt>0.02){ // scanlines
+      scX.globalAlpha = this.techK.crt*0.28;
+      scX.fillStyle = '#000';
+      for(let y=iy;y<iy+ih;y+=3) scX.fillRect(ix,y,iw,1.5);
+      scX.globalAlpha = this.techK.crt*0.25;
+      const vg=scX.createRadialGradient(ix+iw/2,iy+ih/2,10,ix+iw/2,iy+ih/2,iw*0.7);
+      vg.addColorStop(0,'rgba(255,255,255,0.12)'); vg.addColorStop(1,'rgba(0,0,0,0.6)');
+      scX.fillStyle=vg; scX.fillRect(ix,iy,iw,ih);
+      scX.globalAlpha=1;
+    }
+    if(this.techK.lcd>0.02){ // backlight bleed
+      scX.globalAlpha = this.techK.lcd*0.5;
+      scX.fillStyle = 'rgba(220,235,245,0.15)';
+      scX.fillRect(ix,iy,iw,ih);
+      scX.globalAlpha=1;
+    }
+    if(this.techK.oled>0.02){ // deep blacks
+      scX.globalAlpha = this.techK.oled;
+      const vg=scX.createRadialGradient(ix+iw/2,iy+ih/2,40,ix+iw/2,iy+ih/2,iw*0.75);
+      vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.55)');
+      scX.fillStyle=vg; scX.fillRect(ix,iy,iw,ih);
+      scX.globalAlpha=1;
+    }
+    if(this.techK.uled>0.02){ // micro emitters
+      scX.globalAlpha = this.techK.uled;
+      for(let y=iy;y<iy+ih;y+=4) for(let x=ix;x<ix+iw;x+=4){
+        dot(x,y,0.7,'rgba(255,255,255,0.6)',0,0.25);
+      }
+      scX.globalAlpha=1;
+    }
+    scX.restore();
+    txt(T.name, dx+dw/2, dy+dh+16, {size:12,color:T.col,align:'center',weight:'600'});
+
+    // ---- calibration spectrum ----
+    const bx2=cx-400, by2=cy+60, bw2=680;
+    panel(bx2, by2, bw2, 150, 12, 'rgba(15,18,22,0.5)', 'rgba(30,35,42,1)');
+    track('CONTRAST RATIO — ascending', bx2+16, by2+24, {size:9,color:COL.dim,ls:2});
+    track('POWER CONSUMPTION — descending', bx2+16, by2+92, {size:9,color:COL.dim,ls:2});
+    const keys=['crt','lcd','oled','uled'];
+    keys.forEach((k,idx)=>{
+      const Tk=this.TECHS[k], active = this.tech===k;
+      const cw2=(bw2-40)/keys.length, x=bx2+20+idx*cw2;
+      // contrast bar (ascending)
+      const ch= (Tk.contrast/4)*46;
+      panel(x+6, by2+66-ch, cw2-24, ch, 4, active?rgba(Tk.col,0.35):'rgba(255,255,255,0.08)', 'rgba(0,0,0,0)');
+      // power bar (descending)
+      const ph=(Tk.power/4)*46;
+      panel(x+6, by2+134-ph, cw2-24, ph, 4, active?rgba(COL.magenta,0.35):'rgba(255,255,255,0.06)', 'rgba(0,0,0,0)');
+      txt(Tk.name, x+cw2/2-6, by2+112, {size:10,color:active?Tk.col:COL.dim,align:'center'});
+      if(active){ line(x+6, by2+40, x+cw2-18, by2+40, Tk.col, 0.5, 1); }
+    });
+  },
+  controls(host){
+    host.append(label('Display'));
+    ['crt','lcd','oled','uled'].forEach(k=>{
+      const b=ctlButton(this.TECHS[k].name, k===this.tech); b.__act=()=>{ this.tech=k; Audio_.blip(); buildControlsFor(this.idx); };
+      host.append(b);
+    });
   }
-  return { title:'Output & Display Pipeline', init, draw };
-})();
-MODULES.push(M6);
+});
 
 /* =====================================================================
    BOOT
    ===================================================================== */
-(function boot(){
-  const prog = $('#progress');
-  prog.innerHTML = '';
-  MODULES.forEach((_, i)=> prog.append(el('div',{class:'pill', 'data-i':i}, String(i+1))));
-  updateHUD();
-  resizeCanvas();
-  requestAnimationFrame(loop);
-
-  logmsg('<b>Silicon to Screen</b> — The Computer System Engine online.', 'sys');
-  logmsg('Complete all 6 modules to master the full pipeline: input → software → motherboard → memory → CPU → display.', 'info');
-  showModule(0);
-})();
-
+function boot(){
+  // preserve narrative order regardless of source insertion order
+  const ORDER = ['Input','Software','Board','Memory','CPU','Display'];
+  stages.sort((a,b)=> ORDER.indexOf(a.short) - ORDER.indexOf(b.short));
+  stages.forEach((s,i)=> s.idx = i);
+  resize();
+  buildNav();
+  // start on stage 0 fully at rest, then the tour begins
+  updateNav();
+  buildControlsFor(0);
+  stages[0] && stages[0].enter && stages[0].enter();
+  requestAnimationFrame(frame);
+}
+window.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
 </html>
