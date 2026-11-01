@@ -6,53 +6,54 @@
 <title>Silicon to Screen</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#f8fafc;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden;height:100vh}
+body{background:#f8fafc;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden;height:100vh}
 canvas{position:fixed;top:0;left:0;width:100%;height:100%}
 
-/* Typing overlay */
-#text-overlay{position:fixed;top:0;left:0;right:0;bottom:80px;z-index:100;background:rgba(248,250,252,0.97);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;transition:opacity 0.5s}
+/* Text overlay */
+#text-overlay{position:fixed;top:0;left:0;right:0;bottom:60px;z-index:100;background:rgba(248,250,252,0.98);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px 40px;transition:opacity 0.6s ease}
 #text-overlay.hidden{opacity:0;pointer-events:none}
-#text-box{max-width:700px;text-align:center}
-#stage-num{font-family:monospace;font-size:12px;letter-spacing:0.3em;color:#64748b;margin-bottom:20px;text-transform:uppercase}
-#stage-title{font-size:28px;font-weight:700;margin-bottom:24px;line-height:1.2}
-#stage-desc{font-size:16px;line-height:1.8;color:#334155;white-space:pre-wrap;text-align:left}
-#cursor{display:inline-block;width:2px;height:1em;background:#0f172a;animation:blink 0.7s infinite;vertical-align:text-bottom}
+#text-box{max-width:720px;width:100%}
+#stage-num{font-family:"SFMono-Regular",Menlo,monospace;font-size:11px;letter-spacing:0.35em;color:#64748b;margin-bottom:24px;text-transform:uppercase}
+#stage-title{font-size:clamp(24px,4vw,36px);font-weight:700;line-height:1.2;margin:0 0 28px;color:#0f172a}
+#stage-desc{font-size:clamp(15px,2vw,18px);line-height:1.75;color:#334155;white-space:pre-wrap;text-align:left}
+.cursor{display:inline-block;width:2px;height:1em;background:#0f172a;margin-left:2px;animation:blink 0.7s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-#hint{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);font-family:monospace;font-size:11px;color:#94a3b8;opacity:0;transition:opacity 0.3s;z-index:101}
+#hint{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);font-family:monospace;font-size:11px;color:#94a3b8;opacity:0;transition:opacity 0.4s;z-index:101;letter-spacing:0.1em}
 #hint.show{opacity:1}
 
-/* Progress bar */
-#progress-bar{position:fixed;bottom:0;left:0;right:0;height:50px;background:rgba(255,255,255,0.95);border-top:1px solid #e2e8f0;z-index:90;display:flex;align-items:center;padding:0 20px;cursor:pointer}
-#progress-track{flex:1;height:6px;background:#e2e8f0;border-radius:3px;position:relative;margin:0 15px}
-#progress-fill{height:100%;background:linear-gradient(90deg,#0284c7,#059669);border-radius:3px;width:0%;transition:width 0.1s}
-#progress-thumb{position:absolute;top:50%;width:16px;height:16px;background:#0f172a;border:2px solid #fff;border-radius:50%;transform:translateY(-50%);left:0%;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
-#time-display{font-family:monospace;font-size:11px;color:#64748b;min-width:100px;text-align:right}
-
 /* HUD */
-#hud{position:fixed;top:0;left:0;right:0;height:50px;background:rgba(255,255,255,0.95);border-bottom:1px solid #e2e8f0;z-index:80;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
-#brand{font-size:14px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase}
-#brand span{font-size:10px;color:#94a3b8;display:block;letter-spacing:0.25em}
-#controls{display:flex;gap:10px;align-items:center}
-.btn{padding:6px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;transition:all 0.2s}
-.btn:hover{border-color:#0284c7;color:#0284c7}
-.btn.active{background:#0284c7;color:#fff;border-color:#0284c7}
-#stage-indicator{font-family:monospace;font-size:11px;color:#64748b}
+#hud{position:fixed;top:0;left:0;right:0;height:50px;background:rgba(255,255,255,0.95);border-bottom:1px solid #e2e8f0;z-index:90;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+#brand{font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase}
+#brand span{font-size:10px;color:#94a3b8;display:block;letter-spacing:0.25em;font-weight:400}
+#hud-controls{display:flex;gap:12px;align-items:center}
+.hud-btn{padding:6px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;transition:all 0.2s;color:#334155}
+.hud-btn:hover{border-color:#0284c7;color:#0284c7}
+.hud-btn.active{background:#0284c7;color:#fff;border-color:#0284c7}
+#stage-counter{font-family:monospace;font-size:11px;color:#64748b}
+
+/* Progress bar */
+#progress-bar{position:fixed;bottom:0;left:0;right:0;height:50px;background:rgba(255,255,255,0.98);border-top:1px solid #e2e8f0;z-index:90;display:flex;align-items:center;padding:0 20px;cursor:pointer;user-select:none}
+#progress-track{flex:1;height:4px;background:#e2e8f0;border-radius:4px;position:relative;margin:0 12px}
+#progress-fill{height:100%;background:linear-gradient(90deg,#0284c7,#059669);border-radius:4px;width:0%;pointer-events:none}
+#progress-thumb{position:absolute;top:50%;width:14px;height:14px;background:#0f172a;border:2px solid #fff;border-radius:50%;transform:translateY(-50%);left:0%;box-shadow:0 1px 4px rgba(0,0,0,0.2);pointer-events:none}
+#time-display{font-family:monospace;font-size:11px;color:#64748b;min-width:90px;text-align:right}
 
 /* Legend */
-#legend{position:fixed;right:20px;top:70px;z-index:70;display:flex;flex-direction:column;gap:8px}
-.legend-item{display:flex;align-items:center;gap:8px;font-family:monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#64748b}
-.legend-dot{width:12px;height:3px;border-radius:2px}
+#legend{position:fixed;right:20px;top:70px;z-index:80;display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-family:monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b}
+.legend-dot{width:14px;height:3px;border-radius:2px}
 
 /* Finale */
-#finale{position:fixed;inset:0;z-index:200;background:rgba(248,250,252,0.98);display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:10vw}
-#finale.show{display:flex}
-#finale blockquote{font-size:clamp(20px,3vw,32px);line-height:1.6;max-width:800px;margin-bottom:30px}
-#finale .hl{color:#0284c7;font-weight:600}
-#finale .who{font-family:monospace;font-size:12px;letter-spacing:0.3em;color:#94a3b8;text-transform:uppercase}
-#finale button{margin-top:30px;padding:12px 28px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;transition:all 0.2s}
+#finale{position:fixed;inset:0;z-index:200;background:rgba(248,250,252,0.98);display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:8vw}
+#finale.show{display:flex;animation:fadeIn 0.8s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.98)}to{opacity:1;transform:scale(1)}}
+#finale blockquote{font-size:clamp(20px,3.2vw,32px);line-height:1.6;max-width:820px;margin:0 0 24px;color:#0f172a;font-weight:300}
+#finale .hl{color:#0284c7;font-weight:500}
+#finale .who{font-family:monospace;font-size:11px;letter-spacing:0.3em;color:#64748b;text-transform:uppercase;margin-bottom:32px}
+#finale button{padding:12px 28px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;transition:all 0.25s;color:#0f172a}
 #finale button:hover{border-color:#0284c7;color:#0284c7}
 
-@media(max-width:768px){#legend{display:none}#text-overlay{padding:20px}}
+@media(max-width:768px){#legend{display:none}#text-overlay{padding:30px 20px}#hud{padding:0 16px}}
 </style>
 </head>
 <body>
@@ -68,20 +69,20 @@ canvas{position:fixed;top:0;left:0;width:100%;height:100%}
 </div>
 <div id="hint">PRESS SPACE OR CLICK TO CONTINUE</div>
 
+<div id="hud">
+  <div id="brand">Silicon to Screen<span>The Computer System Engine</span></div>
+  <div id="hud-controls">
+    <button class="hud-btn" id="play-btn" title="Pause/Play">❚❚</button>
+  </div>
+  <div id="stage-counter">1 / 6</div>
+</div>
+
 <div id="progress-bar" title="Click or drag to seek">
   <div id="progress-track">
     <div id="progress-fill"></div>
     <div id="progress-thumb"></div>
   </div>
-  <div id="time-display">0:00 / 1:30</div>
-</div>
-
-<div id="hud">
-  <div id="brand">Silicon to Screen<span>The Computer System Engine</span></div>
-  <div id="controls">
-    <button class="btn" id="play-btn">❚❚</button>
-  </div>
-  <div id="stage-indicator">1 / 6</div>
+  <div id="time-display">0:00 / 1:24</div>
 </div>
 
 <div id="legend">
@@ -99,7 +100,7 @@ canvas{position:fixed;top:0;left:0;width:100%;height:100%}
 
 <script>
 // =====================================================
-// SILICON TO SCREEN - Interactive Visual Engine
+// SILICON TO SCREEN — Complete Visual Engine
 // =====================================================
 
 const canvas = document.getElementById('cv');
@@ -125,430 +126,48 @@ function rgba(hex, a) {
 }
 
 // =====================================================
-// STAGES DATA
+// STAGES
 // =====================================================
 const stages = [
   {
     name: 'Input',
     title: 'Input & Signal Conversion',
-    desc: `At compile time, source code in Python, C++, or JavaScript is translated into machine code before the program ever runs.
-
-At runtime, hardware controllers digitize live physical signals — keystrokes, mouse movement, OCR camera scans, microphone audio — directly into binary packets on the system bus, bypassing the compiler entirely.`,
-    duration: 12,
-    draw: function(t) {
-      const cx = W/2, cy = H/2;
-      
-      // Grid background
-      ctx.strokeStyle = rgba(C.grid, 0.5);
-      ctx.lineWidth = 1;
-      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      
-      // Split view
-      ctx.strokeStyle = C.grid;
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(cx, cy-200); ctx.lineTo(cx, cy+200); ctx.stroke();
-      
-      // Left: Compiler
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillRect(50, cy-180, 300, 360);
-      ctx.strokeStyle = C.grid;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(50, cy-180, 300, 360);
-      
-      ctx.fillStyle = C.text;
-      ctx.font = 'bold 16px monospace';
-      ctx.fillText('COMPILER NODE', 70, cy-150);
-      
-      ctx.fillStyle = C.muted;
-      ctx.font = '12px monospace';
-      ctx.fillText('source .py .cpp .js', 70, cy-120);
-      
-      // Code lines
-      const lines = [[0.8,C.amber],[0.6,C.cyan],[0.72,C.emerald],[0.5,C.muted],[0.8,C.cyan]];
-      lines.forEach((l,i) => {
-        ctx.strokeStyle = l[1];
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(70, cy-80+i*20);
-        ctx.lineTo(70+200*l[0], cy-80+i*20);
-        ctx.stroke();
-      });
-      
-      ctx.fillStyle = C.cyan;
-      ctx.font = '11px monospace';
-      ctx.fillText('→ machine code', 70, cy+140);
-      
-      // Right: Runtime
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillRect(W-350, cy-180, 300, 360);
-      ctx.strokeStyle = C.grid;
-      ctx.strokeRect(W-350, cy-180, 300, 360);
-      
-      ctx.fillStyle = C.text;
-      ctx.font = 'bold 16px monospace';
-      ctx.fillText('PERIPHERALS', W-330, cy-150);
-      
-      ctx.fillStyle = C.muted;
-      ctx.font = '12px monospace';
-      ctx.fillText('keyboard · mouse · mic · camera', W-330, cy-120);
-      
-      // Animated waves
-      for(let i = 0; i < 4; i++) {
-        const y = cy-60+i*40;
-        ctx.strokeStyle = [C.cyan,C.amber,C.emerald,C.magenta][i];
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        for(let x = 0; x < 200; x++) {
-          const yy = y + Math.sin((x+t*100)*0.05)*8;
-          x === 0 ? ctx.moveTo(W-330+x, yy) : ctx.lineTo(W-330+x, yy);
-        }
-        ctx.stroke();
-      }
-      
-      ctx.fillStyle = C.magenta;
-      ctx.font = '11px monospace';
-      ctx.fillText('→ binary packets', W-330, cy+140);
-      
-      // Bus label
-      ctx.fillStyle = C.cyan;
-      ctx.font = 'bold 12px monospace';
-      ctx.fillText('SYSTEM BUS', cx-40, cy+180);
-    }
+    desc: 'At compile time, source code in Python, C++, or JavaScript is translated into machine code before the program runs.\n\nAt runtime, hardware controllers digitize live physical signals — keystrokes, mouse movement, OCR scans, microphone audio — directly into binary packets on the system bus, bypassing the compiler entirely.',
+    duration: 14
   },
   {
     name: 'Software',
     title: 'Software Abstraction & Register Mapping',
-    desc: `Applications like Valorant, Chrome, and Neovim request services from the operating system.
-
-The OS kernel — whether macOS, Windows, or Linux — manages processes, memory, files, and networks through both GUI and CLI interfaces.
-
-A system call descends into kernel space where a device driver translates the request into precise hardware register writes.
-
-Middleware sits far above and never touches a register directly.`,
-    duration: 14,
-    draw: function(t) {
-      const cx = W/2, cy = H/2;
-      
-      // Grid
-      ctx.strokeStyle = rgba(C.grid, 0.5);
-      ctx.lineWidth = 1;
-      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      
-      // Stack layers
-      const layers = [
-        {name: 'Applications', sub: 'Valorant · Chrome · Neovim', y: cy-150, color: C.amber},
-        {name: 'OS Kernel', sub: 'macOS · Windows · Linux', y: cy-50, color: C.cyan},
-        {name: 'Drivers', sub: 'Hardware register translators', y: cy+50, color: C.emerald},
-        {name: 'Hardware', sub: 'Control registers', y: cy+150, color: C.magenta}
-      ];
-      
-      layers.forEach((l,i) => {
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fillRect(cx-200, l.y-30, 400, 60);
-        ctx.strokeStyle = l.color;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(cx-200, l.y-30, 400, 60);
-        
-        ctx.fillStyle = C.text;
-        ctx.font = 'bold 14px monospace';
-        ctx.fillText(l.name, cx-180, l.y+5);
-        
-        ctx.fillStyle = C.muted;
-        ctx.font = '11px monospace';
-        ctx.fillText(l.sub, cx-180, l.y+22);
-        
-        if(i < layers.length-1) {
-          ctx.strokeStyle = C.grid;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(cx, l.y+30);
-          ctx.lineTo(cx, layers[i+1].y-30);
-          ctx.stroke();
-        }
-      });
-      
-      // Middleware branch
-      ctx.fillStyle = 'rgba(190,18,60,0.05)';
-      ctx.fillRect(cx+220, cy-80, 160, 120);
-      ctx.strokeStyle = C.magenta;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(cx+220, cy-80, 160, 120);
-      
-      ctx.fillStyle = C.magenta;
-      ctx.font = 'bold 11px monospace';
-      ctx.fillText('Middleware', cx+240, cy-50);
-      ctx.fillStyle = C.muted;
-      ctx.font = '10px monospace';
-      ctx.fillText('DB API layer', cx+240, cy-30);
-      ctx.fillText('NOT a driver', cx+240, cy-10);
-    }
+    desc: 'Applications like Valorant, Chrome, and Neovim request services from the operating system.\n\nThe OS kernel manages processes, memory, files, and networks through both GUI and CLI. A system call descends into kernel space where a device driver translates requests into hardware register writes.\n\nMiddleware sits far above and never touches a register directly.',
+    duration: 16
   },
   {
     name: 'Board',
     title: 'Motherboard & Tri-Bus Flow',
-    desc: `The motherboard is the physical foundation that interconnects every component.
-
-The PSU distributes energy through a regulated grid. Heat sinks and cooling fans prevent thermal throttling.
-
-The Platform Controller Hub links PCIe slots for GPU and NIC, SATA for storage, and USB for peripherals.
-
-Three buses carry all traffic: Address (unidirectional), Data (bidirectional), and Control (strobes and IRQs).`,
-    duration: 14,
-    draw: function(t) {
-      const cx = W/2, cy = H/2;
-      
-      // Grid
-      ctx.strokeStyle = rgba(C.grid, 0.5);
-      ctx.lineWidth = 1;
-      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      
-      // Board outline
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.fillRect(cx-300, cy-180, 600, 360);
-      ctx.strokeStyle = C.grid;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(cx-300, cy-180, 600, 360);
-      
-      // Components
-      const comps = [
-        {name: 'CPU', x: cx-100, y: cy-100, w: 80, h: 80},
-        {name: 'RAM', x: cx+50, y: cy-100, w: 60, h: 80},
-        {name: 'GPU', x: cx-250, y: cy-50, w: 100, h: 40},
-        {name: 'PCH', x: cx-50, y: cy+80, w: 60, h: 40},
-        {name: 'SATA', x: cx+80, y: cy+80, w: 60, h: 40}
-      ];
-      
-      comps.forEach(c => {
-        ctx.fillStyle = 'rgba(255,255,255,0.95)';
-        ctx.fillRect(c.x, c.y, c.w, c.h);
-        ctx.strokeStyle = C.cyan;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(c.x, c.y, c.w, c.h);
-        ctx.fillStyle = C.text;
-        ctx.font = 'bold 10px monospace';
-        ctx.fillText(c.name, c.x+c.w/2-15, c.y+c.h/2+3);
-      });
-      
-      // Buses
-      const buses = [
-        {name: 'ADDRESS', y: cy+20, color: C.cyan, uni: true},
-        {name: 'DATA', y: cy+50, color: C.amber, uni: false},
-        {name: 'CONTROL', y: cy+80, color: C.magenta, uni: true}
-      ];
-      
-      buses.forEach(b => {
-        ctx.strokeStyle = b.color;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(cx-280, b.y);
-        ctx.lineTo(cx+280, b.y);
-        ctx.stroke();
-        
-        // Animated packets
-        const px = cx-280 + ((t*50) % 560);
-        ctx.fillStyle = b.color;
-        ctx.beginPath();
-        ctx.arc(px, b.y, 4, 0, Math.PI*2);
-        ctx.fill();
-        
-        ctx.fillStyle = b.color;
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText(b.name, cx-280, b.y-10);
-      });
-    }
+    desc: 'The motherboard interconnects every component. The PSU distributes energy, heat sinks prevent thermal throttling, and the Platform Controller Hub links PCIe slots for GPU and NIC, SATA for storage, and USB for peripherals.\n\nThree buses carry all traffic: Address (unidirectional), Data (bidirectional), and Control (strobes and IRQs).',
+    duration: 16
   },
   {
     name: 'Memory',
     title: 'Memory Pyramid & Locality',
-    desc: `Data lives in a hierarchy of speed, volatility, and cost.
-
-Non-volatile ROM holds the BIOS firmware that initializes the machine. Volatile DRAM serves as the working memory for active processes.
-
-Between them sit fast SRAM caches across L1, L2, and L3 tiers — exploiting temporal and spatial locality of reference.
-
-Below lies secondary storage: magnetic tape, HDD, optical discs, and non-volatile SSDs.`,
-    duration: 14,
-    draw: function(t) {
-      const cx = W/2, cy = H/2;
-      
-      // Grid
-      ctx.strokeStyle = rgba(C.grid, 0.5);
-      ctx.lineWidth = 1;
-      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      
-      // Pyramid
-      const tiers = [
-        {name: 'REGISTERS', lat: '1 cyc', w: 100, y: cy-140, color: C.text},
-        {name: 'L1 CACHE', lat: '3 cyc', w: 140, y: cy-90, color: C.emerald},
-        {name: 'L2 CACHE', lat: '12 cyc', w: 180, y: cy-40, color: C.emerald},
-        {name: 'L3 CACHE', lat: '40 cyc', w: 220, y: cy+10, color: C.emerald},
-        {name: 'DRAM', lat: '200 cyc', w: 260, y: cy+60, color: C.cyan},
-        {name: 'SSD', lat: '20000 cyc', w: 300, y: cy+110, color: C.amber}
-      ];
-      
-      tiers.forEach((tier,i) => {
-        const x = cx - tier.w/2;
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fillRect(x, tier.y-20, tier.w, 40);
-        ctx.strokeStyle = tier.color;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, tier.y-20, tier.w, 40);
-        
-        ctx.fillStyle = C.text;
-        ctx.font = 'bold 11px monospace';
-        ctx.fillText(tier.name, x+10, tier.y+5);
-        
-        ctx.fillStyle = C.muted;
-        ctx.font = '10px monospace';
-        ctx.fillText(tier.lat, x+tier.w-50, tier.y+5);
-      });
-      
-      ctx.fillStyle = C.muted;
-      ctx.font = '10px monospace';
-      ctx.fillText('LOWER = SLOWER = CHEAPER', cx-80, cy+140);
-    }
+    desc: 'Data lives in a hierarchy of speed and cost. Non-volatile ROM holds BIOS firmware; volatile DRAM serves as working memory.\n\nFast SRAM caches (L1, L2, L3) exploit locality of reference so the CPU rarely waits. Below lies secondary storage: magnetic tape, HDD, optical discs, and non-volatile SSDs.',
+    duration: 16
   },
   {
     name: 'CPU',
     title: 'Machine Cycle & Circuit Engine',
-    desc: `Inside the CPU core, the Fetch-Decode-Execute cycle runs endlessly.
-
-The Program Counter publishes an address to the Memory Address Register. RAM returns the instruction to the Memory Data Register, then to the Current Instruction Register.
-
-The Control Unit decodes the opcode into electrical signals, and the ALU computes the result into the Accumulator.
-
-At the silicon level, every operation begins with NPN transistors switching states.`,
-    duration: 14,
-    draw: function(t) {
-      const cx = W/2, cy = H/2;
-      
-      // Grid
-      ctx.strokeStyle = rgba(C.grid, 0.5);
-      ctx.lineWidth = 1;
-      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      
-      // CPU diagram
-      const regs = [
-        {name: 'PC', x: cx-200, y: cy-100},
-        {name: 'MAR', x: cx-100, y: cy-100},
-        {name: 'RAM', x: cx, y: cy-100},
-        {name: 'MDR', x: cx+100, y: cy-50},
-        {name: 'CIR', x: cx+100, y: cy},
-        {name: 'CU', x: cx+100, y: cy+50},
-        {name: 'ALU', x: cx, y: cy+100},
-        {name: 'ACC', x: cx-100, y: cy+100}
-      ];
-      
-      // Draw connections
-      ctx.strokeStyle = C.grid;
-      ctx.lineWidth = 1;
-      for(let i = 0; i < regs.length-1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(regs[i].x, regs[i].y);
-        ctx.lineTo(regs[i+1].x, regs[i+1].y);
-        ctx.stroke();
-      }
-      
-      // Draw registers
-      regs.forEach((r,i) => {
-        ctx.fillStyle = 'rgba(255,255,255,0.95)';
-        ctx.fillRect(r.x-30, r.y-20, 60, 40);
-        ctx.strokeStyle = [C.cyan,C.cyan,C.cyan,C.amber,C.amber,C.emerald,C.emerald,C.amber][i];
-        ctx.lineWidth = 2;
-        ctx.strokeRect(r.x-30, r.y-20, 60, 40);
-        ctx.fillStyle = C.text;
-        ctx.font = 'bold 11px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(r.name, r.x, r.y+4);
-        ctx.textAlign = 'left';
-      });
-      
-      ctx.fillStyle = C.muted;
-      ctx.font = '10px monospace';
-      ctx.fillText('FETCH → DECODE → EXECUTE', cx-80, cy+140);
-    }
+    desc: 'Inside the CPU, the Fetch-Decode-Execute cycle runs endlessly. The Program Counter publishes an address; RAM returns data through the MDR and CIR.\n\nThe Control Unit decodes opcodes into signals, and the ALU computes results into the Accumulator. At the silicon level, NPN transistors switch to form logic gates.',
+    duration: 16
   },
   {
     name: 'Transistor',
     title: 'Transistors & Logic Circuits',
-    desc: `At the deepest level, computation is electrons flowing through silicon.
-
-NPN transistors act as switches, turning on and off in response to base currents. These combine into fundamental logic gates: AND, OR, and NOT.
-
-Groups of gates form combinational circuits — adders that perform arithmetic, multiplexers that route data.
-
-Other gate arrangements create sequential circuits: flip-flops and latches that store state. Together, they build the processor — transforming physics into information.`,
-    duration: 14,
-    draw: function(t) {
-      const cx = W/2, cy = H/2;
-      
-      // Grid
-      ctx.strokeStyle = rgba(C.grid, 0.5);
-      ctx.lineWidth = 1;
-      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      
-      // Transistors
-      for(let i = 0; i < 3; i++) {
-        const x = cx-150+i*100;
-        ctx.strokeStyle = C.emerald;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x, cy-80);
-        ctx.lineTo(x, cy-20);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x-15, cy-50);
-        ctx.lineTo(x+15, cy-50);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x-15, cy-30);
-        ctx.lineTo(x+15, cy-30);
-        ctx.stroke();
-        ctx.fillStyle = C.emerald;
-        ctx.beginPath();
-        ctx.arc(x, cy-80, 3, 0, Math.PI*2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(x, cy-20, 3, 0, Math.PI*2);
-        ctx.fill();
-      }
-      
-      ctx.fillStyle = C.text;
-      ctx.font = 'bold 12px monospace';
-      ctx.fillText('NPN TRANSISTORS', cx-60, cy+10);
-      
-      // Gates
-      const gates = ['AND','OR','NOT'];
-      gates.forEach((g,i) => {
-        const x = cx-100+i*100;
-        ctx.fillStyle = 'rgba(5,150,105,0.1)';
-        ctx.fillRect(x-35, cy+40, 70, 40);
-        ctx.strokeStyle = C.emerald;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x-35, cy+40, 70, 40);
-        ctx.fillStyle = C.emerald;
-        ctx.font = 'bold 12px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(g, x, cy+65);
-        ctx.textAlign = 'left';
-      });
-      
-      // Circuits
-      ctx.fillStyle = C.amber;
-      ctx.font = 'bold 11px monospace';
-      ctx.fillText('COMBINATIONAL → ALU', cx-80, cy+110);
-      
-      ctx.fillStyle = C.cyan;
-      ctx.fillText('SEQUENTIAL → REGISTERS', cx-90, cy+130);
-    }
+    desc: 'At the deepest level, computation is electrons flowing through silicon. NPN transistors act as switches, combining into AND, OR, and NOT gates.\n\nGates form combinational circuits — adders for arithmetic, multiplexers for routing. Sequential circuits like flip-flops store state. Together, they build the processor.',
+    duration: 16
   }
 ];
+
+const TOTAL_DURATION = stages.reduce((a, s) => a + s.duration, 0);
 
 // =====================================================
 // STATE
@@ -560,134 +179,224 @@ let typIdx = 0;
 let typTimer = null;
 let playing = true;
 let tourTime = 0;
-let totalTime = stages.reduce((a,s)=>a+s.duration, 0);
 let startTime = 0;
 let timerInterval = null;
+let isDragging = false;
+
+// Camera
+let camZoom = 1;
+let camTargetZoom = 1;
+let camX = 0;
+let camY = 0;
+let camTargetX = 0;
+let camTargetY = 0;
+let camPhase = 'macro'; // macro, zooming, zoomed, rewinding
+let camAnimStart = 0;
+let camAnimDuration = 0;
+let camAnimFrom = {};
+let camAnimTo = {};
+
+// =====================================================
+// DOM REFS
+// =====================================================
+const overlay = document.getElementById('text-overlay');
+const stageNum = document.getElementById('stage-num');
+const stageTitle = document.getElementById('stage-title');
+const stageDesc = document.getElementById('stage-desc');
+const hint = document.getElementById('hint');
+const playBtn = document.getElementById('play-btn');
+const stageCounter = document.getElementById('stage-counter');
+const progressBar = document.getElementById('progress-bar');
+const progressFill = document.getElementById('progress-fill');
+const progressThumb = document.getElementById('progress-thumb');
+const timeDisplay = document.getElementById('time-display');
+const finale = document.getElementById('finale');
 
 // =====================================================
 // TYPING ANIMATION
 // =====================================================
-function startTyping(stage) {
+function startTyping(stageIndex) {
+  currentStage = stageIndex;
   typState = 'typing';
-  typChars = stage.desc;
+  typChars = stages[stageIndex].desc;
   typIdx = 0;
   
-  document.getElementById('stage-num').textContent = `STAGE ${currentStage+1} OF ${stages.length}`;
-  document.getElementById('stage-title').textContent = stage.title;
-  document.getElementById('stage-desc').innerHTML = '';
-  document.getElementById('text-overlay').classList.remove('hidden');
-  document.getElementById('hint').classList.remove('show');
+  stageNum.textContent = `STAGE ${stageIndex + 1} OF ${stages.length}`;
+  stageTitle.textContent = stages[stageIndex].title;
+  stageDesc.innerHTML = '';
+  overlay.classList.remove('hidden');
+  hint.classList.remove('show');
   
   animateTyping();
 }
 
 function animateTyping() {
-  if(typState !== 'typing') return;
+  if (typState !== 'typing') return;
   
-  const el = document.getElementById('stage-desc');
   const toAdd = typChars.substring(typIdx, typIdx + 2);
-  el.innerHTML = typChars.substring(0, typIdx + toAdd.length) + '<span id="cursor">|</span>';
+  stageDesc.innerHTML = typChars.substring(0, typIdx + toAdd.length) + '<span class="cursor">|</span>';
   typIdx += toAdd.length;
   
-  if(typIdx >= typChars.length) {
+  if (typIdx >= typChars.length) {
     typState = 'done';
-    setTimeout(() => {
-      document.getElementById('text-overlay').classList.add('hidden');
-      document.getElementById('hint').classList.add('show');
-      showScene();
-    }, 500);
+    setTimeout(showScene, 400);
   } else {
-    typTimer = setTimeout(animateTyping, 30);
+    typTimer = setTimeout(animateTyping, 28);
   }
 }
 
 function advanceTyping() {
-  if(typState === 'typing') {
+  if (typState === 'typing') {
     clearTimeout(typTimer);
     typState = 'done';
-    document.getElementById('stage-desc').innerHTML = typChars;
-    setTimeout(() => {
-      document.getElementById('text-overlay').classList.add('hidden');
-      document.getElementById('hint').classList.add('show');
-      showScene();
-    }, 200);
-  } else if(typState === 'done') {
-    document.getElementById('text-overlay').classList.add('hidden');
+    stageDesc.innerHTML = typChars;
+    setTimeout(showScene, 300);
+  } else if (typState === 'done') {
     showScene();
   }
 }
 
 function showScene() {
   typState = 'scene';
-  document.getElementById('hint').classList.remove('show');
+  overlay.classList.add('hidden');
+  hint.classList.remove('show');
   
-  const stage = stages[currentStage];
-  document.getElementById('stage-indicator').textContent = `${currentStage+1} / ${stages.length}`;
+  stageCounter.textContent = `${currentStage + 1} / ${stages.length}`;
+  
+  // Start camera animation
+  if (currentStage < stages.length - 1) {
+    startZoomIn();
+  } else {
+    // Last stage - go to finale after delay
+    setTimeout(showFinale, 3000);
+  }
   
   // Auto advance
-  if(playing && currentStage < stages.length - 1) {
+  if (playing) {
     setTimeout(() => {
-      if(typState === 'scene') nextStage();
-    }, stage.duration * 1000);
-  } else if(currentStage >= stages.length - 1) {
-    setTimeout(() => showFinale(), 2000);
+      if (typState === 'scene' && currentStage < stages.length - 1) {
+        nextStage();
+      }
+    }, stages[currentStage].duration * 1000);
   }
 }
 
 function nextStage() {
-  if(currentStage < stages.length - 1) {
+  if (currentStage < stages.length - 1) {
     currentStage++;
-    startTyping(stages[currentStage]);
+    startTyping(currentStage);
   }
+}
+
+// =====================================================
+// CAMERA ZOOM
+// =====================================================
+function startZoomIn() {
+  camPhase = 'zooming';
+  camAnimStart = performance.now();
+  camAnimDuration = 3000;
+  camAnimFrom = { zoom: camZoom, x: camX, y: camY };
+  camAnimTo = { zoom: 3 + currentStage * 2, x: 0, y: 0 };
+}
+
+function startRewind() {
+  camPhase = 'rewinding';
+  camAnimStart = performance.now();
+  camAnimDuration = 2500;
+  camAnimFrom = { zoom: camZoom, x: camX, y: camY };
+  camAnimTo = { zoom: 1, x: 0, y: 0 };
+}
+
+function updateCamera(now) {
+  const elapsed = now - camAnimStart;
+  const progress = Math.min(1, elapsed / camAnimDuration);
+  const eased = easeInOutCubic(progress);
+  
+  if (camPhase === 'zooming') {
+    camZoom = lerp(camAnimFrom.zoom, camAnimTo.zoom, eased);
+    camX = lerp(camAnimFrom.x, camAnimTo.x, eased);
+    camY = lerp(camAnimFrom.y, camAnimTo.y, eased);
+    if (progress >= 1) {
+      camPhase = 'zoomed';
+      camZoom = camAnimTo.zoom;
+    }
+  } else if (camPhase === 'rewinding') {
+    camZoom = lerp(camAnimFrom.zoom, camAnimTo.zoom, eased);
+    camX = lerp(camAnimFrom.x, camAnimTo.x, eased);
+    camY = lerp(camAnimFrom.y, camAnimTo.y, eased);
+    if (progress >= 1) {
+      camPhase = 'macro';
+      showFinale();
+    }
+  } else {
+    // Smooth follow
+    camZoom += (camTargetZoom - camZoom) * 0.05;
+    camX += (camTargetX - camX) * 0.05;
+    camY += (camTargetY - camY) * 0.05;
+  }
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
 }
 
 // =====================================================
 // PROGRESS BAR
 // =====================================================
-let isDragging = false;
-
 function updateProgress() {
-  const pct = Math.min(100, (tourTime / totalTime) * 100);
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-thumb').style.left = `calc(${pct}% - 8px)`;
+  const pct = Math.max(0, Math.min(100, (tourTime / TOTAL_DURATION) * 100));
+  progressFill.style.width = pct + '%';
+  progressThumb.style.left = `calc(${pct}% - 7px)`;
   
   const cur = Math.floor(tourTime);
-  const tot = totalTime;
-  document.getElementById('time-display').textContent = 
-    `${Math.floor(cur/60)}:${String(cur%60).padStart(2,'0')} / ${Math.floor(tot/60)}:${String(tot%60).padStart(2,'0')}`;
+  const tot = TOTAL_DURATION;
+  timeDisplay.textContent = `${Math.floor(cur/60)}:${String(cur%60).padStart(2,'0')} / ${Math.floor(tot/60)}:${String(tot%60).padStart(2,'0')}`;
 }
 
 function seekTo(pct) {
   pct = Math.max(0, Math.min(1, pct));
-  const targetTime = pct * totalTime;
+  const targetTime = pct * TOTAL_DURATION;
   
   let accum = 0;
-  for(let i = 0; i < stages.length; i++) {
-    if(accum + stages[i].duration >= targetTime) {
-      currentStage = i;
+  for (let i = 0; i < stages.length; i++) {
+    if (accum + stages[i].duration >= targetTime) {
       tourTime = accum + (targetTime - accum);
-      startTyping(stages[i]);
-      break;
+      if (typState === 'scene' || typState === 'done') {
+        currentStage = i;
+        startTyping(i);
+      } else {
+        currentStage = i;
+        tourTime = accum;
+        typState = 'scene';
+        overlay.classList.add('hidden');
+        if (i < stages.length - 1) startZoomIn();
+        else setTimeout(showFinale, 500);
+      }
+      updateProgress();
+      return;
     }
     accum += stages[i].duration;
   }
-  updateProgress();
 }
 
-document.getElementById('progress-bar').addEventListener('click', e => {
-  const rect = document.getElementById('progress-track').getBoundingClientRect();
+progressBar.addEventListener('click', e => {
+  const rect = progressBar.getBoundingClientRect();
   seekTo((e.clientX - rect.left) / rect.width);
 });
 
-document.getElementById('progress-bar').addEventListener('mousedown', e => {
+progressBar.addEventListener('mousedown', e => {
   isDragging = true;
-  const rect = document.getElementById('progress-track').getBoundingClientRect();
+  const rect = progressBar.getBoundingClientRect();
   seekTo((e.clientX - rect.left) / rect.width);
 });
 
 document.addEventListener('mousemove', e => {
-  if(isDragging) {
-    const rect = document.getElementById('progress-track').getBoundingClientRect();
+  if (isDragging) {
+    const rect = progressBar.getBoundingClientRect();
     seekTo((e.clientX - rect.left) / rect.width);
   }
 });
@@ -697,22 +406,35 @@ document.addEventListener('mouseup', () => isDragging = false);
 // =====================================================
 // CONTROLS
 // =====================================================
-document.getElementById('play-btn').addEventListener('click', () => {
+playBtn.addEventListener('click', () => {
   playing = !playing;
-  document.getElementById('play-btn').textContent = playing ? '❚❚' : '▶';
-  if(playing) startTimer();
+  playBtn.textContent = playing ? '❚❚' : '▶';
+  playBtn.classList.toggle('active', playing);
+  if (playing) startTimer();
   else stopTimer();
 });
 
 document.addEventListener('keydown', e => {
-  if(e.code === 'Space' || e.key === ' ') {
+  if (e.code === 'Space' || e.key === ' ') {
     e.preventDefault();
     advanceTyping();
-  } else if(e.key === 'ArrowRight') {
-    nextStage();
-  } else if(e.key === 'ArrowLeft' && currentStage > 0) {
-    currentStage--;
-    startTyping(stages[currentStage]);
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (typState === 'typing') {
+      advanceTyping();
+    } else if (currentStage < stages.length - 1) {
+      tourTime += stages[currentStage].duration;
+      nextStage();
+    }
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (currentStage > 0) {
+      let accum = 0;
+      for (let i = 0; i < currentStage; i++) accum += stages[i].duration;
+      tourTime = accum;
+      currentStage--;
+      startTyping(currentStage);
+    }
   }
 });
 
@@ -722,24 +444,39 @@ function restartTour() {
   currentStage = 0;
   tourTime = 0;
   playing = true;
-  document.getElementById('finale').classList.remove('show');
-  document.getElementById('play-btn').textContent = '❚❚';
+  camZoom = 1;
+  camPhase = 'macro';
+  finale.classList.remove('show');
+  playBtn.textContent = '❚❚';
+  playBtn.classList.add('active');
   startTimer();
-  startTyping(stages[0]);
+  startTyping(0);
+  updateProgress();
 }
 
 function startTimer() {
-  if(!startTime) startTime = performance.now();
+  if (!startTime) startTime = performance.now();
   timerInterval = setInterval(() => {
-    if(playing && typState === 'scene') {
+    if (playing && typState === 'scene') {
       tourTime = (performance.now() - startTime) / 1000;
       updateProgress();
     }
-  }, 100);
+  }, 50);
 }
 
 function stopTimer() {
   clearInterval(timerInterval);
+}
+
+function showFinale() {
+  if (currentStage === stages.length - 1 || camPhase === 'rewinding') {
+    if (camPhase !== 'rewinding') startRewind();
+    setTimeout(() => {
+      finale.classList.add('show');
+      tourTime = TOTAL_DURATION;
+      updateProgress();
+    }, 2600);
+  }
 }
 
 // =====================================================
@@ -747,18 +484,401 @@ function stopTimer() {
 // =====================================================
 let lastTime = 0;
 
+function drawGrid(t) {
+  ctx.strokeStyle = rgba(C.grid, 0.4);
+  ctx.lineWidth = 1;
+  const gp = 40;
+  const ox = (-camX * camZoom + W/2) % gp;
+  const oy = (-camY * camZoom + H/2) % gp;
+  for (let x = ox; x < W; x += gp) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = oy; y < H; y += gp) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+}
+
+function drawStage(t) {
+  const stage = stages[currentStage];
+  if (!stage) return;
+  
+  ctx.save();
+  ctx.translate(W/2 - camX * camZoom, H/2 - camY * camZoom);
+  ctx.scale(camZoom, camZoom);
+  
+  // Save context for stage drawing
+  const savedCtx = ctx;
+  
+  switch(currentStage) {
+    case 0: drawInputStage(t, savedCtx); break;
+    case 1: drawSoftwareStage(t, savedCtx); break;
+    case 2: drawBoardStage(t, savedCtx); break;
+    case 3: drawMemoryStage(t, savedCtx); break;
+    case 4: drawCPUStage(t, savedCtx); break;
+    case 5: drawTransistorStage(t, savedCtx); break;
+  }
+  
+  ctx.restore();
+}
+
+function drawInputStage(t, ctx) {
+  const cx = 0, cy = 0;
+  
+  // Divider
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, cy-200); ctx.lineTo(0, cy+200); ctx.stroke();
+  
+  // Left: Compiler
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillRect(-W/2+50, cy-180, 280, 360);
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(-W/2+50, cy-180, 280, 360);
+  
+  ctx.fillStyle = C.text;
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText('COMPILER', -W/2+70, cy-150);
+  
+  ctx.fillStyle = C.muted;
+  ctx.font = '11px monospace';
+  ctx.fillText('source .py .cpp .js', -W/2+70, cy-125);
+  
+  // Code lines
+  const lines = [[0.8,C.amber],[0.6,C.cyan],[0.72,C.emerald],[0.5,C.muted]];
+  lines.forEach((l,i) => {
+    ctx.strokeStyle = l[1];
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-W/2+70, cy-80+i*18);
+    ctx.lineTo(-W/2+70+180*l[0], cy-80+i*18);
+    ctx.stroke();
+  });
+  
+  ctx.fillStyle = C.cyan;
+  ctx.font = 'bold 11px monospace';
+  ctx.fillText('→ machine code', -W/2+70, cy+140);
+  
+  // Right: Runtime
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillRect(W/2-330, cy-180, 280, 360);
+  ctx.strokeStyle = C.grid;
+  ctx.strokeRect(W/2-330, cy-180, 280, 360);
+  
+  ctx.fillStyle = C.text;
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText('PERIPHERALS', W/2-310, cy-150);
+  
+  ctx.fillStyle = C.muted;
+  ctx.font = '11px monospace';
+  ctx.fillText('keyboard · mouse · mic', W/2-310, cy-125);
+  
+  // Animated waves
+  for(let i = 0; i < 4; i++) {
+    const y = cy-60+i*35;
+    ctx.strokeStyle = [C.cyan,C.amber,C.emerald,C.magenta][i];
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for(let x = 0; x < 200; x++) {
+      const yy = y + Math.sin((x+t*80)*0.05)*6;
+      x === 0 ? ctx.moveTo(W/2-310+x, yy) : ctx.lineTo(W/2-310+x, yy);
+    }
+    ctx.stroke();
+  }
+  
+  ctx.fillStyle = C.magenta;
+  ctx.font = 'bold 11px monospace';
+  ctx.fillText('→ binary packets', W/2-310, cy+140);
+  
+  // Bus label
+  ctx.fillStyle = C.cyan;
+  ctx.font = 'bold 12px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('SYSTEM BUS', 0, cy+180);
+  ctx.textAlign = 'left';
+}
+
+function drawSoftwareStage(t, ctx) {
+  const cx = 0, cy = 0;
+  
+  // Stack layers
+  const layers = [
+    {name: 'APPLICATIONS', sub: 'Valorant · Chrome · Neovim', y: cy-140, color: C.amber},
+    {name: 'OS KERNEL', sub: 'macOS · Windows · Linux', y: cy-50, color: C.cyan},
+    {name: 'DRIVERS', sub: 'Hardware translators', y: cy+40, color: C.emerald},
+    {name: 'HARDWARE', sub: 'Control registers', y: cy+130, color: C.magenta}
+  ];
+  
+  layers.forEach((l,i) => {
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.fillRect(-180, l.y-28, 360, 56);
+    ctx.strokeStyle = l.color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-180, l.y-28, 360, 56);
+    
+    ctx.fillStyle = C.text;
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(l.name, -160, l.y+5);
+    
+    ctx.fillStyle = C.muted;
+    ctx.font = '10px monospace';
+    ctx.fillText(l.sub, -160, l.y+20);
+    
+    if (i < layers.length-1) {
+      ctx.strokeStyle = C.grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, l.y+28);
+      ctx.lineTo(0, layers[i+1].y-28);
+      ctx.stroke();
+    }
+  });
+  
+  // Middleware
+  ctx.fillStyle = 'rgba(190,18,60,0.08)';
+  ctx.fillRect(200, cy-80, 140, 100);
+  ctx.strokeStyle = C.magenta;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(200, cy-80, 140, 100);
+  
+  ctx.fillStyle = C.magenta;
+  ctx.font = 'bold 10px monospace';
+  ctx.fillText('MIDDLEWARE', 215, cy-55);
+  ctx.fillStyle = C.muted;
+  ctx.font = '9px monospace';
+  ctx.fillText('DB API layer', 215, cy-35);
+  ctx.fillText('NOT a driver', 215, cy-15);
+}
+
+function drawBoardStage(t, ctx) {
+  const cx = 0, cy = 0;
+  
+  // Board outline
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillRect(-280, cy-160, 560, 320);
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-280, cy-160, 560, 320);
+  
+  // Components
+  const comps = [
+    {name: 'CPU', x: -80, y: cy-100, w: 80, h: 70},
+    {name: 'RAM', x: 80, y: cy-100, w: 60, h: 70},
+    {name: 'GPU', x: -240, y: cy-40, w: 100, h: 35},
+    {name: 'PCH', x: -40, y: cy+80, w: 60, h: 35},
+    {name: 'SATA', x: 60, y: cy+80, w: 60, h: 35}
+  ];
+  
+  comps.forEach(c => {
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.fillRect(c.x, c.y, c.w, c.h);
+    ctx.strokeStyle = C.cyan;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(c.x, c.y, c.w, c.h);
+    ctx.fillStyle = C.text;
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(c.name, c.x+c.w/2, c.y+c.h/2+4);
+    ctx.textAlign = 'left';
+  });
+  
+  // Buses
+  const buses = [
+    {name: 'ADDRESS', y: cy+20, color: C.cyan},
+    {name: 'DATA', y: cy+50, color: C.amber},
+    {name: 'CONTROL', y: cy+80, color: C.magenta}
+  ];
+  
+  buses.forEach(b => {
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-260, b.y);
+    ctx.lineTo(260, b.y);
+    ctx.stroke();
+    
+    // Animated packet
+    const px = -260 + ((t*40) % 520);
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.arc(px, b.y, 4, 0, Math.PI*2);
+    ctx.fill();
+    
+    ctx.fillStyle = b.color;
+    ctx.font = 'bold 9px monospace';
+    ctx.fillText(b.name, -260, b.y-8);
+  });
+}
+
+function drawMemoryStage(t, ctx) {
+  const cx = 0, cy = 0;
+  
+  // Pyramid
+  const tiers = [
+    {name: 'REGISTERS', lat: '1 cyc', w: 80, y: cy-120},
+    {name: 'L1 CACHE', lat: '3 cyc', w: 120, y: cy-70},
+    {name: 'L2 CACHE', lat: '12 cyc', w: 160, y: cy-20},
+    {name: 'L3 CACHE', lat: '40 cyc', w: 200, y: cy+30},
+    {name: 'DRAM', lat: '200 cyc', w: 240, y: cy+80},
+    {name: 'SSD', lat: '20000 cyc', w: 280, y: cy+130}
+  ];
+  
+  tiers.forEach((tier,i) => {
+    const x = -tier.w/2;
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillRect(x, tier.y-18, tier.w, 36);
+    
+    const color = i < 4 ? C.emerald : i === 4 ? C.cyan : C.amber;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, tier.y-18, tier.w, 36);
+    
+    ctx.fillStyle = C.text;
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText(tier.name, x+10, tier.y+5);
+    
+    ctx.fillStyle = C.muted;
+    ctx.font = '9px monospace';
+    ctx.fillText(tier.lat, x+tier.w-45, tier.y+5);
+  });
+  
+  ctx.fillStyle = C.muted;
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('FOSTER → SLOWER → CHEAPER', 0, cy+165);
+  ctx.textAlign = 'left';
+}
+
+function drawCPUStage(t, ctx) {
+  const cx = 0, cy = 0;
+  
+  // Register layout
+  const regs = [
+    {name: 'PC', x: -180, y: cy-80},
+    {name: 'MAR', x: -60, y: cy-80},
+    {name: 'RAM', x: 60, y: cy-80},
+    {name: 'MDR', x: 140, y: cy-30},
+    {name: 'CIR', x: 140, y: cy+20},
+    {name: 'CU', x: 140, y: cy+70},
+    {name: 'ALU', x: 60, y: cy+110},
+    {name: 'ACC', x: -60, y: cy+110}
+  ];
+  
+  // Connections
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 1;
+  for(let i = 0; i < regs.length-1; i++) {
+    ctx.beginPath();
+    ctx.moveTo(regs[i].x, regs[i].y);
+    ctx.lineTo(regs[i+1].x, regs[i+1].y);
+    ctx.stroke();
+  }
+  
+  // Registers
+  regs.forEach((r,i) => {
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.fillRect(r.x-28, r.y-18, 56, 36);
+    
+    const colors = [C.cyan,C.cyan,C.cyan,C.amber,C.amber,C.emerald,C.emerald,C.amber];
+    ctx.strokeStyle = colors[i];
+    ctx.lineWidth = 2;
+    ctx.strokeRect(r.x-28, r.y-18, 56, 36);
+    
+    ctx.fillStyle = C.text;
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(r.name, r.x, r.y+4);
+    ctx.textAlign = 'left';
+  });
+  
+  ctx.fillStyle = C.muted;
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('FETCH → DECODE → EXECUTE', 0, cy+150);
+  ctx.textAlign = 'left';
+}
+
+function drawTransistorStage(t, ctx) {
+  const cx = 0, cy = 0;
+  
+  // Transistors
+  for(let i = 0; i < 3; i++) {
+    const x = -120 + i*80;
+    ctx.strokeStyle = C.emerald;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, cy-60);
+    ctx.lineTo(x, cy-10);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x-12, cy-35);
+    ctx.lineTo(x+12, cy-35);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x-12, cy-18);
+    ctx.lineTo(x+12, cy-18);
+    ctx.stroke();
+    ctx.fillStyle = C.emerald;
+    ctx.beginPath();
+    ctx.arc(x, cy-60, 3, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, cy-10, 3, 0, Math.PI*2);
+    ctx.fill();
+  }
+  
+  ctx.fillStyle = C.text;
+  ctx.font = 'bold 11px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('NPN TRANSISTORS', 0, cy+10);
+  ctx.textAlign = 'left';
+  
+  // Gates
+  const gates = ['AND','OR','NOT'];
+  gates.forEach((g,i) => {
+    const x = -100 + i*80;
+    ctx.fillStyle = rgba(C.emerald, 0.1);
+    ctx.fillRect(x-30, cy+30, 60, 35);
+    ctx.strokeStyle = C.emerald;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x-30, cy+30, 60, 35);
+    ctx.fillStyle = C.emerald;
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(g, x, cy+53);
+    ctx.textAlign = 'left';
+  });
+  
+  // Labels
+  ctx.fillStyle = C.amber;
+  ctx.font = 'bold 10px monospace';
+  ctx.fillText('COMBINATIONAL → ALU', -80, cy+90);
+  
+  ctx.fillStyle = C.cyan;
+  ctx.fillText('SEQUENTIAL → REGISTERS', -90, cy+110);
+}
+
+// =====================================================
+// MAIN LOOP
+// =====================================================
 function render(now) {
   const dt = Math.min(0.05, (now - lastTime) / 1000);
   lastTime = now;
-  t = now / 1000;
+  const t = now / 1000;
   
   // Clear
   ctx.fillStyle = C.bg;
   ctx.fillRect(0, 0, W, H);
   
-  // Draw current stage
-  if(typState === 'scene' || typState === 'done') {
-    stages[currentStage].draw(t);
+  // Update camera
+  updateCamera(now);
+  
+  // Draw grid
+  drawGrid(t);
+  
+  // Draw stage if not typing
+  if (typState === 'scene' || typState === 'done') {
+    drawStage(t);
   }
   
   requestAnimationFrame(render);
@@ -767,10 +887,16 @@ function render(now) {
 // =====================================================
 // BOOT
 // =====================================================
-startTimer();
-startTyping(stages[0]);
-requestAnimationFrame(render);
+function boot() {
+  startTime = performance.now();
+  startTimer();
+  startTyping(0);
+  updateProgress();
+  requestAnimationFrame(render);
+}
 
+window.addEventListener('DOMContentLoaded', boot);
+window.addEventListener('resize', resize);
 </script>
 </body>
 </html>
