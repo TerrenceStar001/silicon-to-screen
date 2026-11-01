@@ -2,734 +2,775 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="color-scheme" content="light" />
-<meta name="theme-color" content="#f8fafc" />
-<meta name="description" content="Silicon to Screen — an interactive zoom-through visual engine of the complete computer-system pipeline." />
-<title>Silicon to Screen — The Computer System Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Silicon to Screen</title>
 <style>
-  :root{
-    --bg:#f8fafc;--grid:#cbd5e1;--text:#0f172a;--dim:#334155;--dim2:#64748b;
-    --cyan:#0284c7;--amber:#d97706;--emerald:#059669;--magenta:#be123c;
-    --panel:rgba(255,255,255,.95);--mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans)}
-  canvas{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:1}
-  
-  /* typing overlay */
-  #typing-overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8vh 10vw;background:var(--bg);transition:opacity .6s ease;overflow:hidden}
-  #typing-overlay.hidden{opacity:0;pointer-events:none}
-  #typing-box{max-width:800px;width:100%;max-height:70vh;overflow-y:auto}
-  #typing-stage-label{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim2);margin-bottom:24px;text-align:center}
-  #typing-title{font-size:clamp(22px,3.5vw,32px);font-weight:700;line-height:1.2;margin:0 0 20px;color:var(--text);min-height:2.4em}
-  #typing-text{font-size:clamp(14px,1.8vw,17px);line-height:1.7;color:var(--dim);min-height:4em;white-space:pre-wrap;word-break:break-word}
-  #typing-cursor{display:inline-block;width:2px;height:1em;background:var(--text);margin-left:2px;animation:blink .7s infinite;vertical-align:text-bottom}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-  #typing-hint{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2);opacity:0;transition:opacity .4s;z-index:21}
-  #typing-hint.show{opacity:1}
-  
-  /* hud */
-  #hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:grid;grid-template-rows:auto 1fr auto;padding:14px 20px}
-  #hud *{pointer-events:auto}
-  #top{display:flex;align-items:center;justify-content:space-between}
-  #brand{display:flex;flex-direction:column;gap:1px}
-  #brand .t{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
-  #brand .s{font-family:var(--mono);font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim2)}
-  #topRight{display:flex;align-items:center;gap:10px}
-  #stageNum{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2)}
-  #zoomLevel{font-family:var(--mono);font-size:10px}
-  .icobtn{width:28px;height:28px;border-radius:50%;border:1px solid var(--grid);background:var(--panel);display:grid;place-items:center;cursor:pointer;color:var(--dim);transition:.2s;font-size:10px}
-  .icobtn:hover{border-color:var(--cyan);color:var(--cyan)}
-  
-  /* progress bar */
-  #progress-wrap{position:fixed;bottom:0;left:0;right:0;z-index:15;height:36px;display:flex;align-items:center;padding:0 20px;background:rgba(248,250,252,.92);border-top:1px solid var(--grid);cursor:pointer}
-  #progress-track{flex:1;height:4px;background:var(--grid);border-radius:4px;position:relative;overflow:hidden}
-  #progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--emerald));border-radius:4px;width:0%;transition:width .1s linear}
-  #progress-thumb{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--text);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transform:translateY(-50%);left:0%;transition:left .1s linear}
-  #progress-time{font-family:var(--mono);font-size:9px;color:var(--dim2);margin-left:10px;min-width:80px;text-align:right}
-  
-  /* bottom controls */
-  #bottom{display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:4px}
-  #controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
-  #nav{display:flex;gap:16px;align-items:center}
-  .navdot{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:none;border:0;padding:0}
-  .navdot .d{width:6px;height:6px;border-radius:50%;background:var(--dim2);transition:.3s}
-  .navdot .l{font-family:var(--mono);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim2);transition:.3s;white-space:nowrap}
-  .navdot.active .d{background:var(--cyan)}
-  .navdot.active .l{color:var(--text)}
-  button.cb{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;background:var(--panel);color:var(--dim);border:1px solid var(--grid);border-radius:6px;padding:5px 10px;cursor:pointer;transition:.2s}
-  button.cb:hover{border-color:var(--cyan);color:var(--cyan)}
-  button.cb.on{border-color:var(--cyan);color:var(--cyan);background:rgba(2,132,199,.08)}
-  .ctlsep{width:1px;height:16px;background:var(--grid)}
-  .ctl-lab{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2)}
-  
-  /* legend */
-  #legend{position:fixed;right:20px;bottom:48px;z-index:10;display:flex;flex-direction:column;gap:5px;pointer-events:none}
-  .lg{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2)}
-  .lg i{width:12px;height:2px;display:inline-block;border-radius:2px}
-  
-  /* finale */
-  #finale{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8vw;background:rgba(248,250,252,.97)}
-  #finale.show{display:flex;animation:fade .8s ease}
-  @keyframes fade{from{opacity:0}to{opacity:1}}
-  #finale blockquote{max-width:760px;font-size:clamp(18px,3vw,28px);line-height:1.55;font-weight:300;margin:0 0 18px;color:var(--text)}
-  #finale blockquote .hl{color:var(--cyan);font-weight:500}
-  #finale .who{font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim2)}
-  #finale .rule{width:32px;height:1px;background:var(--grid);margin:22px 0}
-  #finale .meta{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2)}
-  #finale button{margin-top:20px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;background:none;color:var(--text);border:1px solid var(--grid);border-radius:8px;padding:8px 16px;cursor:pointer;transition:.2s}
-  #finale button:hover{border-color:var(--cyan);color:var(--cyan)}
-  
-  @media(max-width:640px){#legend{display:none}#bottom{padding-bottom:40px}}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f8fafc;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden;height:100vh}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%}
+
+/* Typing overlay */
+#text-overlay{position:fixed;top:0;left:0;right:0;bottom:80px;z-index:100;background:rgba(248,250,252,0.97);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;transition:opacity 0.5s}
+#text-overlay.hidden{opacity:0;pointer-events:none}
+#text-box{max-width:700px;text-align:center}
+#stage-num{font-family:monospace;font-size:12px;letter-spacing:0.3em;color:#64748b;margin-bottom:20px;text-transform:uppercase}
+#stage-title{font-size:28px;font-weight:700;margin-bottom:24px;line-height:1.2}
+#stage-desc{font-size:16px;line-height:1.8;color:#334155;white-space:pre-wrap;text-align:left}
+#cursor{display:inline-block;width:2px;height:1em;background:#0f172a;animation:blink 0.7s infinite;vertical-align:text-bottom}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#hint{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);font-family:monospace;font-size:11px;color:#94a3b8;opacity:0;transition:opacity 0.3s;z-index:101}
+#hint.show{opacity:1}
+
+/* Progress bar */
+#progress-bar{position:fixed;bottom:0;left:0;right:0;height:50px;background:rgba(255,255,255,0.95);border-top:1px solid #e2e8f0;z-index:90;display:flex;align-items:center;padding:0 20px;cursor:pointer}
+#progress-track{flex:1;height:6px;background:#e2e8f0;border-radius:3px;position:relative;margin:0 15px}
+#progress-fill{height:100%;background:linear-gradient(90deg,#0284c7,#059669);border-radius:3px;width:0%;transition:width 0.1s}
+#progress-thumb{position:absolute;top:50%;width:16px;height:16px;background:#0f172a;border:2px solid #fff;border-radius:50%;transform:translateY(-50%);left:0%;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+#time-display{font-family:monospace;font-size:11px;color:#64748b;min-width:100px;text-align:right}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;height:50px;background:rgba(255,255,255,0.95);border-bottom:1px solid #e2e8f0;z-index:80;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+#brand{font-size:14px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase}
+#brand span{font-size:10px;color:#94a3b8;display:block;letter-spacing:0.25em}
+#controls{display:flex;gap:10px;align-items:center}
+.btn{padding:6px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer;font-size:11px;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;transition:all 0.2s}
+.btn:hover{border-color:#0284c7;color:#0284c7}
+.btn.active{background:#0284c7;color:#fff;border-color:#0284c7}
+#stage-indicator{font-family:monospace;font-size:11px;color:#64748b}
+
+/* Legend */
+#legend{position:fixed;right:20px;top:70px;z-index:70;display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-family:monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#64748b}
+.legend-dot{width:12px;height:3px;border-radius:2px}
+
+/* Finale */
+#finale{position:fixed;inset:0;z-index:200;background:rgba(248,250,252,0.98);display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:10vw}
+#finale.show{display:flex}
+#finale blockquote{font-size:clamp(20px,3vw,32px);line-height:1.6;max-width:800px;margin-bottom:30px}
+#finale .hl{color:#0284c7;font-weight:600}
+#finale .who{font-family:monospace;font-size:12px;letter-spacing:0.3em;color:#94a3b8;text-transform:uppercase}
+#finale button{margin-top:30px;padding:12px 28px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;transition:all 0.2s}
+#finale button:hover{border-color:#0284c7;color:#0284c7}
+
+@media(max-width:768px){#legend{display:none}#text-overlay{padding:20px}}
 </style>
 </head>
 <body>
+
 <canvas id="cv"></canvas>
 
-<div id="typing-overlay">
-  <div id="typing-box">
-    <div id="typing-stage-label">STAGE 01 OF 06</div>
-    <h1 id="typing-title"></h1>
-    <p id="typing-text"></p>
+<div id="text-overlay">
+  <div id="text-box">
+    <div id="stage-num">STAGE 1 OF 6</div>
+    <h1 id="stage-title"></h1>
+    <p id="stage-desc"></p>
   </div>
 </div>
-<div id="typing-hint">PRESS SPACE OR CLICK TO CONTINUE</div>
+<div id="hint">PRESS SPACE OR CLICK TO CONTINUE</div>
 
-<div id="progress-wrap" title="Click or drag to seek">
+<div id="progress-bar" title="Click or drag to seek">
   <div id="progress-track">
     <div id="progress-fill"></div>
     <div id="progress-thumb"></div>
   </div>
-  <div id="progress-time">0:00 / 1:18</div>
+  <div id="time-display">0:00 / 1:30</div>
 </div>
 
 <div id="hud">
-  <div id="top">
-    <div id="brand"><span class="t">Silicon to Screen</span><span class="s">The Computer System Engine</span></div>
-    <div id="topRight"><span id="stageNum">STAGE 01/06</span><span id="zoomLevel">1.0×</span><button class="icobtn" id="playBtn" aria-label="Pause">❚❚</button></div>
+  <div id="brand">Silicon to Screen<span>The Computer System Engine</span></div>
+  <div id="controls">
+    <button class="btn" id="play-btn">❚❚</button>
   </div>
-  <div id="bottom">
-    <div id="controls"></div>
-    <div id="nav" role="group" aria-label="Stages"></div>
-  </div>
+  <div id="stage-indicator">1 / 6</div>
 </div>
 
 <div id="legend">
-  <div class="lg"><i style="background:#0284c7"></i>Address / Control</div>
-  <div class="lg"><i style="background:#d97706"></i>Data / Registers</div>
-  <div class="lg"><i style="background:#059669"></i>Logic / ALU</div>
-  <div class="lg"><i style="background:#be123c"></i>Interrupt (IRQ)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#0284c7"></div>Address / Control</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div>Data / Registers</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>Logic / ALU</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#be123c"></div>Interrupt (IRQ)</div>
 </div>
 
 <div id="finale">
   <blockquote>"What a computer is to me is the most remarkable tool that we have ever come up with. It's the equivalent of a <span class="hl">bicycle for our minds</span>."</blockquote>
-  <div class="who">Steve Jobs</div><div class="rule"></div><div class="meta">Silicon to Screen · The Computer System Engine</div>
-  <button id="restartBtn">Replay the Journey</button>
+  <div class="who">Steve Jobs</div>
+  <button onclick="restartTour()">Replay Journey</button>
 </div>
 
 <script>
-"use strict";
-/* =====================================================================
-   SILICON TO SCREEN — Light Minimalist Zoom Engine
-   Flow: Typing animation → Scene reveal → Next stage
-   ===================================================================== */
-const MONO='ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace',SANS='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
-const COL={bg:'#f8fafc',grid:'#cbd5e1',text:'#0f172a',dim:'#334155',dim2:'#64748b',cyan:'#0284c7',amber:'#d97706',emerald:'#059669',magenta:'#be123c'};
-function rgba(h,a){const v=parseInt(h.slice(1),16);return'rgba('+(v>>16)+','+((v>>8)&255)+','+(v&255)+','+a+')';}
-const clamp=(v,a,b)=>v<a?a:v>b?b:v;
-const lerp=(a,b,t)=>a+(b-a)*t;
-const TAU=Math.PI*2;
-const $=s=>document.querySelector(s);
-const $$=s=>Array.from(document.querySelectorAll(s));
-function el(tag,a={},...ks){const n=document.createElement(tag);for(const k in a){const v=a[k];if(v==null)continue;k==='class'?n.className=v:k==='html'?n.innerHTML=v:k==='text'?n.textContent=v:k==='style'&&typeof v==='object'?Object.assign(n.style,v):k.startsWith('on')&&typeof v==='function'?n.addEventListener(k.slice(2),v):n.setAttribute(k,v);}for(const k of ks.flat())if(k!=null&&k!==false)n.append(k.nodeType?k:document.createTextNode(String(k)));return n;}
+// =====================================================
+// SILICON TO SCREEN - Interactive Visual Engine
+// =====================================================
 
-/* audio */
-const Audio_=(()=>{let ctx=null,master=null,humGain=null,started=false,lastTick=0;
-function ac(){if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;ctx=new AC();master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);humGain=ctx.createGain();humGain.gain.value=0.25;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=180;humGain.connect(lp);lp.connect(master);[55,82.5,110].forEach(f=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.14;o.connect(g);g.connect(humGain);o.start();});const lfo=ctx.createOscillator();lfo.frequency.value=0.05;const lg=ctx.createGain();lg.gain.value=60;lfo.connect(lg);lg.connect(lp.frequency);lfo.start();}if(ctx.state==='suspended')ctx.resume();return ctx;}
-function swell(t,d=2){if(!master)return;const c=ac(),now=c.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(t,now+d);}
-function start(){const c=ac();if(!c||started)return;started=true;swell(0.03,2);}
-function tick(f=880,g=0.035,d=0.04,t='triangle'){const c=ac();if(!c)return;if(c.currentTime-lastTick<0.04)return;lastTick=c.currentTime;const o=c.createOscillator(),gn=c.createGain(),fl=c.createBiquadFilter();o.type=t;o.frequency.value=f;fl.type='lowpass';fl.frequency.value=2000;o.connect(fl);fl.connect(gn);gn.connect(master);gn.gain.setValueAtTime(0.0001,c.currentTime);gn.gain.linearRampToValueAtTime(g,c.currentTime+0.005);gn.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+d);o.start(c.currentTime);o.stop(c.currentTime+d+0.02);}
-function chime(){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tick(f,0.045,0.45,'sine'),i*85));}
-function irq(){tick(260,0.07,0.12,'sawtooth');}
-function blip(){tick(1400,0.02,0.02,'square');}
-return{start,tick,chime,irq,blip};})();
-window.addEventListener('pointerdown',()=>Audio_.start(),{once:true});
-window.addEventListener('keydown',e=>{if(e.key===' '||e.code==='Space'){e.preventDefault();advanceTyping();}}, {once:false});
+const canvas = document.getElementById('cv');
+const ctx = canvas.getContext('2d');
+let W, H;
 
-/* canvas */
-const cv=$('#cv'),cx=cv.getContext('2d');let W=0,H=0,DPR=1;
-function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=window.innerWidth;H=window.innerHeight;cv.width=Math.max(1,Math.floor(W*DPR));cv.height=Math.max(1,Math.floor(H*DPR));cx.setTransform(DPR,0,0,DPR,0,0);}
-window.addEventListener('resize',resize);
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
 
-/* camera */
-const cam={tx:0,ty:0,tz:1,targetZoom:1,targetX:0,targetY:0,zoom:1};
-const STAGES=[
-  {name:'Input',zoom:1,title:'Input & Signal Conversion',accent:COL.cyan,
-   desc:'At compile time, source code in Python, C++, or JavaScript is translated into machine code before the program ever runs. At runtime, hardware controllers digitize live physical signals — keystrokes, mouse movement, OCR camera scans, microphone audio — directly into binary packets on the system bus, bypassing the compiler entirely.',
-   dw:14},
-  {name:'Software',zoom:2,title:'Software Abstraction & Register Mapping',accent:COL.amber,
-   desc:'Applications like Valorant, Chrome, and Neovim request services from the operating system. The OS kernel — whether macOS, Windows, or Linux — manages processes, memory, files, and networks through both GUI and CLI interfaces, with utilities like Task Manager and Firewall orbiting nearby. A system call descends into kernel space, where a device driver translates the request into precise hardware register writes. Middleware, by contrast, sits far above and never touches a register directly.',
-   dw:16},
-  {name:'Board',zoom:5,title:'Motherboard & Tri-Bus Flow',accent:COL.cyan,
-   desc:'The motherboard is the physical foundation that interconnects every component. The power supply unit distributes energy through a regulated grid, while heat sinks and cooling fans prevent thermal throttling. The Platform Controller Hub links expansion slots — PCIe for the GPU and Network Interface Card, SATA for storage drives, and USB for peripherals. Three system buses carry all traffic: the Address Bus sends memory locations unidirectionally, the Data Bus transports instructions and values bidirectionally, and the Control Bus carries read/write strobes, clock pulses, and hardware interrupt requests.',
-   dw:18},
-  {name:'Memory',zoom:10,title:'Memory Pyramid & Locality',accent:COL.amber,
-   desc:'Data lives in a hierarchy of speed, volatility, and cost. Non-volatile ROM holds the BIOS firmware that initializes the machine. Volatile DRAM serves as the working memory for the operating system and active processes. Between them sit fast SRAM caches across L1, L2, and L3 tiers — exploiting temporal and spatial locality of reference so the CPU rarely waits. Below lies secondary storage: sequential magnetic tape, spinning HDD platters, optical discs, and non-volatile solid-state drives with random access.',
-   dw:17},
-  {name:'CPU',zoom:25,title:'Machine Cycle & Circuit Engine',accent:COL.emerald,
-   desc:'Inside the CPU core, the Fetch-Decode-Execute cycle runs endlessly. The Program Counter publishes an address to the Memory Address Register, which places it on the Address Bus. RAM returns the instruction to the Memory Data Register, then to the Current Instruction Register. The Control Unit decodes the opcode into electrical signals, and the Arithmetic Logic Unit computes the result into the Accumulator. At the silicon level, every operation begins with NPN transistors switching states to form logic gates — combinational circuits like adders building the ALU, and sequential circuits like flip-flops holding register state.',
-   dw:18},
-  {name:'Transistor',zoom:100,title:'Transistors & Logic Circuits',accent:COL.emerald,
-   desc:'At the deepest level, computation is electrons flowing through silicon. NPN transistors act as switches, turning on and off in response to base currents. These transistors combine into fundamental logic gates — AND, OR, and NOT — each implementing a Boolean function through careful arrangement of semiconductor materials. Groups of gates form combinational circuits: adders that perform arithmetic, multiplexers that route data. Other gate arrangements create sequential circuits: flip-flops and latches that store a single bit of state. Together, these building blocks construct the ALU, the registers, and ultimately the entire processor — transforming raw physics into information.',
-   dw:20},
+// Colors
+const C = {
+  bg: '#f8fafc', grid: '#cbd5e1', text: '#0f172a', dim: '#334155', muted: '#64748b',
+  cyan: '#0284c7', amber: '#d97706', emerald: '#059669', magenta: '#be123c'
+};
+
+function rgba(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;
+}
+
+// =====================================================
+// STAGES DATA
+// =====================================================
+const stages = [
+  {
+    name: 'Input',
+    title: 'Input & Signal Conversion',
+    desc: `At compile time, source code in Python, C++, or JavaScript is translated into machine code before the program ever runs.
+
+At runtime, hardware controllers digitize live physical signals — keystrokes, mouse movement, OCR camera scans, microphone audio — directly into binary packets on the system bus, bypassing the compiler entirely.`,
+    duration: 12,
+    draw: function(t) {
+      const cx = W/2, cy = H/2;
+      
+      // Grid background
+      ctx.strokeStyle = rgba(C.grid, 0.5);
+      ctx.lineWidth = 1;
+      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      
+      // Split view
+      ctx.strokeStyle = C.grid;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx, cy-200); ctx.lineTo(cx, cy+200); ctx.stroke();
+      
+      // Left: Compiler
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillRect(50, cy-180, 300, 360);
+      ctx.strokeStyle = C.grid;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(50, cy-180, 300, 360);
+      
+      ctx.fillStyle = C.text;
+      ctx.font = 'bold 16px monospace';
+      ctx.fillText('COMPILER NODE', 70, cy-150);
+      
+      ctx.fillStyle = C.muted;
+      ctx.font = '12px monospace';
+      ctx.fillText('source .py .cpp .js', 70, cy-120);
+      
+      // Code lines
+      const lines = [[0.8,C.amber],[0.6,C.cyan],[0.72,C.emerald],[0.5,C.muted],[0.8,C.cyan]];
+      lines.forEach((l,i) => {
+        ctx.strokeStyle = l[1];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(70, cy-80+i*20);
+        ctx.lineTo(70+200*l[0], cy-80+i*20);
+        ctx.stroke();
+      });
+      
+      ctx.fillStyle = C.cyan;
+      ctx.font = '11px monospace';
+      ctx.fillText('→ machine code', 70, cy+140);
+      
+      // Right: Runtime
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillRect(W-350, cy-180, 300, 360);
+      ctx.strokeStyle = C.grid;
+      ctx.strokeRect(W-350, cy-180, 300, 360);
+      
+      ctx.fillStyle = C.text;
+      ctx.font = 'bold 16px monospace';
+      ctx.fillText('PERIPHERALS', W-330, cy-150);
+      
+      ctx.fillStyle = C.muted;
+      ctx.font = '12px monospace';
+      ctx.fillText('keyboard · mouse · mic · camera', W-330, cy-120);
+      
+      // Animated waves
+      for(let i = 0; i < 4; i++) {
+        const y = cy-60+i*40;
+        ctx.strokeStyle = [C.cyan,C.amber,C.emerald,C.magenta][i];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for(let x = 0; x < 200; x++) {
+          const yy = y + Math.sin((x+t*100)*0.05)*8;
+          x === 0 ? ctx.moveTo(W-330+x, yy) : ctx.lineTo(W-330+x, yy);
+        }
+        ctx.stroke();
+      }
+      
+      ctx.fillStyle = C.magenta;
+      ctx.font = '11px monospace';
+      ctx.fillText('→ binary packets', W-330, cy+140);
+      
+      // Bus label
+      ctx.fillStyle = C.cyan;
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText('SYSTEM BUS', cx-40, cy+180);
+    }
+  },
+  {
+    name: 'Software',
+    title: 'Software Abstraction & Register Mapping',
+    desc: `Applications like Valorant, Chrome, and Neovim request services from the operating system.
+
+The OS kernel — whether macOS, Windows, or Linux — manages processes, memory, files, and networks through both GUI and CLI interfaces.
+
+A system call descends into kernel space where a device driver translates the request into precise hardware register writes.
+
+Middleware sits far above and never touches a register directly.`,
+    duration: 14,
+    draw: function(t) {
+      const cx = W/2, cy = H/2;
+      
+      // Grid
+      ctx.strokeStyle = rgba(C.grid, 0.5);
+      ctx.lineWidth = 1;
+      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      
+      // Stack layers
+      const layers = [
+        {name: 'Applications', sub: 'Valorant · Chrome · Neovim', y: cy-150, color: C.amber},
+        {name: 'OS Kernel', sub: 'macOS · Windows · Linux', y: cy-50, color: C.cyan},
+        {name: 'Drivers', sub: 'Hardware register translators', y: cy+50, color: C.emerald},
+        {name: 'Hardware', sub: 'Control registers', y: cy+150, color: C.magenta}
+      ];
+      
+      layers.forEach((l,i) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.fillRect(cx-200, l.y-30, 400, 60);
+        ctx.strokeStyle = l.color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cx-200, l.y-30, 400, 60);
+        
+        ctx.fillStyle = C.text;
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText(l.name, cx-180, l.y+5);
+        
+        ctx.fillStyle = C.muted;
+        ctx.font = '11px monospace';
+        ctx.fillText(l.sub, cx-180, l.y+22);
+        
+        if(i < layers.length-1) {
+          ctx.strokeStyle = C.grid;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(cx, l.y+30);
+          ctx.lineTo(cx, layers[i+1].y-30);
+          ctx.stroke();
+        }
+      });
+      
+      // Middleware branch
+      ctx.fillStyle = 'rgba(190,18,60,0.05)';
+      ctx.fillRect(cx+220, cy-80, 160, 120);
+      ctx.strokeStyle = C.magenta;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx+220, cy-80, 160, 120);
+      
+      ctx.fillStyle = C.magenta;
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText('Middleware', cx+240, cy-50);
+      ctx.fillStyle = C.muted;
+      ctx.font = '10px monospace';
+      ctx.fillText('DB API layer', cx+240, cy-30);
+      ctx.fillText('NOT a driver', cx+240, cy-10);
+    }
+  },
+  {
+    name: 'Board',
+    title: 'Motherboard & Tri-Bus Flow',
+    desc: `The motherboard is the physical foundation that interconnects every component.
+
+The PSU distributes energy through a regulated grid. Heat sinks and cooling fans prevent thermal throttling.
+
+The Platform Controller Hub links PCIe slots for GPU and NIC, SATA for storage, and USB for peripherals.
+
+Three buses carry all traffic: Address (unidirectional), Data (bidirectional), and Control (strobes and IRQs).`,
+    duration: 14,
+    draw: function(t) {
+      const cx = W/2, cy = H/2;
+      
+      // Grid
+      ctx.strokeStyle = rgba(C.grid, 0.5);
+      ctx.lineWidth = 1;
+      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      
+      // Board outline
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillRect(cx-300, cy-180, 600, 360);
+      ctx.strokeStyle = C.grid;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cx-300, cy-180, 600, 360);
+      
+      // Components
+      const comps = [
+        {name: 'CPU', x: cx-100, y: cy-100, w: 80, h: 80},
+        {name: 'RAM', x: cx+50, y: cy-100, w: 60, h: 80},
+        {name: 'GPU', x: cx-250, y: cy-50, w: 100, h: 40},
+        {name: 'PCH', x: cx-50, y: cy+80, w: 60, h: 40},
+        {name: 'SATA', x: cx+80, y: cy+80, w: 60, h: 40}
+      ];
+      
+      comps.forEach(c => {
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.fillRect(c.x, c.y, c.w, c.h);
+        ctx.strokeStyle = C.cyan;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(c.x, c.y, c.w, c.h);
+        ctx.fillStyle = C.text;
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(c.name, c.x+c.w/2-15, c.y+c.h/2+3);
+      });
+      
+      // Buses
+      const buses = [
+        {name: 'ADDRESS', y: cy+20, color: C.cyan, uni: true},
+        {name: 'DATA', y: cy+50, color: C.amber, uni: false},
+        {name: 'CONTROL', y: cy+80, color: C.magenta, uni: true}
+      ];
+      
+      buses.forEach(b => {
+        ctx.strokeStyle = b.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx-280, b.y);
+        ctx.lineTo(cx+280, b.y);
+        ctx.stroke();
+        
+        // Animated packets
+        const px = cx-280 + ((t*50) % 560);
+        ctx.fillStyle = b.color;
+        ctx.beginPath();
+        ctx.arc(px, b.y, 4, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.fillStyle = b.color;
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText(b.name, cx-280, b.y-10);
+      });
+    }
+  },
+  {
+    name: 'Memory',
+    title: 'Memory Pyramid & Locality',
+    desc: `Data lives in a hierarchy of speed, volatility, and cost.
+
+Non-volatile ROM holds the BIOS firmware that initializes the machine. Volatile DRAM serves as the working memory for active processes.
+
+Between them sit fast SRAM caches across L1, L2, and L3 tiers — exploiting temporal and spatial locality of reference.
+
+Below lies secondary storage: magnetic tape, HDD, optical discs, and non-volatile SSDs.`,
+    duration: 14,
+    draw: function(t) {
+      const cx = W/2, cy = H/2;
+      
+      // Grid
+      ctx.strokeStyle = rgba(C.grid, 0.5);
+      ctx.lineWidth = 1;
+      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      
+      // Pyramid
+      const tiers = [
+        {name: 'REGISTERS', lat: '1 cyc', w: 100, y: cy-140, color: C.text},
+        {name: 'L1 CACHE', lat: '3 cyc', w: 140, y: cy-90, color: C.emerald},
+        {name: 'L2 CACHE', lat: '12 cyc', w: 180, y: cy-40, color: C.emerald},
+        {name: 'L3 CACHE', lat: '40 cyc', w: 220, y: cy+10, color: C.emerald},
+        {name: 'DRAM', lat: '200 cyc', w: 260, y: cy+60, color: C.cyan},
+        {name: 'SSD', lat: '20000 cyc', w: 300, y: cy+110, color: C.amber}
+      ];
+      
+      tiers.forEach((tier,i) => {
+        const x = cx - tier.w/2;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.fillRect(x, tier.y-20, tier.w, 40);
+        ctx.strokeStyle = tier.color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, tier.y-20, tier.w, 40);
+        
+        ctx.fillStyle = C.text;
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(tier.name, x+10, tier.y+5);
+        
+        ctx.fillStyle = C.muted;
+        ctx.font = '10px monospace';
+        ctx.fillText(tier.lat, x+tier.w-50, tier.y+5);
+      });
+      
+      ctx.fillStyle = C.muted;
+      ctx.font = '10px monospace';
+      ctx.fillText('LOWER = SLOWER = CHEAPER', cx-80, cy+140);
+    }
+  },
+  {
+    name: 'CPU',
+    title: 'Machine Cycle & Circuit Engine',
+    desc: `Inside the CPU core, the Fetch-Decode-Execute cycle runs endlessly.
+
+The Program Counter publishes an address to the Memory Address Register. RAM returns the instruction to the Memory Data Register, then to the Current Instruction Register.
+
+The Control Unit decodes the opcode into electrical signals, and the ALU computes the result into the Accumulator.
+
+At the silicon level, every operation begins with NPN transistors switching states.`,
+    duration: 14,
+    draw: function(t) {
+      const cx = W/2, cy = H/2;
+      
+      // Grid
+      ctx.strokeStyle = rgba(C.grid, 0.5);
+      ctx.lineWidth = 1;
+      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      
+      // CPU diagram
+      const regs = [
+        {name: 'PC', x: cx-200, y: cy-100},
+        {name: 'MAR', x: cx-100, y: cy-100},
+        {name: 'RAM', x: cx, y: cy-100},
+        {name: 'MDR', x: cx+100, y: cy-50},
+        {name: 'CIR', x: cx+100, y: cy},
+        {name: 'CU', x: cx+100, y: cy+50},
+        {name: 'ALU', x: cx, y: cy+100},
+        {name: 'ACC', x: cx-100, y: cy+100}
+      ];
+      
+      // Draw connections
+      ctx.strokeStyle = C.grid;
+      ctx.lineWidth = 1;
+      for(let i = 0; i < regs.length-1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(regs[i].x, regs[i].y);
+        ctx.lineTo(regs[i+1].x, regs[i+1].y);
+        ctx.stroke();
+      }
+      
+      // Draw registers
+      regs.forEach((r,i) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.fillRect(r.x-30, r.y-20, 60, 40);
+        ctx.strokeStyle = [C.cyan,C.cyan,C.cyan,C.amber,C.amber,C.emerald,C.emerald,C.amber][i];
+        ctx.lineWidth = 2;
+        ctx.strokeRect(r.x-30, r.y-20, 60, 40);
+        ctx.fillStyle = C.text;
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(r.name, r.x, r.y+4);
+        ctx.textAlign = 'left';
+      });
+      
+      ctx.fillStyle = C.muted;
+      ctx.font = '10px monospace';
+      ctx.fillText('FETCH → DECODE → EXECUTE', cx-80, cy+140);
+    }
+  },
+  {
+    name: 'Transistor',
+    title: 'Transistors & Logic Circuits',
+    desc: `At the deepest level, computation is electrons flowing through silicon.
+
+NPN transistors act as switches, turning on and off in response to base currents. These combine into fundamental logic gates: AND, OR, and NOT.
+
+Groups of gates form combinational circuits — adders that perform arithmetic, multiplexers that route data.
+
+Other gate arrangements create sequential circuits: flip-flops and latches that store state. Together, they build the processor — transforming physics into information.`,
+    duration: 14,
+    draw: function(t) {
+      const cx = W/2, cy = H/2;
+      
+      // Grid
+      ctx.strokeStyle = rgba(C.grid, 0.5);
+      ctx.lineWidth = 1;
+      for(let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for(let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      
+      // Transistors
+      for(let i = 0; i < 3; i++) {
+        const x = cx-150+i*100;
+        ctx.strokeStyle = C.emerald;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, cy-80);
+        ctx.lineTo(x, cy-20);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x-15, cy-50);
+        ctx.lineTo(x+15, cy-50);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x-15, cy-30);
+        ctx.lineTo(x+15, cy-30);
+        ctx.stroke();
+        ctx.fillStyle = C.emerald;
+        ctx.beginPath();
+        ctx.arc(x, cy-80, 3, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x, cy-20, 3, 0, Math.PI*2);
+        ctx.fill();
+      }
+      
+      ctx.fillStyle = C.text;
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText('NPN TRANSISTORS', cx-60, cy+10);
+      
+      // Gates
+      const gates = ['AND','OR','NOT'];
+      gates.forEach((g,i) => {
+        const x = cx-100+i*100;
+        ctx.fillStyle = 'rgba(5,150,105,0.1)';
+        ctx.fillRect(x-35, cy+40, 70, 40);
+        ctx.strokeStyle = C.emerald;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x-35, cy+40, 70, 40);
+        ctx.fillStyle = C.emerald;
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(g, x, cy+65);
+        ctx.textAlign = 'left';
+      });
+      
+      // Circuits
+      ctx.fillStyle = C.amber;
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText('COMBINATIONAL → ALU', cx-80, cy+110);
+      
+      ctx.fillStyle = C.cyan;
+      ctx.fillText('SEQUENTIAL → REGISTERS', cx-90, cy+130);
+    }
+  }
 ];
-const TOTAL_DURATION=STAGES.reduce((a,s)=>a+s.dw,0)+6; // +6 for finale
-let idx=0,playing=true,tour=true,finaleShown=false;
-let typState='idle'; // idle, typing, done, transitioning
-let typChars='',typIdx=0,typTimer=null;
-let startTime=0,timerInterval=null;
-let dust=[];
 
-/* keyboard nav */
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowRight'){e.preventDefault();nextStage();}
-  else if(e.key==='ArrowLeft'){e.preventDefault();if(idx>0)jumpTo(idx-1);}
-  else if(e.key===' '||e.code==='Space'){e.preventDefault();advanceTyping();}
-  else if(e.key==='Escape'){e.preventDefault();if(finaleShown)restartTour();}
-});
-$('#playBtn').addEventListener('click',()=>{playing=!playing;$('#playBtn').textContent=playing?'❚❚':'▶';if(playing&&tour&&!finaleShown)startTimer();else stopTimer();Audio_.blip();});
-$('#typing-overlay').addEventListener('click',advanceTyping);
-$('#restartBtn').addEventListener('click',restartTour);
-$('#progress-wrap').addEventListener('click',handleProgressClick);
-$('#progress-wrap').addEventListener('mousedown',handleProgressDrag);
-document.addEventListener('mousemove',handleProgressDrag);
-document.addEventListener('mouseup',()=>isDragging=false);
+// =====================================================
+// STATE
+// =====================================================
+let currentStage = 0;
+let typState = 'typing'; // typing, done, scene
+let typChars = '';
+let typIdx = 0;
+let typTimer = null;
+let playing = true;
+let tourTime = 0;
+let totalTime = stages.reduce((a,s)=>a+s.duration, 0);
+let startTime = 0;
+let timerInterval = null;
 
-let isDragging=false;
-function handleProgressClick(e){
-  const rect=$('#progress-track').getBoundingClientRect();
-  const pct=(e.clientX-rect.left)/rect.width;
-  seekTo(clamp(pct,0,1));
+// =====================================================
+// TYPING ANIMATION
+// =====================================================
+function startTyping(stage) {
+  typState = 'typing';
+  typChars = stage.desc;
+  typIdx = 0;
+  
+  document.getElementById('stage-num').textContent = `STAGE ${currentStage+1} OF ${stages.length}`;
+  document.getElementById('stage-title').textContent = stage.title;
+  document.getElementById('stage-desc').innerHTML = '';
+  document.getElementById('text-overlay').classList.remove('hidden');
+  document.getElementById('hint').classList.remove('show');
+  
+  animateTyping();
 }
-function handleProgressDrag(e){
-  if(e.button===0||e.touches){
-    isDragging=true;
-    const rect=$('#progress-track').getBoundingClientRect();
-    const pct=(e.clientX-rect.left)/rect.width;
-    seekTo(clamp(pct,0,1));
-  }
-}
-function seekTo(pct){
-  pct=clamp(pct,0,1);
-  const targetTime=pct*TOTAL_DURATION;
-  let accum=0;
-  for(let i=0;i<STAGES.length;i++){
-    if(accum+STAGES[i].dw>=targetTime){idx=i;startTyping(STAGES[i],targetTime-accum);break;}
-    accum+=STAGES[i].dw;
-  }
-  if(idx===STAGES.length-1&&accum+STAGES[idx].dw<targetTime){idx=STAGES.length-1;startTyping(STAGES[idx],targetTime-accum);}
-  updateHUD();updateProgress();
-}
-function updateProgress(){
-  const elapsed=startTime?((performance.now()-startTime)/1000):0;
-  const pct=Math.min(1,elapsed/TOTAL_DURATION)*100;
-  $('#progress-fill').style.width=pct+'%';
-  $('#progress-thumb').style.left=`calc(${pct}% - 7px)`;
-  const cur=Math.floor(elapsed),tot=Math.floor(TOTAL_DURATION);
-  $('#progress-time').textContent=`${Math.floor(cur/60)}:${String(cur%60).padStart(2,'0')} / ${Math.floor(tot/60)}:${String(tot%60).padStart(2,'0')}`;
-}
-function startTimer(){if(!startTime)startTime=performance.now();timerInterval=setInterval(updateProgress,100);updateProgress();}
-function stopTimer(){clearInterval(timerInterval);}
 
-/* typing animation */
-function startTyping(stage, skipTime=0){
-  typState='typing';typChars=stage.desc;typIdx=0;
-  $('#typing-stage-label').textContent=`STAGE ${String(idx+1).padStart(2,'0')} OF ${STAGES.length} · ${stage.name.toUpperCase()}`;
-  $('#typing-title').innerHTML=stage.title;
-  $('#typing-text').innerHTML='';
-  $('#typing-overlay').classList.remove('hidden');
-  $('#typing-hint').classList.remove('show');
-  animateTyping(skipTime);
-}
-function animateTyping(skipTime=0){
-  if(typState!=='typing')return;
-  const el=$('#typing-text');
-  const charsPerTick=skipTime>0?1:2;
-  const remaining=typChars.substring(typIdx);
-  const toAdd=remaining.substring(0,charsPerTick);
-  const currentText=el.textContent||'';
-  el.innerHTML=currentText+toAdd+'<span id="typing-cursor">|</span>';
-  typIdx+=toAdd.length;
-  if(typIdx>=typChars.length){
-    typState='done';
-    setTimeout(()=>{
-      $('#typing-overlay').classList.add('hidden');
-      $('#typing-hint').classList.add('show');
+function animateTyping() {
+  if(typState !== 'typing') return;
+  
+  const el = document.getElementById('stage-desc');
+  const toAdd = typChars.substring(typIdx, typIdx + 2);
+  el.innerHTML = typChars.substring(0, typIdx + toAdd.length) + '<span id="cursor">|</span>';
+  typIdx += toAdd.length;
+  
+  if(typIdx >= typChars.length) {
+    typState = 'done';
+    setTimeout(() => {
+      document.getElementById('text-overlay').classList.add('hidden');
+      document.getElementById('hint').classList.add('show');
       showScene();
-    },600);
-  }else{
-    typTimer=setTimeout(()=>animateTyping(),skipTime>0?20:45);
+    }, 500);
+  } else {
+    typTimer = setTimeout(animateTyping, 30);
   }
 }
-function advanceTyping(){
-  if(typState==='typing'){
+
+function advanceTyping() {
+  if(typState === 'typing') {
     clearTimeout(typTimer);
-    typState='done';
-    $('#typing-text').innerHTML=typChars;
-    setTimeout(()=>{$('#typing-overlay').classList.add('hidden');$('#typing-hint').classList.add('show');showScene();},300);
-  }else if(typState==='done'){
-    $('#typing-overlay').classList.add('hidden');
+    typState = 'done';
+    document.getElementById('stage-desc').innerHTML = typChars;
+    setTimeout(() => {
+      document.getElementById('text-overlay').classList.add('hidden');
+      document.getElementById('hint').classList.add('show');
+      showScene();
+    }, 200);
+  } else if(typState === 'done') {
+    document.getElementById('text-overlay').classList.add('hidden');
     showScene();
   }
 }
-function showScene(){
-  typState='scene';
-  const stage=STAGES[idx];
-  cam.targetZoom=stage.zoom;cam.targetX=0;cam.targetY=0;
-  if(stages[idx]&&stages[idx].enter)stages[idx].enter();
-  updateHUD();buildControls();
-  Audio_.chime();
-  // auto advance after dwell
-  if(tour&&playing&&!finaleShown){
-    setTimeout(()=>{if(typState==='scene'&&idx<stages.length-1)nextStage();},stage.dw*1000);
+
+function showScene() {
+  typState = 'scene';
+  document.getElementById('hint').classList.remove('show');
+  
+  const stage = stages[currentStage];
+  document.getElementById('stage-indicator').textContent = `${currentStage+1} / ${stages.length}`;
+  
+  // Auto advance
+  if(playing && currentStage < stages.length - 1) {
+    setTimeout(() => {
+      if(typState === 'scene') nextStage();
+    }, stage.duration * 1000);
+  } else if(currentStage >= stages.length - 1) {
+    setTimeout(() => showFinale(), 2000);
   }
 }
-function nextStage(){
-  if(idx<stages.length-1){idx++;resumeTyping();}
-  else{startRewind();}
-}
-function resumeTyping(){
-  startTyping(STAGES[idx]);
-}
-function jumpTo(i){
-  if(i===idx)return;
-  idx=i;
-  const elapsed=startTime?((performance.now()-startTime)/1000):0;
-  let accum=0;
-  for(let j=0;j<i;j++)accum+=STAGES[j].dw;
-  startTyping(STAGES[i],Math.max(0,elapsed-accum));
-  updateHUD();updateProgress();
-}
-function startRewind(){
-  tour=false;playing=false;
-  $('#playBtn').textContent='▶';
-  const startZoom=cam.tz;const start=performance.now();const dur=3000;
-  (function step(now){
-    const p=clamp((now-start)/dur,0,1);const e=1-Math.pow(1-p,3);
-    cam.targetZoom=lerp(startZoom,1,e);cam.targetY=lerp(0,0,e);
-    if(p<1)requestAnimationFrame(step);
-    else{cam.rewinding=false;showFinale();}
-  })(start);
-}
-function showFinale(){
-  if(finaleShown)return;finaleShown=true;
-  $('#finale').classList.add('show');Audio_.chime();stopTimer();
-}
-function restartTour(){
-  $('#finale').classList.remove('show');finaleShown=false;
-  tour=true;playing=true;idx=0;startTime=performance.now();
-  $('#playBtn').textContent='❚❚';updateProgress();startTimer();
-  startTyping(STAGES[0]);updateHUD();buildControls();
+
+function nextStage() {
+  if(currentStage < stages.length - 1) {
+    currentStage++;
+    startTyping(stages[currentStage]);
+  }
 }
 
-/* HUD */
-function updateHUD(){
-  const s=STAGES[idx];if(!s)return;
-  $('#stageNum').textContent=`STAGE ${String(idx+1).padStart(2,'0')}/06`;
-  $('#zoomLevel').textContent=(cam.tz<1.1?1:cam.tz.toFixed(1))+'×';
-  $$('.navdot').forEach((b,i)=>{b.classList.toggle('active',i===idx);b.classList.toggle('done',i<idx);});
-}
-function buildControls(){
-  const c=$('#controls');c.innerHTML='';
-  const s=stages[idx];if(!s||!s.controls)return;s.controls(c);
-}
-function buildNav(){
-  const n=$('#nav');n.innerHTML='';
-  STAGES.forEach((s,i)=>{
-    const b=el('button',{class:'navdot',type:'button','aria-label':`Stage ${i+1}: ${s.name}`,onclick:()=>jumpTo(i)});
-    b.append(el('span',{class:'d'}),el('span',{class:'l'},s.name));n.append(b);
-  });
+// =====================================================
+// PROGRESS BAR
+// =====================================================
+let isDragging = false;
+
+function updateProgress() {
+  const pct = Math.min(100, (tourTime / totalTime) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-thumb').style.left = `calc(${pct}% - 8px)`;
+  
+  const cur = Math.floor(tourTime);
+  const tot = totalTime;
+  document.getElementById('time-display').textContent = 
+    `${Math.floor(cur/60)}:${String(cur%60).padStart(2,'0')} / ${Math.floor(tot/60)}:${String(tot%60).padStart(2,'0')}`;
 }
 
-/* particles */
-const parts=[],pool=[];
-function emit(o){const p=pool.pop()||{ax:0,ay:0,bx:0,by:0,cx:0,cy:0,t:0,speed:0.8,color:COL.cyan,size:2.5,trail:6};
-Object.assign(p,{ax:o.ax,ay:o.ay,bx:o.bx,by:o.by,cx:o.cx||(o.ax+o.bx)/2,cy:o.cy||(o.ay+o.by)/2,t:0,speed:o.speed||0.8,color:o.color||COL.cyan,size:o.size||2.5,trail:o.trail||6});
-if(parts.length>480)parts.shift();parts.push(p);return p;}
-function release(p){if(pool.length<320)pool.push(p);}
-function bez(p,t){const m=1-t;return{x:m*m*p.ax+2*m*t*p.cx+t*t*p.bx,y:m*m*p.ay+2*m*t*p.cy+t*t*p.by};}
-function updateParts(dt){for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.t+=p.speed*dt;if(p.t>=1){release(p);parts.splice(i,1);}else{const b=bez(p,p.t);p.px=lerp(p.px,b.x,.5);p.py=lerp(p.py,b.y,.5);}}}
-function drawParts(){for(const p of parts){const b=bez(p,p.t);cx.strokeStyle=rgba(p.color,.2);cx.lineWidth=1;cx.beginPath();cx.moveTo(p.px,p.py);cx.lineTo(b.x,b.y);cx.stroke();cx.fillStyle=p.color;cx.beginPath();cx.arc(b.x,b.y,p.size,0,TAU);cx.fill();}}
-
-/* drawing helpers */
-function rr(x,y,w,h,r){r=Math.min(r,w/2,h/2);cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
-function panel(x,y,w,h,r=10,fill='rgba(255,255,255,.92)',stroke='rgba(203,213,225,1)',glow=null){
-  if(glow){cx.shadowColor=glow;cx.shadowBlur=16;}rr(x,y,w,h,r);cx.fillStyle=fill;cx.fill();cx.shadowBlur=0;
-  cx.strokeStyle=stroke;cx.lineWidth=1;cx.stroke();}
-function line(x1,y1,x2,y2,col,alpha=1,w=1){cx.strokeStyle=alpha===1?col:rgba(col,alpha);cx.lineWidth=w;cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();}
-function dot(x,y,r,col,glow=10,a=1){cx.globalAlpha=a;if(glow){cx.shadowColor=col;cx.shadowBlur=glow;}cx.fillStyle=col;cx.beginPath();cx.arc(x,y,r,0,TAU);cx.fill();cx.shadowBlur=0;cx.globalAlpha=1;}
-function txt(s,x,y,{size=11,color=COL.dim,weight='',align='left',baseline='alphabetic',a=1}={}){
-  cx.globalAlpha=a;cx.font=weight+' '+size+'px '+MONO;cx.fillStyle=color;cx.textAlign=align;cx.textBaseline=baseline;cx.fillText(s,x,y);cx.globalAlpha=1;}
-function track(s,x,y,{size=9,color=COL.dim2,ls=2,align='left'}={}){
-  cx.save();cx.font=size+'px '+MONO;cx.fillStyle=color;cx.textAlign=align;let px=x;
-  if(align==='center'){let tw=0;for(const c of s)tw+=cx.measureText(c).width+ls;px=x-tw/2;}
-  for(const c of s){cx.fillText(c,px,y);px+=cx.measureText(c).width+ls;}cx.restore();}
-
-/* world to screen */
-function w2s(wx,wy){return{x:(wx-cam.tx)*cam.tz+W/2,y:(wy-cam.ty)*cam.tz+H*0.38};}
-function s2w(sx,sy){return{x:(sx-W/2)/cam.tz+cam.tx,y:(sy-H*0.38)/cam.tz+cam.ty};}
-
-/* dust */
-function buildDust(){dust=[];const n=Math.round((W*H)/28000);for(let i=0;i<n;i++)dust.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*2.5,r:Math.random()*1+0.3,a:Math.random()*0.15+0.04});}
-
-/* grid */
-function drawGrid(t){
-  cx.fillStyle=COL.bg;cx.fillRect(0,0,W,H);
-  const g=cx.createRadialGradient(W/2,H*0.3,10,W/2,H*0.3,Math.max(W,H)*0.5);
-  g.addColorStop(0,'rgba(2,132,199,0.03)');g.addColorStop(1,'rgba(248,250,252,0)');
-  cx.fillStyle=g;cx.fillRect(0,0,W,H);
-  const gp=36,ox=(-cam.tx*cam.tz+W/2)%gp,oy=(-cam.ty*cam.tz+H*0.38)%gp;
-  cx.strokeStyle='rgba(203,213,225,0.75)';cx.lineWidth=1;cx.beginPath();
-  for(let x=ox;x<W;x+=gp){cx.moveTo(x+.5,0);cx.lineTo(x+.5,H);}
-  for(let y=oy;y<H;y+=gp){cx.moveTo(0,y+.5);cx.lineTo(W,y+.5);}cx.stroke();
-  cx.fillStyle=COL.cyan;for(const d of dust){d.x+=d.vx*dt;d.y+=d.vy*dt;
-    if(d.x<0)d.x+=W;if(d.x>W)d.x-=W;if(d.y<0)d.y+=H;if(d.y>H)d.y-=H;
-    cx.globalAlpha=d.a;cx.beginPath();cx.arc(d.x,d.y,d.r,0,TAU);cx.fill();}cx.globalAlpha=1;
+function seekTo(pct) {
+  pct = Math.max(0, Math.min(1, pct));
+  const targetTime = pct * totalTime;
+  
+  let accum = 0;
+  for(let i = 0; i < stages.length; i++) {
+    if(accum + stages[i].duration >= targetTime) {
+      currentStage = i;
+      tourTime = accum + (targetTime - accum);
+      startTyping(stages[i]);
+      break;
+    }
+    accum += stages[i].duration;
+  }
+  updateProgress();
 }
 
-/* =====================================================================
-   STAGES
-   ===================================================================== */
-const stages=[];
+document.getElementById('progress-bar').addEventListener('click', e => {
+  const rect = document.getElementById('progress-track').getBoundingClientRect();
+  seekTo((e.clientX - rect.left) / rect.width);
+});
 
-stages.push({
-  name:'Input',zoom:1,title:'Input & Signal Conversion',accent:COL.cyan,
-  desc:'At compile time, source code in Python, C++, or JavaScript is translated into machine code before the program ever runs. At runtime, hardware controllers digitize live physical signals — keystrokes, mouse movement, OCR camera scans, microphone audio — directly into binary packets on the system bus, bypassing the compiler entirely.',
-  dw:14,cp:0,compiling:false,aim:0.5,mic:0.5,
-  enter(){},reset(){this.cp=0;this.compiling=false;this.aim=0.5;this.mic=0.5;},
-  draw(t){
-    const cx=W/2,cy=H/2;
-    line(cx,cy-160,cx,cy+160,COL.grid,1,1);
-    track('COMPILE-TIME',cx-260,cy-170,{size:9,color:COL.dim2,ls:3});
-    track('RUNTIME',cx+20,cy-170,{size:9,color:COL.dim2,ls:3});
-    // LEFT
-    panel(cx-280,cy-150,240,290,11,'rgba(255,255,255,.92)',COL.grid);
-    txt('Compiler Node',cx-220,cy-126,{size:12,color:COL.text,weight:'600'});
-    txt('source .py  .cpp  .js',cx-220,cy-108,{size:9.5,color:COL.dim});
-    const codeRows=[[0.8,COL.amber],[0.6,COL.cyan],[0.72,COL.emerald],[0.5,COL.dim],[0.8,COL.cyan],[0.55,COL.amber]];
-    codeRows.forEach((r,i)=>{const yy=cy-80+i*15-(this.cp*i*1.5);cx.globalAlpha=1-this.cp;
-      line(cx-268,yy,cx-268+180*r[0],yy,r[1],0.85,3);
-      if(i%2===0)line(cx-262,yy+6,cx-262+120,yy+6,COL.dim2,0.4,2);cx.globalAlpha=1;});
-    const bt=cy+60,cCols=12,cw=170/cCols;
-    for(let n=0;n<36;n++){const r=Math.floor(n/cCols),c=n%cCols,x=cx-265+c*cw,y=bt+r*12;
-      if(n<this.cp*36)txt(Math.random()<0.5?'0':'1',x,y,{size:8,color:COL.cyan});else line(x,y-1,x+cw*0.4,y-1,COL.dim2,0.2,1);}
-    txt(this.cp>=1?'machine code emitted':'translating...',cx-268,cy+138,{size:9,color:this.cp>=1?COL.emerald:COL.dim});
-    // RIGHT
-    panel(cx+40,cy-150,240,290,11,'rgba(255,255,255,.92)',COL.grid);
-    txt('Peripheral Controllers',cx+100,cy-126,{size:12,color:COL.text,weight:'600'});
-    txt('analog -> digitize -> IRQ',cx+100,cy-108,{size:9.5,color:COL.dim});
-    const rows=[{lab:'KEYBOARD',y:cy-80,col:COL.cyan},{lab:'MOUSE / AIM',y:cy-40,col:COL.amber},
-      {lab:'OCR CAMERA',y:cy+2,col:COL.emerald},{lab:'MICROPHONE',y:cy+44,col:COL.magenta}];
-    rows.forEach((rw,i)=>{
-      txt(rw.lab,cx+52,rw.y-12,{size:8.5,color:COL.dim});line(cx+52,rw.y,cx+140,rw.y,COL.grid,1,1);
-      if(i===0){cx.beginPath();for(let x=0;x<88;x++){const yy=rw.y+Math.sin((x+t*120)*0.35)*2.5*(Math.sin(t*6+i)>0.4?1:0.25);x===0?cx.moveTo(cx+52+x,yy):cx.lineTo(cx+52+x,yy);}cx.strokeStyle=COL.cyan;cx.globalAlpha=0.7;cx.lineWidth=1.3;cx.stroke();cx.globalAlpha=1;}
-      if(i===1){const gx=cx+52+80*this.aim;dot(gx,rw.y,2,COL.amber,10);line(gx-8,rw.y,gx+8,rw.y,COL.amber,0.6,1);line(gx,rw.y-8,gx,rw.y+8,COL.amber,0.6,1);cx.beginPath();cx.arc(gx,rw.y,5,0,TAU);cx.strokeStyle=rgba(COL.amber,0.5);cx.lineWidth=1;cx.stroke();}
-      if(i===2){cx.strokeStyle=rgba(COL.emerald,0.5);cx.lineWidth=1;cx.strokeRect(cx+52,rw.y-8,88,16);const sx=(t*1.6%1)*88;line(cx+52+sx,rw.y-8,cx+52+sx,rw.y+8,COL.emerald,0.8,1.5);}
-      if(i===3){for(let k=0;k<14;k++){const amp=this.mic*10*(0.3+0.7*Math.abs(Math.sin(k*0.6+t*4)));line(cx+52+k*6,rw.y-amp/2,cx+52+k*6,rw.y+amp/2,COL.magenta,0.7,2);}}
-      line(cx+142,rw.y,cx+270,rw.y,COL.grid,1,1);dot(cx+270,rw.y,1.8,rw.col);
-    });
-    const busY=cy+118;line(cx+40,busY,cx+280,busY,COL.cyan,0.4,2);
-    txt('SYSTEM BUS  ·  bypasses compiler',cx+52,busY+14,{size:8.5,color:COL.dim});
-    for(let k=0;k<3;k++){const px=cx+52+((t*0.25+k/3)%1)*210;dot(px,busY,2,COL.cyan,10,0.8);}
-    if(Math.random()<0.035)this.emitPkt(cx+140,cy-80,COL.cyan);
-    if(Math.random()<0.012)this.emitPkt(cx+140,cy+2,COL.emerald);
-  },
-  emitPkt(x,y,col){emit({ax:x,ay:y,bx:x+80,by:y+20,cx:x+10,cy:y-8,speed:0.85,color:col,size:2.2,trail:5});Audio_.tick(900,0.02,0.03,'triangle');},
-  controls(h){
-    h.append(el('span',{class:'ctl-lab'},'Compiler'));
-    const c=el('button',{class:'cb'});c.textContent='COMPILE';c.addEventListener('click',()=>{this.compiling=true;this.cp=0;c.classList.add('on');setTimeout(()=>c.classList.remove('on'),1600);Audio_.blip();});h.append(c);
-    h.append(el('div',{class:'ctlsep'}));
-    h.append(el('span',{class:'ctl-lab'},'Peripherals'));
-    const k=el('button',{class:'cb'});k.textContent='KEYSTROKE';k.addEventListener('click',()=>{this.emitPkt(W/2+140,H/2-80,COL.cyan);});h.append(k);
-    const sc=el('button',{class:'cb'});sc.textContent='SCAN';sc.addEventListener('click',()=>{this.emitPkt(W/2+140,H/2+2,COL.emerald);});h.append(sc);
-    h.append(el('div',{class:'ctlsep'}));
-    h.append(el('span',{class:'ctl-lab'},'Aim'));
-    const asl=el('input',{type:'range',min:0,max:1,step:0.01,value:this.aim});asl.addEventListener('input',()=>{this.aim=parseFloat(asl.value);});h.append(asl);
-    h.append(el('span',{class:'ctl-lab'},'Mic'));
-    const msl=el('input',{type:'range',min:0,max:1,step:0.01,value:this.mic});msl.addEventListener('input',()=>{this.mic=parseFloat(msl.value);});h.append(msl);
+document.getElementById('progress-bar').addEventListener('mousedown', e => {
+  isDragging = true;
+  const rect = document.getElementById('progress-track').getBoundingClientRect();
+  seekTo((e.clientX - rect.left) / rect.width);
+});
+
+document.addEventListener('mousemove', e => {
+  if(isDragging) {
+    const rect = document.getElementById('progress-track').getBoundingClientRect();
+    seekTo((e.clientX - rect.left) / rect.width);
   }
 });
 
-stages.push({
-  name:'Software',zoom:2,title:'Software Abstraction & Register Mapping',accent:COL.amber,
-  desc:'Applications like Valorant, Chrome, and Neovim request services from the OS kernel — whether macOS, Windows, or Linux — which manages processes, memory, files, and networks through both GUI and CLI. A system call descends into kernel space where a device driver, a low-level hardware register translator, writes directly to physical registers. Middleware, by contrast, sits far above and never touches a register.',
-  wave:null,activeApp:'',
-  enter(){},reset(){this.wave=null;},
-  draw(t){
-    const cx=W/2,cy=H/2,bw=360,bh=52,lx=cx-bw/2;
-    const layers=[{y:cy-120,title:'Application Software',tag:'user space · valorant / chrome / neovim'},{y:cy-50,title:'OS Kernel + Utilities',tag:'macOS / Windows / Linux · GUI+CLI · processes · memory · files · network'},{y:cy+20,title:'Device Driver Translators',tag:'kernel space · writes hardware register values'},{y:cy+90,title:'Hardware Control Registers',tag:'memory-mapped device registers'}];
-    for(let i=0;i<layers.length-1;i++)line(cx,layers[i].y+bh/2,cx,layers[i+1].y-bh/2,COL.grid,1,1);
-    layers.forEach(l=>{panel(lx,l.y-bh/2,bw,bh,9,'rgba(255,255,255,.92)',COL.grid);txt(l.title,lx+12,l.y+1,{size:11,color:COL.text,weight:'600'});txt(l.tag,lx+12,l.y+16,{size:8.5,color:COL.dim});});
-    ['Valorant','Chrome','Neovim'].forEach((a,k)=>{const x=lx+bw-100+k*112,on=this.activeApp===a;
-      panel(x,layers[0].y-12,96,26,6,on?rgba(COL.amber,.1):'rgba(255,255,255,.92)',on?COL.amber:COL.grid,on?COL.amber:null);
-      txt(a,x+48,layers[0].y,{size:10,color:on?COL.amber:COL.text,align:'center',baseline:'middle'});});
-    ['Task Mgr','Compressor','Defragmenter','Firewall'].forEach((u,k)=>{const ux=lx+12+k*94,uy=layers[1].y+(k<2?-10:10);
-      panel(ux,uy-7,88,14,5,'rgba(255,255,255,.92)',COL.grid);txt('· '+u,ux+6,uy+2,{size:8,color:COL.dim});});
-    const mx=cx+bw/2+38,my=layers[1].y-16;
-    panel(mx,my,155,74,9,'rgba(190,18,60,.04)',rgba(COL.magenta,.35));
-    txt('Middleware / DB API',mx+10,my+20,{size:10,color:COL.magenta,weight:'600'});
-    txt('sits far above hardware —',mx+10,my+36,{size:8,color:COL.dim});txt('never touches registers.',mx+10,my+48,{size:8,color:COL.dim});
-    txt('✗ not a driver',mx+10,my+64,{size:8.5,color:COL.magenta});
-    cx.setLineDash([3,3]);line(mx,my+30,cx+bw/2,my+30,COL.magenta,0.3,1);cx.setLineDash([]);
-    if(this.wave){const y=this.wave.y;line(lx-6,y,lx+bw+6,y,COL.cyan,0.7,2);
-      for(let k=0;k<3;k++){const rr=((t*1.4+k*.3)%1)*32;cx.beginPath();cx.arc(cx,y,rr,0,TAU);cx.strokeStyle=rgba(COL.cyan,0.25*(1-rr/32));cx.lineWidth=1;cx.stroke();}
-      dot(cx,y,3,COL.cyan,12);txt('SYSTEM CALL',lx+bw+12,y+3,{size:8.5,color:COL.cyan});}
-    const n=5,rw=40,gap=7,total=n*rw+(n-1)*gap,sx=cx-total/2;
-    for(let k=0;k<n;k++){const x=sx+k*(rw+gap),on=this.wave&&this.wave.hitDriver;
-      panel(x,layers[3].y-10,rw,20,5,on?rgba(COL.amber,.08):'rgba(255,255,255,.92)',on?rgba(COL.amber,.5):COL.grid);
-      txt('R'+k,x+rw/2,layers[3].y,{size:8.5,color:on?COL.amber:COL.dim,align:'center',baseline:'middle'});}
-  },
-  fire(app){this.activeApp=app;this.wave={y:H/2-120,hitDriver:false,app};Audio_.irq();},
-  controls(h){
-    h.append(el('span',{class:'ctl-lab'},'Fire system call'));
-    ['Valorant','Chrome','Neovim'].forEach(a=>{const b=el('button',{class:'cb warm'});b.textContent=a;b.addEventListener('click',()=>{this.fire(a);});h.append(b);});
+document.addEventListener('mouseup', () => isDragging = false);
+
+// =====================================================
+// CONTROLS
+// =====================================================
+document.getElementById('play-btn').addEventListener('click', () => {
+  playing = !playing;
+  document.getElementById('play-btn').textContent = playing ? '❚❚' : '▶';
+  if(playing) startTimer();
+  else stopTimer();
+});
+
+document.addEventListener('keydown', e => {
+  if(e.code === 'Space' || e.key === ' ') {
+    e.preventDefault();
+    advanceTyping();
+  } else if(e.key === 'ArrowRight') {
+    nextStage();
+  } else if(e.key === 'ArrowLeft' && currentStage > 0) {
+    currentStage--;
+    startTyping(stages[currentStage]);
   }
 });
 
-stages.push({
-  name:'Board',zoom:5,title:'Motherboard & Tri-Bus Flow',accent:COL.cyan,
-  desc:'The motherboard is the physical foundation that interconnects every component. The PSU distributes energy through a regulated grid, heat sinks and cooling fans prevent thermal throttling, and the Platform Controller Hub links PCIe slots for the GPU and NIC, SATA for storage, and USB for peripherals. Three buses carry all traffic: Address Bus (unidirectional cyan), Data Bus (bidirectional amber), Control Bus (strobes and magenta IRQs).',
-  clock:1,
-  enter(){},reset(){},
-  draw(t){
-    const cx=W/2,cy=H/2;
-    panel(cx-380,cy-180,760,360,12,'rgba(255,255,255,.92)',COL.grid);
-    track('MOTHERBOARD SCHEMATIC',cx,cy-162,{size:9,color:COL.dim2,ls:2,align:'center'});
-    const comps=[{n:'PSU',s:'power grid'},{n:'Cooling',s:'thermal'},{n:'PCH',s:'hub'},{n:'PCIe · GPU',s:'parallel'},{n:'PCIe · NIC',s:'network'},{n:'SATA',s:'storage'},{n:'USB',s:'peripherals'}];
-    const cw=96,cg=6,tw=comps.length*cw+(comps.length-1)*cg,sx=cx-tw/2;
-    comps.forEach((c,k)=>{const x=sx+k*(cw+cg),y=cy-148;
-      panel(x,y,cw,54,8,'rgba(255,255,255,.92)',c.n==='Cooling'?rgba(COL.magenta,.4):COL.grid);
-      txt(c.n,x+cw/2,y+18,{size:10,color:COL.text,align:'center',weight:'600'});
-      txt(c.s,x+cw/2,y+34,{size:7.5,color:COL.dim,align:'center'});
-      if(c.n==='Cooling'){const p=0.3+0.1*Math.sin(t*2);line(x+8,y+42,x+cw-8,y+42,COL.grid,1,2);line(x+8,y+42,x+8+(cw-16)*p,p>0.5?COL.magenta:COL.emerald,1,2);}
-      if(c.n==='PSU'){for(let q=0;q<3;q++)line(x+10+q*12,y+38,x+10+q*12,y+48,COL.amber,0.3,2);}
-      line(x+cw/2,y+54,x+cw/2,cy+100,COL.grid,1,1);dot(x+cw/2,cy+100,1.5,COL.dim);});
-    panel(cx-60,cy-55,120,90,10,'rgba(2,132,199,.06)',rgba(COL.cyan,.45),rgba(COL.cyan,.2));
-    txt('CPU',cx,cy-28,{size:14,color:COL.text,align:'center',weight:'600'});
-    txt('PC·MAR·MDR',cx,cy-10,{size:8,color:COL.dim,align:'center'});txt('CIR·ACC·CU·ALU',cx,cy+2,{size:8,color:COL.dim,align:'center'});
-    panel(cx+180,cy-50,90,44,8,'rgba(2,132,199,.05)',rgba(COL.cyan,.35));
-    txt('DRAM',cx+225,cy-30,{size:11,color:COL.text,align:'center',weight:'600'});
-    txt('volatile main memory',cx+225,cy-16,{size:7.5,color:COL.dim,align:'center'});
-    panel(cx+180,cy+10,90,30,8,'rgba(255,255,255,.92)',COL.grid);txt('ROM · BIOS',cx+225,cy+28,{size:9,color:COL.dim,align:'center',baseline:'middle'});
-    const rails=[{k:'addr',y:cy+62,col:COL.cyan,nm:'ADDRESS BUS',dir:'uni ->'},{k:'data',y:cy+92,col:COL.amber,nm:'DATA BUS',dir:'bi <=>'},{k:'ctrl',y:cy+122,col:COL.magenta,nm:'CONTROL BUS',dir:'strobes+IRQ'}];
-    rails.forEach(r=>{line(cx-340,r.y,cx+280,r.y,r.col,0.45,2);txt(r.nm,cx-336,r.y-6,{size:8,color:r.col});txt(r.dir,cx+276,r.y-6,{size:7.5,color:COL.dim,align:'right'});dot(cx+280,r.y,2.2,r.col,10);});
-    for(let k=0;k<7;k++){const px=cx-340+((t*0.35+k/7)%1)*620;line(px,rails[2].y-3,px,rails[2].y+3,COL.cyan,0.35,1);}
-    if(Math.random()<0.028)this.emitRail(rails[0].y,COL.cyan,1);
-    if(Math.random()<0.022){const d=Math.random()<0.5?1:-1;this.emitRail(rails[1].y,COL.amber,d);}
-    if(Math.random()<0.014)this.emitRail(rails[2].y,COL.magenta,1);
-  },
-  emitRail(y,col,dir){const dx=dir>0?340:-340;emit({ax:W/2-dx*0.4,ay:y,bx:W/2+dx*0.4,by:y,speed:0.5,col,size:2,trail:7});Audio_.tick(700,0.015,0.03);},
-  controls(h){
-    h.append(el('span',{class:'ctl-lab'},'Dispatch'));
-    const a=el('button',{class:'cb'});a.textContent='ADDRESS';a.addEventListener('click',()=>this.emitRail(H/2+62,COL.cyan,1));h.append(a);
-    const d=el('button',{class:'cb warm'});d.textContent='DATA ->';d.addEventListener('click',()=>this.emitRail(H/2+92,COL.amber,1));h.append(d);
-    const d2=el('button',{class:'cb warm'});d2.textContent='<- DATA';d2.addEventListener('click',()=>this.emitRail(H/2+92,COL.amber,-1));h.append(d2);
-    const c=el('button',{class:'cb'});c.textContent='CONTROL';c.addEventListener('click',()=>this.emitRail(H/2+122,COL.magenta,1));h.append(c);
-    const ir=el('button',{class:'cb hot'});ir.textContent='FIRE IRQ';ir.addEventListener('click',()=>{emit({ax:W/2+280,ay:H/2+122,bx:W/2-60,by:H/2+122,cy:H/2+130,speed:0.85,color:COL.magenta,size:3,trail:10});Audio_.irq();});h.append(ir);
-    h.append(el('div',{class:'ctlsep'}));h.append(el('span',{class:'ctl-lab'},'Clock'));
-    const sl=el('input',{type:'range',min:0.4,max:2.4,step:0.1,value:1});sl.addEventListener('input',()=>{});h.append(sl);
-  }
-});
+document.getElementById('text-overlay').addEventListener('click', advanceTyping);
 
-stages.push({
-  name:'Memory',zoom:10,title:'Memory Pyramid & Locality',accent:COL.amber,
-  desc:'Data lives in a hierarchy of speed, volatility, and cost. Non-volatile ROM holds the BIOS firmware that initializes the machine. Volatile DRAM serves as the working memory for the operating system and active processes. Between them sit fast SRAM caches across L1, L2, and L3 tiers — exploiting temporal and spatial locality of reference so the CPU rarely waits. Below lies secondary storage: sequential magnetic tape, spinning HDD platters, optical discs, and non-volatile random-access SSDs.',
-  addr:220,req:null,auto:false,cycles:0,lastHit:2,latFlash:0,
-  tiers:[{k:'REG',n:'Registers',lat:1,col:COL.text},{k:'L1',n:'L1 Cache (SRAM)',lat:3,col:COL.emerald},{k:'L2',n:'L2 Cache (SRAM)',lat:12,col:COL.emerald},{k:'L3',n:'L3 Cache (SRAM)',lat:40,col:COL.emerald},{k:'DRAM',n:'Main Memory',lat:200,col:COL.cyan},{k:'SSD',n:'Secondary Storage',lat:20000,col:COL.amber}],
-  enter(){},reset(){this.req=null;this.cycles=0;this.auto=false;},
-  hitLevel(a){const h=Math.abs(Math.sin(a*12.9898)*43758.5453);const f=h-Math.floor(h);if(f<0.42)return 1;if(f<0.62)return 2;if(f<0.76)return 3;if(f<0.93)return 4;return 5;},
-  request(){const lvl=this.hitLevel(this.addr);this.lastHit=lvl;this.req={y:H/2-120,target:H/2-120+lvl*48,lvl,phase:'down'};this.cycles+=this.tiers[lvl].lat;Audio_.tick(lvl<=3?1200:lvl===4?600:300,0.04,0.12,'triangle');if(lvl>=4)this.latFlash=1;},
-  draw(t){
-    const cx=W/2,cy=H/2,g={cx,topY:cy-120,rowH:44,baseW:240,cx2:cx-20};
-    track('MEMORY HIERARCHY',g.cx2-110,g.topY-26,{size:9,color:COL.dim2,ls:2});
-    this.tiers.forEach((tr,k)=>{const w=g.baseW*(1-k*0.09),y=g.topY+k*g.rowH,x=g.cx2-w/2,hit=this.req&&this.req.lvl===k;
-      panel(x,y-17,w,34,hit?8:7,hit?rgba(tr.col,.1):'rgba(255,255,255,.92)',hit?tr.col:COL.grid,hit?tr.col:null);
-      txt(tr.k,x+10,y+1,{size:10.5,color:hit?tr.col:COL.text,weight:'600'});
-      txt(tr.n,x+46,y+1,{size:8.5,color:COL.dim});
-      txt(tr.lat+' cyc',x+w-10,y+1,{size:7.5,color:COL.dim,align:'right'});
-      if(k<this.tiers.length-1)line(g.cx2,y+17,g.cx2,y+g.rowH-17,COL.grid,1,1);});
-    panel(g.cx2-44,g.topY-52,88,24,6,'rgba(2,132,199,.06)',rgba(COL.cyan,.4));
-    txt('CPU REQUEST',g.cx2,g.topY-36,{size:8,color:COL.cyan,align:'center',baseline:'middle'});
-    txt('0x'+Math.floor(this.addr).toString(16).toUpperCase().padStart(3,'0'),g.cx2,g.topY-66,{size:10.5,color:COL.text,align:'center'});
-    if(this.req)dot(g.cx2,this.req.y,3,this.tiers[this.req.lvl].col,12);
-    const sx=g.cx2-310,sy=cy+55;
-    panel(sx,sy-72,230,268,10,'rgba(255,255,255,.92)',COL.grid);
-    track('STORAGE',sx+10,sy-54,{size:9,color:COL.dim2,ls:2});
-    [{n:'Magnetic Tape',s:'sequential',d:(x,y)=>{for(let q=0;q<6;q++)dot(x+q*8,y,1.6,COL.amber,5);}},
-     {n:'HDD',s:'magnetic · spinning',d:(x,y)=>{cx.beginPath();cx.arc(x+18,y,12,-.3,TAU-.3);cx.strokeStyle=rgba(COL.amber,.6);cx.lineWidth=1.2;cx.stroke();dot(x+18,y,1.6,COL.amber,5);dot(x+18+Math.cos(t*6)*8,y+Math.sin(t*6)*8,1.3,COL.text,5);}},
-     {n:'CD',s:'optical',d:(x,y)=>{cx.beginPath();cx.arc(x+18,y,12,0,TAU);cx.strokeStyle=rgba(COL.emerald,.5);cx.lineWidth=1;cx.stroke();cx.beginPath();cx.arc(x+18,y,4,0,TAU);cx.stroke();}},
-     {n:'SSD',s:'solid-state · random',d:(x,y)=>{for(let q=0;q<3;q++)panel(x+q*18,y-7,15,16,3,'rgba(255,255,255,.92)',rgba(COL.cyan,.35));}}].forEach((it,k)=>{const y=sy-42+k*54;txt(it.n,sx+10,y,{size:9.5,color:COL.text});txt(it.s,sx+10,y+14,{size:7.5,color:COL.dim});it.d(sx+10,y+26);});
-    panel(g.cx2-310,cy-168,230,58,10,'rgba(255,255,255,.92)',COL.grid);
-    txt('Last hit',g.cx2-298,cy-148,{size:8.5,color:COL.dim});
-    txt(this.tiers[this.lastHit].k,g.cx2-298,cy-128,{size:18,color:this.tiers[this.lastHit].col,weight:'600'});
-    txt('cycles',g.cx2-240,cy-148,{size:8,color:COL.dim});
-    txt(String(this.cycles),g.cx2-240,cy-128,{size:18,color:this.latFlash>0?COL.magenta:COL.text,weight:'600'});
-    txt(this.lastHit<=3?'cache hit — fast':this.lastHit<=4?'DRAM miss — slow':'SSD miss — very slow',g.cx2-298,cy-112,{size:7.5,color:this.lastHit<=3?COL.emerald:COL.magenta});
-  },
-  update(t,dt){if(this.auto&&!this.req&&Math.random()<dt*0.85){this.addr=Math.floor(Math.random()*1024);this.request();}if(this.req){if(this.req.phase==='down'){this.req.y+=dt*220;if(this.req.y>=this.req.target)this.req.phase='up';}else{this.req.y-=dt*380;if(this.req.y<=H/2-140)this.req=null;}}this.latFlash=Math.max(0,this.latFlash-dt*1.4);},
-  controls(h){
-    h.append(el('span',{class:'ctl-lab'},'Data access'));
-    const sl=el('input',{type:'range',min:0,max:1024,step:1,value:this.addr});sl.addEventListener('input',()=>{this.addr=parseFloat(sl.value);});h.append(sl);
-    const r=el('button',{class:'cb'});r.textContent='REQUEST';r.addEventListener('click',()=>{this.request();});h.append(r);
-    const au=el('button',{class:'cb'});au.textContent='AUTO';au.addEventListener('click',b=>{this.auto=!this.auto;b.classList.toggle('on',this.auto);});h.append(au);
-    const rs=el('button',{class:'cb'});rs.textContent='RESET';rs.addEventListener('click',()=>{this.cycles=0;});h.append(rs);
-  }
-});
-
-stages.push({
-  name:'CPU',zoom:25,title:'Machine Cycle & Circuit Engine',accent:COL.emerald,
-  desc:'Inside the CPU core, the Fetch-Decode-Execute cycle runs endlessly. The Program Counter publishes an address to the Memory Address Register, which places it on the Address Bus. RAM returns the instruction to the Memory Data Register, then to the Current Instruction Register. The Control Unit decodes the opcode into electrical signals, and the ALU computes the result into the Accumulator. At the silicon level, every operation begins with NPN transistors switching states to form logic gates — combinational circuits like adders building the ALU, and sequential circuits like flip-flops holding register state.',
-  step:0,auto:false,PC:0,ACC:0,MDR:'--',CIR:'--',CU:'idle',ALU:0,zoom:false,
-  STEPS:[{t:'FETCH · PC -> MAR',a:'PC',b:'MAR'},{t:'FETCH · MAR -> Bus -> RAM',a:'MAR',b:'RAM'},{t:'FETCH · RAM -> Bus -> MDR',a:'RAM',b:'MDR'},{t:'FETCH · MDR -> CIR',a:'MDR',b:'CIR'},{t:'FETCH · PC <- PC + 1',a:'PC',b:'PC'},{t:'DECODE · CU reads CIR',a:'CIR',b:'CU'},{t:'EXECUTE · ALU computes',a:'CU',b:'ALU'},{t:'EXECUTE · ALU -> ACC',a:'ALU',b:'ACC'}],
-  enter(){},reset(){this.step=0;this.auto=false;this.PC=0;this.ACC=0;this.MDR='--';this.CIR='--';this.CU='idle';this.ALU=0;},
-  draw(t){
-    const cx=W/2,cy=H/2;
-    const N={PC:{x:cx-240,y:cy-75},MAR:{x:cx-100,y:cy-75},RAM:{x:cx+110,y:cy-75},MDR:{x:cx-20,y:cy+6},CIR:{x:cx-140,y:cy+6},CU:{x:cx-300,y:cy+6},ALU:{x:cx-260,y:cy+100},ACC:{x:cx-100,y:cy+100}};
-    [['PC','MAR'],['MAR','RAM'],['RAM','MDR'],['MDR','CIR'],['CIR','CU'],['CU','ALU'],['ALU','ACC'],['CU','MDR']].forEach(([a,b])=>{const A=N[a],B=N[b];line(A.x,A.y,B.x,B.y,COL.grid,1,1);});
-    panel(N.RAM.x-32,N.RAM.y-22,64,44,8,'rgba(2,132,199,.05)',rgba(COL.cyan,.4));
-    txt('RAM',N.RAM.x,N.RAM.y-4,{size:10,color:COL.text,align:'center',weight:'600'});txt('0x00 LDA 5',N.RAM.x,N.RAM.y+10,{size:7.5,color:COL.dim,align:'center'});txt('0x01 ADD 3',N.RAM.x,N.RAM.y+18,{size:7.5,color:COL.dim,align:'center'});
-    const cur=this.STEPS[this.step];
-    [[N.PC,this.PC,COL.cyan,'PC'],[N.MAR,this.PC,COL.cyan,'MAR'],[N.MDR,this.MDR,COL.amber,'MDR'],[N.CIR,this.CIR,COL.amber,'CIR'],[N.CU,this.CU,COL.emerald,'CU'],[N.ALU,this.ALU,COL.emerald,'ALU'],[N.ACC,this.ACC,COL.amber,'ACC']].forEach(([pos,val,col,name])=>{const active=cur.a===name||cur.b===name;
-      panel(pos.x-30,pos.y-18,60,36,7,active?rgba(col,.09):'rgba(255,255,255,.92)',active?col:COL.grid,active?col:null);
-      txt(name,pos.x,pos.y-3,{size:9.5,color:active?col:COL.text,align:'center',weight:'600'});txt(String(val),pos.x,pos.y+11,{size:8.5,color:COL.dim,align:'center'});});
-    txt('▶ '+cur.t,cx+150,cy-120,{size:9.5,color:COL.cyan});
-    if(this.zoom){const zx=cx+130,zy=cy-100,zw=370,zh=240;
-      panel(zx,zy,zw,zh,11,'rgba(255,255,255,.95)',COL.grid,rgba(COL.emerald,.2));
-      track('SILICON -> LOGIC -> ALU / REGISTERS',zx+10,zy+16,{size:8,color:COL.emerald,ls:2});
-      const y1=zy+50;txt('NPN',zx+12,y1+4,{size:8.5,color:COL.dim});
-      for(let k=0;k<2;k++){const tx=zx+60+k*24;line(tx,y1-9,tx,y1+9,COL.emerald,0.65,2);line(tx-7,y1-2,tx+7,y1-2,COL.emerald,0.45,1.5);line(tx-7,y1+5,tx+7,y1+5,COL.emerald,0.45,1.5);dot(tx,y1-9,1.5,COL.emerald,5);dot(tx,y1+9,1.5,COL.emerald,5);}
-      txt('->',zx+118,y1+4,{size:11,color:COL.dim});
-      panel(zx+136,y1-11,54,22,6,'rgba(255,255,255,.92)',rgba(COL.emerald,.4));txt('AND',zx+163,y1+1,{size:9,color:COL.emerald,align:'center',baseline:'middle'});
-      txt('OR',zx+204,y1+1,{size:9,color:COL.emerald});txt('NOT',zx+232,y1+1,{size:9,color:COL.emerald});
-      const y2=zy+122;panel(zx+12,y2-13,76,26,6,'rgba(255,255,255,.92)',rgba(COL.amber,.4));txt('Adder / MUX',zx+50,y2+1,{size:8.5,color:COL.amber,align:'center',baseline:'middle'});
-      txt('COMBINATIONAL -> ALU',zx+12,y2+14,{size:7.5,color:COL.dim});
-      const y3=zy+170;panel(zx+12,y3-13,76,26,6,'rgba(255,255,255,.92)',rgba(COL.cyan,.4));txt('Flip-Flop / Latch',zx+50,y3+1,{size:8.5,color:COL.cyan,align:'center',baseline:'middle'});
-      txt('SEQUENTIAL -> REGISTERS',zx+12,y3+14,{size:7.5,color:COL.dim});
-      for(let k=0;k<5;k++){const bx=zx+12+k*68,by=zy+zh-24,on=((t*3+k)%5)<2.6;panel(bx,by-8,56,16,4,on?rgba(COL.emerald,.1):'rgba(255,255,255,.92)',on?COL.emerald:COL.grid);txt(on?'1':'0',bx+28,by+1,{size:9,color:on?COL.emerald:COL.dim,align:'center',baseline:'middle'});}}
-    else{txt('CLICK ZOOM CIRCUIT',cx+140,cy-120,{size:8.5,color:COL.dim2});}
-  },
-  advance(){
-    const s=this.STEPS[this.step],N={PC:{x:W/2-240,y:H/2-75},MAR:{x:W/2-100,y:H/2-75},RAM:{x:W/2+110,y:H/2-75},MDR:{x:W/2-20,y:H/2+6},CIR:{x:W/2-140,y:H/2+6},CU:{x:W/2-300,y:H/2+6},ALU:{x:W/2-260,y:H/2+100},ACC:{x:W/2-100,y:H/2+100}};
-    if(s.a!==s.b){const A=N[s.a],B=N[s.b];emit({ax:A.x+26,ay:A.y,bx:B.x-26,by:B.y,cx:(A.x+B.x)/2,cy:(A.y+B.y)/2-16,speed:1.1,color:COL.cyan,size:2.4,trail:7});}
-    if(s.b==='MDR')this.MDR='LDA 5';if(s.b==='CIR')this.CIR='LDA 5';if(s.a==='PC'&&s.b==='PC')this.PC++;if(s.b==='CU')this.CU='LDA';if(s.b==='ALU'){this.ALU=5;this.CU='execute';}if(s.b==='ACC'){this.ACC=5;this.CU='idle';this.CIR='--';}
-    Audio_.tick(700+this.step*40,0.03,0.05,'triangle');this.step=(this.step+1)%this.STEPS.length;
-  },
-  controls(h){
-    h.append(el('span',{class:'ctl-lab'},'Cycle'));
-    const s=el('button',{class:'cb'});s.textContent='STEP';s.addEventListener('click',()=>this.advance());h.append(s);
-    const a=el('button',{class:'cb'});a.textContent='AUTO';a.addEventListener('click',b=>{this.auto=!this.auto;b.classList.toggle('on',this.auto);});h.append(a);
-    const r=el('button',{class:'cb'});r.textContent='RESET';r.addEventListener('click',()=>this.reset());h.append(r);
-    const z=el('button',{class:'cb'});z.textContent='ZOOM';z.addEventListener('click',b=>{this.zoom=!this.zoom;b.classList.toggle('on',this.zoom);});h.append(z);
-  }
-});
-
-stages.push({
-  name:'Transistor',zoom:100,title:'Transistors & Logic Circuits',accent:COL.emerald,
-  desc:'At the deepest level, computation is electrons flowing through silicon. NPN transistors act as switches, turning on and off in response to base currents. These transistors combine into fundamental logic gates — AND, OR, and NOT — each implementing a Boolean function through careful arrangement of semiconductor materials. Groups of gates form combinational circuits: adders that perform arithmetic, multiplexers that route data. Other gate arrangements create sequential circuits: flip-flops and latches that store a single bit of state. Together, these building blocks construct the ALU, the registers, and ultimately the entire processor — transforming raw physics into information.',
-  draw(t){
-    const cx=W/2,cy=H/2;
-    track('SILICON LAYER · 100× MAGNIFICATION',cx,cy-H*0.38,{size:9,color:COL.dim2,ls:2,align:'center'});
-    const ty=cy-H*0.14;
-    txt('NPN Transistors',cx-180,ty,{size:11,color:COL.text,weight:'600'});
-    for(let k=0;k<3;k++){const tx=cx-160+k*48;line(tx,ty+8,tx,ty+44,COL.emerald,0.65,2);line(tx-9,ty+16,tx+9,ty+16,COL.emerald,0.45,1.5);line(tx-9,ty+34,tx+9,ty+34,COL.emerald,0.45,1.5);dot(tx,ty+8,1.5,COL.emerald,7);dot(tx,ty+44,1.5,COL.emerald,7);}
-    const gy=ty+62;
-    ['AND','OR','NOT'].forEach((g,k)=>{const gx=cx-130+k*62;panel(gx-26,gy-14,52,28,6,'rgba(5,150,105,.07)',rgba(COL.emerald,.45),rgba(COL.emerald,.18));txt(g,gx,gy+1,{size:11,color:COL.emerald,align:'center',weight:'600'});});
-    const cy2=gy+50;
-    panel(cx-90,cy2-14,180,30,7,'rgba(217,119,6,.07)',rgba(COL.amber,.45));txt('COMBINATIONAL · Adder / Mux -> ALU',cx,cy2+1,{size:9,color:COL.amber,align:'center',weight:'600'});
-    const cy3=cy2+46;
-    panel(cx-90,cy3-14,180,30,7,'rgba(2,132,199,.07)',rgba(COL.cyan,.45));txt('SEQUENTIAL · Flip-Flop / Latch -> Registers',cx,cy3+1,{size:9,color:COL.cyan,align:'center',weight:'600'});
-    const fy=cy3+48;
-    for(let k=0;k<8;k++){const fx=cx-150+k*42,on=((t*2.5+k)%8)<4.2;panel(fx-16,fy-9,32,18,4,on?rgba(COL.emerald,.1):'rgba(255,255,255,.92)',on?COL.emerald:COL.grid);txt(on?'1':'0',fx,fy+1,{size:9,color:on?COL.emerald:COL.dim,align:'center',baseline:'middle'});}
-    if(Math.random()<0.07)emit({ax:cx-180,ay:ty+26,bx:cx+160,by:gy,speed:0.55,color:COL.emerald,size:2,trail:5});
-    if(Math.random()<0.05)emit({ax:cx-80,ay:cy2,bx:cx+80,by:cy2,speed:0.5,color:COL.amber,size:2,trail:5});
-  },
-  controls(h){
-    h.append(el('span',{class:'ctl-lab'},'Signal'));
-    const f=el('button',{class:'cb'});f.textContent='FIRE PACKET';f.addEventListener('click',()=>{const st=stages[idx];if(st&&st.draw)st.draw(performance.now()/1000);});h.append(f);
-  },
-  enter(){},reset(){},zoom:100
-});
-
-stages.push({
-  name:'Display',zoom:1,title:'Output Pipeline & Display Calibration',accent:COL.magenta,
-  desc:'The GPU renders in parallel into a frame buffer, pushed to the display as pixels. Display technologies trade quality against power. Contrast ratio ascends from CRT to LCD to OLED to micro-LED, while power consumption descends the same way — CRT drawing the most power, micro-LED the least. Each technology uses a fundamentally different method to produce light: cathode ray tubes excite phosphors, LCDs modulate backlight through liquid crystals, OLEDs emit light directly from organic molecules, and micro-LED arrays use inorganic semiconductors at microscopic scale.',
-  tech:'crt',techK:{crt:1,lcd:0,oled:0,uled:0},
-  TECHS:{crt:{n:'CRT',c:1,p:4,col:COL.dim},lcd:{n:'LCD',c:2,p:3,col:COL.cyan},oled:{n:'OLED',c:3,p:2,col:COL.emerald},uled:{n:'micro-LED',c:4,p:1,col:COL.amber}},
-  enter(){},reset(){this.tech='crt';this.techK={crt:1,lcd:0,oled:0,uled:0};},
-  update(dt){for(const k in this.techK){const tgt=k===this.tech?1:0;this.techK[k]+=(tgt-this.techK[k])*(1-Math.pow(0.0008,dt));}},
-  draw(t){
-    const cx=W/2,cy=H/2,T=this.TECHS[this.tech];
-    panel(cx-240,cy-65,100,52,9,'rgba(2,132,199,.06)',rgba(COL.cyan,.4));
-    txt('GPU',cx-190,cy-43,{size:12,color:COL.text,align:'center',weight:'600'});txt('parallel rendering',cx-190,cy-28,{size:7.5,color:COL.dim,align:'center'});
-    for(let k=0;k<6;k++){const px=cx-220+k*13,py=cy-55+Math.floor(k/3)*7;dot(px,py,1.3,COL.cyan,5,0.6);}
-    const fx=cx-130,fy=cy-65,fw=90,fh=52;
-    panel(fx,fy,fw,fh,7,'rgba(255,255,255,.92)',COL.grid);
-    for(let r=0;r<6;r++)for(let c=0;c<10;c++){const v=0.5+0.5*Math.sin(c*0.7+r*0.4+t*2);cx.fillStyle=rgba(c/10>0.3&&c/10<0.7?COL.amber:COL.cyan,0.1+0.4*v);cx.fillRect(fx+3+c*((fw-6)/10),fy+3+r*((fh-6)/6),(fw-6)/10-1,(fh-6)/6-1);}
-    txt('FRAME BUFFER',fx+fw/2,fy+fh+11,{size:7.5,color:COL.dim,align:'center'});
-    line(fx+fw,cy-38,cx+30,cy-38,COL.amber,0.45,2);
-    const dx=cx+50,dy=cy-54,dw=200,dh=110;
-    panel(dx,dy,dw,dh,9,'rgba(8,9,11,0.92)',COL.grid);
-    const ix=dx+5,iy=dy+5,iw=dw-10,ih=dh-10;
-    const grad=cx.createLinearGradient(ix,iy,ix+iw,iy+ih);grad.addColorStop(0,'#03151a');grad.addColorStop(0.5,'#0a3a44');grad.addColorStop(1,'#020a0d');
-    cx.save();rr(ix,iy,iw,ih,8);cx.clip();cx.fillStyle=grad;cx.fillRect(ix,iy,iw,ih);
-    cx.fillStyle=rgba(COL.cyan,0.4);cx.beginPath();cx.moveTo(ix+iw*.3,iy+ih-18);cx.lineTo(ix+iw*.5,iy+20);cx.lineTo(ix+iw*.7,iy+ih-18);cx.closePath();cx.fill();
-    line(ix,iy+ih-18,ix+iw,iy+ih-18,COL.amber,0.35,2);
-    if(this.techK.crt>0.02){cx.globalAlpha=this.techK.crt*0.22;cx.fillStyle='#000';for(let y=iy;y<iy+ih;y+=3)cx.fillRect(ix,y,iw,1.4);cx.globalAlpha=1;}
-    if(this.techK.lcd>0.02){cx.globalAlpha=this.techK.lcd*0.35;cx.fillStyle='rgba(220,235,245,0.1)';cx.fillRect(ix,iy,iw,ih);cx.globalAlpha=1;}
-    if(this.techK.oled>0.02){cx.globalAlpha=this.techK.oled;const vg=cx.createRadialGradient(ix+iw/2,iy+ih/2,25,ix+iw/2,iy+ih/2,iw*.65);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.45)');cx.fillStyle=vg;cx.fillRect(ix,iy,iw,ih);cx.globalAlpha=1;}
-    if(this.techK.uled>0.02){cx.globalAlpha=this.techK.uled;for(let y=iy;y<iy+ih;y+=3)for(let x=ix;x<ix+iw;x+=3)dot(x,y,0.5,'rgba(255,255,255,0.4)',0,0.2);}
-    cx.restore();txt(T.n,dx+dw/2,dy+dh+12,{size:10.5,color:T.col,align:'center',weight:'600'});
-    const bx=cx-230,by=cy+56,bw=460;
-    panel(bx,by,bw,108,9,'rgba(255,255,255,.92)',COL.grid);
-    track('CONTRAST RATIO — ascending',bx+10,by+18,{size:8,color:COL.dim2,ls:2});
-    track('POWER CONSUMPTION — descending',bx+10,by+68,{size:8,color:COL.dim2,ls:2});
-    ['crt','lcd','oled','uled'].forEach((k,i)=>{const tk=this.TECHS[k],act=this.tech===k,cw=(bw-20)/4,x=bx+10+i*cw;
-      const ch=(tk.c/4)*34;panel(x+5,by+52-ch,cw-16,ch,3,act?rgba(tk.col,.22):'rgba(203,213,225,.5)',act?tk.col:COL.grid);
-      const ph=(tk.p/4)*34;panel(x+5,by+94-ph,cw-16,ph,3,act?rgba(COL.magenta,.18):'rgba(203,213,225,.4)',act?COL.magenta:COL.grid);
-      txt(tk.n,x+cw/2,by+78,{size:8.5,color:act?tk.col:COL.dim,align:'center'});});
-  },
-  controls(h){
-    h.append(el('span',{class:'ctl-lab'},'Display'));
-    ['crt','lcd','oled','uled'].forEach(k=>{const b=el('button',{class:'cb'});b.textContent=this.TECHS[k].n;b.addEventListener('click',()=>{this.tech=k;Audio_.blip();buildControls();});h.append(b);});
-  }
-});
-
-/* main loop */
-let last=performance.now(),dt=0;
-function frame(now){
-  dt=(now-last)/1000;last=now;if(dt>0.05)dt=0.05;if(document.hidden)dt=0;
-  const k=1-Math.pow(0.001,dt);cam.tx+=(cam.targetX-cam.tx)*k;cam.ty+=(cam.targetY-cam.ty)*k;cam.tz+=(cam.targetZoom-cam.tz)*k;
-  updateParts(dt);drawGrid(performance.now()/1000);
-  // Always draw the scene if we've passed the typing phase
-  if(typState!=='idle'){
-    cx.save();cx.translate(W/2-cam.tx*cam.tz,H*0.38-cam.ty*cam.tz);cx.scale(cam.tz,cam.tz);
-    if(stages[idx]&&stages[idx].draw)stages[idx].draw(performance.now()/1000);
-    cx.restore();drawParts();
-  }
-  requestAnimationFrame(frame);
+function restartTour() {
+  currentStage = 0;
+  tourTime = 0;
+  playing = true;
+  document.getElementById('finale').classList.remove('show');
+  document.getElementById('play-btn').textContent = '❚❚';
+  startTimer();
+  startTyping(stages[0]);
 }
 
-/* boot */
-function boot(){
-  resize();buildDust();buildNav();updateHUD();updateProgress();
-  cam.targetZoom=1;cam.targetY=0;cam.tz=1;cam.ty=0;
-  startTimer();startTyping(STAGES[0]);
-  requestAnimationFrame(frame);
+function startTimer() {
+  if(!startTime) startTime = performance.now();
+  timerInterval = setInterval(() => {
+    if(playing && typState === 'scene') {
+      tourTime = (performance.now() - startTime) / 1000;
+      updateProgress();
+    }
+  }, 100);
 }
-window.addEventListener('DOMContentLoaded',boot);
-window.addEventListener('resize',()=>{resize();buildDust();});
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+// =====================================================
+// RENDERING
+// =====================================================
+let lastTime = 0;
+
+function render(now) {
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+  t = now / 1000;
+  
+  // Clear
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+  
+  // Draw current stage
+  if(typState === 'scene' || typState === 'done') {
+    stages[currentStage].draw(t);
+  }
+  
+  requestAnimationFrame(render);
+}
+
+// =====================================================
+// BOOT
+// =====================================================
+startTimer();
+startTyping(stages[0]);
+requestAnimationFrame(render);
+
 </script>
 </body>
 </html>
