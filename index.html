@@ -2,24 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0d0f12" />
+<meta name="description" content="An interactive single-file schematic of the complete computer-system pipeline: input, software, motherboard, memory, CPU and display." />
 <title>Silicon to Screen — The Computer System Engine</title>
+<script>document.documentElement.classList.add('js');</script>
 <style>
   :root{
     --bg:#0d0f12;
     --line:#1e232a;
     --text:#f0f4f8;
-    --dim:#5a6472;
-    --dim2:#39414d;
+    --dim:#74808f;   /* 4.8:1 — AA passes for normal text */
+    --dim2:#39414d;  /* 1.9:1 — decorations/indicators only, not text */
     --cyan:#00f0ff;
     --amber:#ffb700;
     --green:#00ff88;
     --magenta:#ff0055;
+    /* readable secondary for prose (>=4.5:1 on --bg); --dim stays for chrome */
+    --text-2:#8b95a3;
+    /* type scale — one step per role */
+    --fs-micro:11px;
+    --fs-label:11px;
+    --fs-ui:11px;
+    --fs-body:12px;
+    --fs-title:18px;
+    --fs-brand:15px;
     --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --ease-out:cubic-bezier(.16,1,.3,1);
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
   #bg{z-index:0}
   #scene{z-index:1}
@@ -33,13 +47,13 @@
   /* top bar */
   #top{display:grid;grid-template-columns:1fr minmax(0,680px) 1fr;align-items:start;gap:26px}
   #brand{display:flex;flex-direction:column;gap:3px}
-  #brand .t{font-size:15px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
-  #brand .s{font-family:var(--mono);font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim)}
+  #brand .t{font-size:var(--fs-brand);font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+  #brand .s{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
   #topRight{display:flex;align-items:center;gap:18px;justify-self:end}
-  #stageReadout{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);text-align:right}
-  #stageReadout b{color:var(--text);font-weight:600;display:block;font-size:11px;letter-spacing:.14em}
+  #stageReadout{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.24em;text-transform:uppercase;color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
+  #stageReadout b{color:var(--text);font-weight:600;display:block;font-size:var(--fs-ui);letter-spacing:.14em;font-variant-numeric:tabular-nums}
   .icobtn{
-    width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.02);
+    width:34px;height:34px;padding:0;font:inherit;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.02);
     display:grid;place-items:center;cursor:pointer;color:var(--dim);transition:.25s;pointer-events:auto
   }
   .icobtn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 22px -6px var(--cyan)}
@@ -52,9 +66,9 @@
   /* center hint + legend */
   /* centered stage caption (docked in the top bar — clear of the schematic) */
   #mid{justify-self:center;text-align:center;max-width:680px;opacity:.96}
-  #mid .kicker{font-family:var(--mono);font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
-  #mid h2{margin:0 0 7px;font-size:17px;font-weight:600;letter-spacing:.005em;line-height:1.2}
-  #mid p{margin:0;font-size:11.5px;line-height:1.6;color:var(--dim)}
+  #mid .kicker{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+  #mid h2{margin:0 0 7px;font-size:var(--fs-title);font-weight:600;letter-spacing:-.01em;line-height:1.15;text-wrap:balance}
+  #mid p{margin:0 auto;max-width:62ch;font-size:var(--fs-body);line-height:1.62;color:var(--text-2);text-wrap:pretty}
   #mid .accentbar{width:26px;height:2px;background:var(--cyan);margin:0 auto 11px;box-shadow:0 0 12px var(--cyan)}
 
   /* bottom: nav + controls */
@@ -62,7 +76,7 @@
   #nav{display:flex;gap:22px;align-items:center}
   .navdot{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;background:none;border:0;padding:0}
   .navdot .d{width:8px;height:8px;border-radius:50%;background:var(--dim2);transition:.3s;position:relative}
-  .navdot .l{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);transition:.3s;white-space:nowrap}
+  .navdot .l{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);transition:.3s;white-space:nowrap}
   .navdot:hover .d{background:var(--dim)}
   .navdot.active .d{background:var(--cyan);box-shadow:0 0 0 4px rgba(0,240,255,.12),0 0 16px var(--cyan)}
   .navdot.active .l{color:var(--text)}
@@ -74,10 +88,10 @@
     border:1px solid var(--line);border-radius:14px;padding:10px 16px;box-shadow:0 18px 50px -20px rgba(0,0,0,.9);
     max-width:min(94vw,1000px);
   }
-  .ctl-lab{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .ctl-lab{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
   .ctlsep{width:1px;height:22px;background:var(--line)}
   button.cb{
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    font-family:var(--mono);font-size:var(--fs-ui);letter-spacing:.1em;text-transform:uppercase;
     background:rgba(255,255,255,.02);color:var(--dim);border:1px solid var(--line);border-radius:9px;
     padding:8px 13px;cursor:pointer;transition:.22s;white-space:nowrap
   }
@@ -86,43 +100,111 @@
   button.cb.warm.on{color:var(--amber);border-color:var(--amber);box-shadow:0 0 20px -8px var(--amber)}
   button.cb.hot.on{color:var(--magenta);border-color:var(--magenta);box-shadow:0 0 20px -8px var(--magenta)}
   input[type=range]{-webkit-appearance:none;appearance:none;height:2px;background:var(--line);border-radius:2px;outline:none;width:130px}
+  input[type=range]:focus-visible{outline:2px solid var(--cyan);outline-offset:5px;border-radius:4px}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--text);cursor:pointer;border:0;box-shadow:0 0 12px rgba(240,244,248,.6)}
   input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--text);cursor:pointer;border:0}
 
   /* legend */
   #legend{position:fixed;right:26px;bottom:26px;z-index:10;display:flex;flex-direction:column;gap:7px;pointer-events:none}
-  .lg{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .lg{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
   .lg i{width:16px;height:2px;border-radius:2px;display:inline-block}
-
-  /* tooltip for zoom inset / hotspots */
-  #tip{position:fixed;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s;background:rgba(13,15,18,.92);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--text);max-width:220px;backdrop-filter:blur(8px)}
 
   /* finale */
   #finale{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8vw;background:radial-gradient(circle at 50% 45%,rgba(0,240,255,.05),transparent 60%),rgba(13,15,18,.96);backdrop-filter:blur(8px)}
-  #finale.show{display:flex;animation:fade .8s ease}
-  @keyframes fade{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
-  #finale blockquote{max-width:840px;font-size:clamp(20px,3.2vw,34px);line-height:1.5;font-weight:300;margin:0 0 22px;color:var(--text)}
+  #finale.show{display:flex;animation:finaleIn .8s var(--ease-out)}
+  @keyframes finaleIn{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:blur(0)}}
+  #finale blockquote{max-width:840px;font-size:clamp(20px,3.2vw,34px);line-height:1.45;font-weight:300;letter-spacing:-.01em;margin:0 0 22px;color:var(--text);text-wrap:pretty}
   #finale blockquote .hl{color:var(--cyan);font-weight:400}
-  #finale .who{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+  #finale .who{font-family:var(--mono);font-size:var(--fs-ui);letter-spacing:.3em;text-transform:uppercase;color:var(--text-2)}
   #finale .rule{width:40px;height:1px;background:var(--dim2);margin:30px 0}
-  #finale .meta{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2)}
-  #finale button.restart{margin-top:28px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;background:none;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 20px;cursor:pointer;transition:.25s}
+  #finale .meta{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+  #finale button.restart{margin-top:28px;font-family:var(--mono);font-size:var(--fs-ui);letter-spacing:.16em;text-transform:uppercase;background:none;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 20px;cursor:pointer;transition:.25s}
   #finale button.restart:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 26px -8px var(--cyan)}
 
-  .fadein{animation:fadein .7s ease}
-  @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* ---------- motion system ----------
+     Material idea: signal energy. Every entrance is the accent arriving on a
+     conductor — a blur focus for the readout, a sweep for the progress rail,
+     a growth for the accent bar. One authored moment per state change. */
+  @keyframes softIn{from{opacity:0}to{opacity:1}}
+  @keyframes hudRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes dotPop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+  @keyframes midFocus{from{opacity:0;filter:blur(7px);transform:translateY(6px)}to{opacity:.96;filter:blur(0);transform:none}}
+  @keyframes ctlIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes accentGrow{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+  @keyframes energize{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  @keyframes dotGlow{
+    0%{box-shadow:0 0 0 0 rgba(0,240,255,.55),0 0 16px var(--cyan)}
+    55%{box-shadow:0 0 0 7px rgba(0,240,255,.10),0 0 18px var(--cyan)}
+    100%{box-shadow:0 0 0 4px rgba(0,240,255,.12),0 0 16px var(--cyan)}
+  }
+
+  /* boot ignition — gated on .js so a failed script leaves the HUD fully visible */
+  .js #brand{animation:hudRise .7s var(--ease-out) both}
+  .js #topRight{animation:hudRise .7s var(--ease-out) both;animation-delay:.08s}
+  .js #controls{animation:hudRise .7s var(--ease-out) both;animation-delay:.22s}
+  .js .navdot{animation:dotPop .5s var(--ease-out) both}
+  .js .navdot:nth-child(1){animation-delay:.26s}
+  .js .navdot:nth-child(2){animation-delay:.30s}
+  .js .navdot:nth-child(3){animation-delay:.34s}
+  .js .navdot:nth-child(4){animation-delay:.38s}
+  .js .navdot:nth-child(5){animation-delay:.42s}
+  .js .navdot:nth-child(6){animation-delay:.46s}
+  .js #progBar{animation:energize .9s var(--ease-out) both;transform-origin:0 50%}
+
+  /* stage change — the recurring authored reveal, tinted by the stage accent */
+  #mid.stagein{animation:midFocus .5s var(--ease-out) both}
+  #mid.stagein .accentbar{animation:accentGrow .55s var(--ease-out) both;transform-origin:50% 50%}
+  #controls.stagein{animation:ctlIn .45s var(--ease-out) both}
+  .navdot.active .d{background:var(--cyan);animation:dotGlow .55s var(--ease-out) both}
   @media(max-width:900px){
     #legend{display:none}#nav{gap:14px}.navdot .l{display:none}
     #top{grid-template-columns:1fr;gap:12px}
     #mid{justify-self:start;text-align:left;max-width:100%}
     #mid .accentbar{margin:0 0 10px}
     #topRight{position:fixed;top:22px;right:20px}
+    #mid p{max-width:100%;margin:0;overflow-wrap:anywhere}
+  }
+
+  /* theme the browser surfaces so the page reads as authored, not assembled */
+  ::selection{background:rgba(0,240,255,.26);color:var(--text)}
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+  #finale blockquote ::selection{background:rgba(0,240,255,.26)}
+
+  /* fallback screen when the script cannot run */
+  #fallback{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8vw;gap:14px;background:var(--bg)}
+  #fallback.show{display:flex}
+  #fallback h1{font-size:20px;font-weight:600;letter-spacing:.02em;margin:0}
+  #fallback p{margin:0;max-width:46ch;font-size:var(--fs-body);line-height:1.62;color:var(--text-2);text-wrap:pretty}
+  #fallback .s{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+
+  /* reduced motion — drop spatial travel and blur, keep state/feedback legible */
+  @media(prefers-reduced-motion:reduce){
+    .js #brand,.js #topRight,.js .navdot,.js #controls,.js #progBar{animation:none}
+    #mid.stagein,#controls.stagein{animation:softIn .3s ease both}
+    #mid.stagein .accentbar{animation:none}
+    #finale.show{animation:softIn .35s ease}
+    .navdot.active .d{animation:none}
+    .icobtn,button.cb,.navdot,.navdot .d,.navdot .l{transition-duration:.01ms}
   }
 </style>
 </head>
 <body>
-<canvas id="bg"></canvas>
-<canvas id="scene"></canvas>
+<canvas id="bg" aria-hidden="true"></canvas>
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<noscript>
+  <div style="position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:8vw;text-align:center;background:#0d0f12;color:#f0f4f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+    <h1 style="font-size:20px;font-weight:600;margin:0">JavaScript is required</h1>
+    <p style="margin:0;max-width:46ch;font-size:12px;line-height:1.62;color:#8b95a3">This interactive schematic renders its signals on the fly. Enable JavaScript, then reload the page.</p>
+    <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#5a6472">Silicon to Screen</span>
+  </div>
+</noscript>
+
+<div id="fallback" role="alert">
+  <h1>The schematic could not start</h1>
+  <p id="fallbackText">Your browser reported an error while setting up the canvas. Reload the page to try again; a recent version of Chrome, Safari, Firefox or Edge is recommended.</p>
+  <span class="s">Silicon to Screen</span>
+</div>
 
 <div id="progTrack"><div id="progBar"></div></div>
 
@@ -132,15 +214,15 @@
       <span class="t">Silicon to Screen</span>
       <span class="s">The Computer System Engine</span>
     </div>
-    <div id="mid">
+    <div id="mid" aria-live="polite">
       <div class="accentbar" id="midBar"></div>
       <div class="kicker" id="midKicker">Stage 01 · Input</div>
       <h2 id="midTitle">Input</h2>
       <p id="midText"></p>
     </div>
     <div id="topRight">
-      <div id="stageReadout"><b id="roName">Input</b><span id="roNum">Stage 01 / 06</span></div>
-      <div class="icobtn" id="playBtn" title="Toggle auto tour"></div>
+      <div id="stageReadout" aria-hidden="true"><b id="roName">Input</b><span id="roNum">Stage 01 / 06</span></div>
+      <button class="icobtn" id="playBtn" type="button" title="Toggle auto tour" aria-label="Pause auto tour" aria-pressed="true"></button>
     </div>
   </div>
 
@@ -148,20 +230,18 @@
 
   <div id="bottom">
     <div id="controls"></div>
-    <div id="nav"></div>
+    <div id="nav" role="group" aria-label="Tour stages"></div>
   </div>
 </div>
 
-<div id="legend">
+<div id="legend" aria-hidden="true">
   <div class="lg"><i style="background:#00f0ff"></i>Address / Control</div>
   <div class="lg"><i style="background:#ffb700"></i>Data / Registers</div>
   <div class="lg"><i style="background:#00ff88"></i>Logic / ALU</div>
   <div class="lg"><i style="background:#ff0055"></i>Interrupt (IRQ)</div>
 </div>
 
-<div id="tip"></div>
-
-<div id="finale">
+<div id="finale" role="dialog" aria-modal="true" aria-label="Tour complete">
   <blockquote>
     “What a computer is to me is the most remarkable tool that we have ever come up with.
     It's the equivalent of a <span class="hl">bicycle for our minds</span>.”
@@ -211,8 +291,6 @@ const MONO = 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const clamp = (v,a,b) => v<a?a:v>b?b:v;
 const lerp = (a,b,t) => a + (b-a)*t;
-const easeInOut = t => t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-const easeOut = t => 1 - Math.pow(1-t,3);
 const TAU = Math.PI*2;
 
 const $  = (s,r=document)=>r.querySelector(s);
@@ -232,14 +310,30 @@ function el(tag, attrs={}, ...kids){
   return n;
 }
 
+/* respect the visitor's motion preference: settle the camera fast, thin the ambient
+   drift, and let CSS fall back to opacity-only reveals for every HUD entrance */
+const reduceMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+let REDUCED_MOTION = !!(reduceMotionQuery && reduceMotionQuery.matches);
+if(reduceMotionQuery){
+  const onMotionChange = e => {
+    REDUCED_MOTION = e.matches;
+    if(REDUCED_MOTION){ autoTour = false; playing = false; renderPlayBtn(); }
+    if(W > 0) buildDust();
+  };
+  if(reduceMotionQuery.addEventListener) reduceMotionQuery.addEventListener('change', onMotionChange);
+  else if(reduceMotionQuery.addListener) reduceMotionQuery.addListener(onMotionChange);
+}
+
 /* ------------------------------ ambient audio ------------------------------ */
 const Audio_ = (() => {
   let ctx=null, master=null, humGain=null, started=false;
   let lastTick=0;
   function ensure(){
-    if(ctx) { if(ctx.state==='suspended') ctx.resume(); return ctx; }
+    if(ctx) { try{ if(ctx.state==='suspended') ctx.resume(); }catch(_){} return ctx; }
     const AC = window.AudioContext||window.webkitAudioContext; if(!AC) return null;
-    ctx = new AC();
+    try{
+      ctx = new AC();
+    }catch(_){ ctx = null; return null; }
     master = ctx.createGain(); master.gain.value = 0.0; master.connect(ctx.destination);
     // layered low drone: two detuned sines + subtle saw through a lowpass
     const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=260; lp.Q.value=0.6;
@@ -275,16 +369,58 @@ const Audio_ = (() => {
 window.addEventListener('pointerdown', ()=>Audio_.start(), { once:true });
 window.addEventListener('keydown', ()=>Audio_.start(), { once:true });
 
+/* ------------------------------ fatal fallback ------------------------------ */
+let fatalShown = false;
+function fatal(msg){
+  if(fatalShown) return;
+  fatalShown = true;
+  try{
+    const f = $('#fallback'), t = $('#fallbackText');
+    if(t && msg) t.textContent = msg;
+    if(f) f.classList.add('show');
+    if($('#hud')) $('#hud').style.display = 'none';
+  }catch(_){ /* the fallback itself must never throw */ }
+}
+
 /* ------------------------------ canvases + camera ------------------------------ */
-const bgCv = $('#bg'), bgX = bgCv.getContext('2d');
-const scCv = $('#scene'), scX = scCv.getContext('2d');
+const bgCv = $('#bg'), scCv = $('#scene');
+const bgX = bgCv && bgCv.getContext ? bgCv.getContext('2d') : null;
+const scX = scCv && scCv.getContext ? scCv.getContext('2d') : null;
+if(!bgX || !scX || !bgX.createLinearGradient){
+  fatal('This browser does not support the HTML5 canvas features this schematic needs. A recent version of Chrome, Safari, Firefox or Edge will run it.');
+}
 let W=0, H=0, DPR=1;
 const cam = { x:0, target:0, vx:0 };
 let STAGE_W = 0;
 
+/* Each stage draws its geometry centred on (W/2, H/2) in a fixed design box.
+   The whole scene is then scaled to fit the viewport's clear area — the band
+   between the top and bottom HUD — so the composition holds at every size
+   instead of clipping at the edges or bleeding into the neighbouring stage.
+   At full size (S = 1) this is an identity transform. */
+const CONTENT_W = 1280, CONTENT_H = 600;
+const view = { S:1, cx:0, cy:0 };
+
+function fitView(){
+  if(!(W > 0) || !(H > 0)) return;
+  const padX = 40;
+  const topEl = $('#top'), botEl = $('#bottom');
+  const topH = topEl ? topEl.offsetHeight : 90;
+  const botH = botEl ? botEl.offsetHeight : 90;
+  const safeTop = 22 + topH + 14;
+  const safeBot = H - 22 - botH - 14;
+  const availW = Math.max(240, W - padX*2);
+  const availH = Math.max(180, safeBot - safeTop);
+  view.S  = Math.min(1, availW/CONTENT_W, availH/CONTENT_H);
+  view.cx = W/2;
+  view.cy = (safeTop + safeBot)/2;
+}
+
 function resize(){
-  DPR = Math.min(window.devicePixelRatio||1, 2);
-  W = window.innerWidth; H = window.innerHeight;
+  if(!bgX || !scX) return;
+  DPR = Math.min(Math.max(window.devicePixelRatio||1, 1), 2);
+  W = Math.max(1, Math.round(window.innerWidth || W || 1));
+  H = Math.max(1, Math.round(window.innerHeight || H || 1));
   STAGE_W = W;
   [ [bgCv,bgX], [scCv,scX] ].forEach(([cv,cx])=>{
     cv.width = Math.floor(W*DPR); cv.height = Math.floor(H*DPR);
@@ -294,6 +430,7 @@ function resize(){
   stages.forEach(s => s.layout && s.layout());
   cam.target = stageIndex*STAGE_W;
   if(!cam.snap){ cam.x = cam.target; cam.snap = true; }
+  fitView();
 }
 window.addEventListener('resize', resize);
 
@@ -301,7 +438,8 @@ window.addEventListener('resize', resize);
 let dust = [];
 function buildDust(){
   dust = [];
-  const n = Math.round((W*H)/26000);
+  const density = REDUCED_MOTION ? 0.32 : 1;
+  const n = Math.min(900, Math.round((W*H)/26000 * density));
   for(let i=0;i<n;i++){
     dust.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*5, vy:(Math.random()-0.5)*5, r:Math.random()*1.2+0.3, a:Math.random()*0.25+0.05 });
   }
@@ -430,23 +568,35 @@ function drawParticles(){
 const stages = [];
 let stageIndex = 0;
 let stageT = 0;          // seconds spent in current stage
-let autoTour = true;
+let autoTour = !REDUCED_MOTION;
 const DWELL = 11;        // seconds per stage in the auto tour
 let finaleShown = false;
 
 /* ------------------------------ HUD wiring ------------------------------ */
 const playIcon = '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
 const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
-let playing = true;
-function renderPlayBtn(){ $('#playBtn').innerHTML = playing ? playIcon : pauseIcon; }
-$('#playBtn').addEventListener('click', ()=>{ playing = !playing; renderPlayBtn(); Audio_.blip(); });
+let playing = !REDUCED_MOTION;
+function renderPlayBtn(){
+  const b = $('#playBtn'); if(!b) return;
+  b.innerHTML = playing ? playIcon : pauseIcon;
+  b.setAttribute('aria-pressed', playing ? 'true' : 'false');
+  b.setAttribute('aria-label', playing ? 'Pause auto tour' : 'Play auto tour');
+}
+function togglePlaying(){
+  playing = !playing;
+  if(playing && !finaleShown) autoTour = true;   // resuming re-arms the tour
+  renderPlayBtn(); Audio_.blip();
+}
+$('#playBtn').addEventListener('click', togglePlaying);
 renderPlayBtn();
 
 let navEls = [];
 function buildNav(){
   const nav = $('#nav'); nav.innerHTML=''; navEls = [];
   stages.forEach((s,i)=>{
-    const b = el('button', { class:'navdot', onclick:()=>{ jumpTo(i); } },
+    const b = el('button', { class:'navdot', type:'button', title:s.title,
+      'aria-label':'Go to stage '+(i+1)+' of '+stages.length+', '+s.title,
+      onclick:()=>{ jumpTo(i); } },
       el('span',{class:'d'}), el('span',{class:'l'}, s.short));
     nav.append(b); navEls.push(b);
   });
@@ -455,6 +605,7 @@ function updateNav(){
   navEls.forEach((b,i)=>{
     b.classList.toggle('active', i===stageIndex);
     b.classList.toggle('done', i<stageIndex);
+    if(i===stageIndex) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current');
   });
   const s = stages[stageIndex];
   if(s){
@@ -465,7 +616,7 @@ function updateNav(){
     $('#midText').innerHTML = s.desc;
     $('#midBar').style.background = s.accent;
     $('#midBar').style.boxShadow = '0 0 12px ' + s.accent;
-    $('#mid').classList.remove('fadein'); void $('#mid').offsetWidth; $('#mid').classList.add('fadein');
+    $('#mid').classList.remove('stagein'); void $('#mid').offsetWidth; $('#mid').classList.add('stagein');
   }
   $('#progBar').style.width = ((stageIndex+1)/stages.length*100)+'%';
 }
@@ -479,9 +630,11 @@ function ctlButton(t, on, cls=''){
   const b = el('button',{class:'cb '+cls+' '+(on?'on':''), onclick:()=>{ Audio_.blip(); b.__act&&b.__act(b); }}, t);
   return b;
 }
-function ctlSlider(val, min, max, step, onInput, accent){
-  const inp = el('input',{type:'range', min, max, step, value:val});
-  inp.addEventListener('input', ()=>onInput(parseFloat(inp.value)));
+function ctlSlider(val, min, max, step, onInput, label){
+  const attrs = {type:'range', min, max, step, value:val};
+  if(label) attrs['aria-label'] = label;
+  const inp = el('input', attrs);
+  inp.addEventListener('input', ()=>{ const v = parseFloat(inp.value); if(Number.isFinite(v)) onInput(v); });
   return inp;
 }
 function sep(){ return el('div',{class:'ctlsep'}); }
@@ -505,33 +658,39 @@ function buildControlsFor(i){
   if(s && s.controls) {
     const ctl = $('#controls');
     s.controls(ctl);
-    ctl.classList.remove('fadein'); void ctl.offsetWidth; ctl.classList.add('fadein');
+    ctl.classList.remove('stagein'); void ctl.offsetWidth; ctl.classList.add('stagein');
   }
 }
 function showFinale(){
   if(finaleShown) return;
   finaleShown = true;
   autoTour = false;
-  $('#finale').classList.add('show');
+  const f = $('#finale'); if(f) f.classList.add('show');
+  const rb = $('#restartBtn'); if(rb && rb.focus) { try{ rb.focus(); }catch(_){} }
   Audio_.chime();
 }
-$('#restartBtn').addEventListener('click', ()=>{
-  $('#finale').classList.remove('show'); finaleShown = false;
+function restartTour(){
+  const f = $('#finale'); if(f) f.classList.remove('show'); finaleShown = false;
   autoTour = true; playing = true; renderPlayBtn();
   stages.forEach(s=>{ if(s.reset) s.reset(); });
   stageIndex = 0; stageT = 0; cam.target = 0; cam.x = 0;
   updateNav(); buildControlsFor(0);
-});
+  const pb = $('#playBtn'); if(pb && pb.focus) { try{ pb.focus(); }catch(_){} }
+}
+$('#restartBtn').addEventListener('click', restartTour);
 
 /* ------------------------------ main loop ------------------------------ */
 let last = performance.now();
+let frameErrors = 0;
 function frame(now){
+  try{
   let dt = (now-last)/1000; last = now;
   if(dt > 0.05) dt = 0.05;            // clamp after tab switches → no jumps
   if(document.hidden) dt = 0;
 
-  // camera eased toward target (exponential smoothing, framerate-independent)
-  const k = 1 - Math.pow(0.0009, dt);
+  // camera eased toward target (exponential smoothing, framerate-independent);
+  // reduced motion keeps continuity but settles in a fraction of the travel
+  const k = REDUCED_MOTION ? Math.min(1, dt*12) : (1 - Math.pow(0.0009, dt));
   cam.x += (cam.target - cam.x) * k;
 
   // auto tour timing (paused while finale visible / user paused)
@@ -562,6 +721,11 @@ function frame(now){
   drawParticles();
   scX.restore();
 
+  }catch(err){
+    frameErrors++;
+    if(frameErrors===1) console.error('[Silicon to Screen] render error:', err);
+    if(frameErrors>90){ fatal('The schematic hit repeated rendering errors and stopped. Reload the page to continue.'); return; }
+  }
   requestAnimationFrame(frame);
 }
 
@@ -683,7 +847,7 @@ stages.push({
     const ir=ctlButton('FIRE IRQ', false,'hot'); ir.__act=()=>this.fireIRQ(); host.append(ir);
     host.append(sep());
     host.append(label('Clock'));
-    host.append(ctlSlider(this.clock,0.4,2.4,0.1, v=>this.clock=v));
+    host.append(ctlSlider(this.clock,0.4,2.4,0.1, v=>this.clock=v, 'Clock speed'));
   }
 });
 
@@ -796,7 +960,7 @@ stages.push({
   },
   controls(host){
     host.append(label('Data access'));
-    host.append(ctlSlider(this.addr, 0, 1024, 1, v=>this.addr=v));
+    host.append(ctlSlider(this.addr, 0, 1024, 1, v=>this.addr=v, 'Data address'));
     const r=ctlButton('REQUEST', false); r.__act=(b)=>{ this.request(); b.classList.add('on'); setTimeout(()=>b.classList.remove('on'),300); }; host.append(r);
     const au=ctlButton('AUTO', false); au.__act=(b)=>{ this.auto=!this.auto; b.classList.toggle('on', this.auto); }; host.append(au);
     host.append(sep());
@@ -949,9 +1113,9 @@ stages.push({
     host.append(sc);
     host.append(sep());
     host.append(label('Aim'));
-    host.append(ctlSlider(this.aim,0,1,0.01, v=>this.aim=v));
+    host.append(ctlSlider(this.aim,0,1,0.01, v=>this.aim=v, 'Pointer aim'));
     host.append(label('Mic'));
-    host.append(ctlSlider(this.mic,0,1,0.01, v=>this.mic=v));
+    host.append(ctlSlider(this.mic,0,1,0.01, v=>this.mic=v, 'Microphone level'));
   }
 });
 
@@ -1332,20 +1496,46 @@ stages.push({
 });
 
 /* =====================================================================
+   INPUT RESILIENCE
+   ===================================================================== */
+// keyboard navigation (ignored while a form control owns the keystroke)
+document.addEventListener('keydown', (e)=>{
+  if(e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target;
+  const tag = (t && t.tagName ? t.tagName : '').toLowerCase();
+  if(tag==='input' || tag==='textarea' || tag==='select' || (t && t.isContentEditable)) return;
+  if(tag==='button' && (e.key===' ' || e.key==='Spacebar')) return;  // let the focused button act
+  switch(e.key){
+    case 'ArrowRight': e.preventDefault(); nextStage(); break;
+    case 'ArrowLeft':  e.preventDefault(); if(stageIndex>0) jumpTo(stageIndex-1); break;
+    case 'Home':       e.preventDefault(); jumpTo(0); break;
+    case 'End':        e.preventDefault(); jumpTo(stages.length-1); break;
+    case ' ': case 'Spacebar': e.preventDefault(); togglePlaying(); break;
+    case 'Escape':     if(finaleShown){ e.preventDefault(); restartTour(); } break;
+  }
+});
+
+/* =====================================================================
    BOOT
    ===================================================================== */
 function boot(){
-  // preserve narrative order regardless of source insertion order
-  const ORDER = ['Input','Software','Board','Memory','CPU','Display'];
-  stages.sort((a,b)=> ORDER.indexOf(a.short) - ORDER.indexOf(b.short));
-  stages.forEach((s,i)=> s.idx = i);
-  resize();
-  buildNav();
-  // start on stage 0 fully at rest, then the tour begins
-  updateNav();
-  buildControlsFor(0);
-  stages[0] && stages[0].enter && stages[0].enter();
-  requestAnimationFrame(frame);
+  if(fatalShown) return;
+  try{
+    // preserve narrative order regardless of source insertion order
+    const ORDER = ['Input','Software','Board','Memory','CPU','Display'];
+    stages.sort((a,b)=> ORDER.indexOf(a.short) - ORDER.indexOf(b.short));
+    stages.forEach((s,i)=> s.idx = i);
+    resize();
+    buildNav();
+    // start on stage 0 fully at rest, then the tour begins
+    updateNav();
+    buildControlsFor(0);
+    stages[0] && stages[0].enter && stages[0].enter();
+    requestAnimationFrame(frame);
+  }catch(err){
+    console.error('[Silicon to Screen] boot error:', err);
+    fatal('The schematic could not start: ' + (err && err.message ? err.message : 'unknown error') + '. Reload the page to try again.');
+  }
 }
 window.addEventListener('DOMContentLoaded', boot);
 </script>

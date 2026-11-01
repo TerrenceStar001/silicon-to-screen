@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-01T00:00:00.000Z",
+  "title": "Design System: Silicon to Screen — The Computer System Engine",
+  "extensions": {
+    "colorMeta": {
+      "address-cyan": {
+        "role": "primary",
+        "displayName": "Address Cyan",
+        "canonical": "#00f0ff",
+        "tonalRamp": ["#001a1c", "#003338", "#004d53", "#006a72", "#008a93", "#00b8c4", "#00d6e4", "#00f0ff"]
+      },
+      "data-amber": {
+        "role": "secondary",
+        "displayName": "Data Amber",
+        "canonical": "#ffb700",
+        "tonalRamp": ["#221700", "#403000", "#5e4800", "#856700", "#ad8800", "#d4a400", "#ffb700", "#ffd97a"]
+      },
+      "logic-emerald": {
+        "role": "tertiary",
+        "displayName": "Logic Emerald",
+        "canonical": "#00ff88",
+        "tonalRamp": ["#001a0d", "#00331a", "#004d28", "#006a38", "#008a4a", "#00b862", "#00d973", "#00ff88"]
+      },
+      "interrupt-magenta": {
+        "role": "tertiary",
+        "displayName": "Interrupt Magenta",
+        "canonical": "#ff0055",
+        "tonalRamp": ["#22000b", "#400015", "#5e0020", "#85002d", "#ad003a", "#d40048", "#ff0055", "#ff7aa0"]
+      },
+      "signal-white": {
+        "role": "neutral",
+        "displayName": "Signal White",
+        "canonical": "#f0f4f8",
+        "tonalRamp": ["#3a4249", "#5c666f", "#7d8894", "#9fa9b4", "#bbc4cd", "#d3dae1", "#e6ebef", "#f0f4f8"]
+      },
+      "muted-grey": {
+        "role": "neutral",
+        "displayName": "Muted Grey",
+        "canonical": "#5a6472",
+        "tonalRamp": ["#171a1f", "#272c34", "#3a414b", "#4c5460", "#5a6472", "#7a8493", "#a2abb7", "#cdd3da"]
+      },
+      "deep-grey": {
+        "role": "neutral",
+        "displayName": "Deep Grey",
+        "canonical": "#39414d",
+        "tonalRamp": ["#0e1115", "#1a1e24", "#262c34", "#313843", "#39414d", "#545e6c", "#7d8798", "#b3bbc6"]
+      },
+      "blueprint-line": {
+        "role": "neutral",
+        "displayName": "Blueprint Line",
+        "canonical": "#1e232a",
+        "tonalRamp": ["#0a0c0f", "#14181d", "#1e232a", "#2b323b", "#3a434e", "#4f5a67", "#78828f", "#b9c1cb"]
+      },
+      "void-charcoal": {
+        "role": "neutral",
+        "displayName": "Void Charcoal",
+        "canonical": "#0d0f12",
+        "tonalRamp": ["#050607", "#0d0f12", "#1a1e24", "#2a3038", "#3d454f", "#5a6472", "#8b95a3", "#c9d0d9"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Brand wordmark only." },
+      "statement": { "displayName": "Statement", "purpose": "Finale blockquote; the only large light type." },
+      "headline": { "displayName": "Headline", "purpose": "Active stage title in the top-bar caption." },
+      "body": { "displayName": "Body", "purpose": "Stage descriptions and supporting prose." },
+      "readout": { "displayName": "Readout", "purpose": "Mono stage readouts, kicker, and counter." },
+      "label": { "displayName": "Label", "purpose": "Uppercase mono control labels, nav captions, legend, meta." }
+    },
+    "shadows": [
+      { "name": "accent-halo", "value": "0 0 22px -6px #00f0ff", "purpose": "Hover on the circular icon button; the canonical lit state." },
+      { "name": "chip-halo", "value": "0 0 20px -8px <accent>", "purpose": "An engaged control chip, tinted to its accent." },
+      { "name": "focus-ring", "value": "0 0 0 4px rgba(0,240,255,.12), 0 0 16px #00f0ff", "purpose": "Active navigation dot dual-halo seat." },
+      { "name": "cluster-drop", "value": "0 18px 50px -20px rgba(0,0,0,.9)", "purpose": "The single structural shadow, under the floating control cluster." },
+      { "name": "progress-glow", "value": "0 0 10px #00f0ff", "purpose": "Under the top progress hairline." },
+      { "name": "thumb-glow", "value": "0 0 12px rgba(240,244,248,.6)", "purpose": "Soft glow on the slider thumb." }
+    ],
+    "motion": [
+      { "name": "transition-states", "value": "0.25s ease", "purpose": "Default hover transition for icon and restart buttons." },
+      { "name": "chip-transition", "value": "0.22s ease", "purpose": "Control chip state transitions." },
+      { "name": "navdot-transition", "value": "0.3s ease", "purpose": "Nav dot color and glow." },
+      { "name": "camera-ease", "value": "exponential smoothing, 1 - 0.0009^dt", "purpose": "Framerate-independent horizontal camera pan between stages." },
+      { "name": "fade-in", "value": "0.7s ease", "purpose": "Caption and control-cluster entrance on stage change." },
+      { "name": "progress-width", "value": "0.2s linear", "purpose": "Top progress hairline width." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Control Chip",
+      "kind": "button",
+      "refersTo": "control-chip",
+      "description": "Stage control button; uppercase mono, hairline border, halo when engaged.",
+      "html": "<button class=\"ds-control-chip\">COMPILE</button>",
+      "css": ".ds-control-chip { font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.02); color: var(--dim, #5a6472); border: 1px solid var(--line, #1e232a); border-radius: 5px; padding: 8px 13px; cursor: pointer; transition: 0.22s ease; white-space: nowrap; } .ds-control-chip:hover { color: var(--text, #f0f4f8); border-color: var(--dim, #5a6472); } .ds-control-chip:focus-visible { outline: none; color: var(--text, #f0f4f8); border-color: var(--cyan, #00f0ff); box-shadow: 0 0 20px -8px var(--cyan, #00f0ff); } .ds-control-chip.ds-on { color: var(--cyan, #00f0ff); border-color: var(--cyan, #00f0ff); box-shadow: 0 0 20px -8px var(--cyan, #00f0ff); } .ds-control-chip.ds-warm.ds-on { color: var(--amber, #ffb700); border-color: var(--amber, #ffb700); box-shadow: 0 0 20px -8px var(--amber, #ffb700); } .ds-control-chip.ds-hot.ds-on { color: var(--magenta, #ff0055); border-color: var(--magenta, #ff0055); box-shadow: 0 0 20px -8px var(--magenta, #ff0055); }"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "icon-button",
+      "description": "Circular icon control (play/pause) with accent halo on hover.",
+      "html": "<button class=\"ds-icon-button\" aria-label=\"Toggle auto tour\"><svg viewBox=\"0 0 24 24\" width=\"13\" height=\"13\" fill=\"currentColor\"><path d=\"M6 4h4v16H6zM14 4h4v16h-4z\"/></svg></button>",
+      "css": ".ds-icon-button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line, #1e232a); background: rgba(255,255,255,0.02); display: grid; place-items: center; cursor: pointer; color: var(--dim, #5a6472); transition: 0.25s ease; } .ds-icon-button:hover { border-color: var(--cyan, #00f0ff); color: var(--cyan, #00f0ff); box-shadow: 0 0 22px -6px var(--cyan, #00f0ff); } .ds-icon-button:focus-visible { outline: none; border-color: var(--cyan, #00f0ff); color: var(--cyan, #00f0ff); box-shadow: 0 0 22px -6px var(--cyan, #00f0ff); } .ds-icon-button svg { width: 13px; height: 13px; fill: currentColor; }"
+    },
+    {
+      "name": "Navigation Dot",
+      "kind": "nav",
+      "refersTo": "nav-dot",
+      "description": "One of six stage dots with a mono caption; active gains a cyan dual-halo.",
+      "html": "<div class=\"ds-nav\"><button class=\"ds-nav-dot is-active\"><span class=\"ds-d\"></span><span class=\"ds-l\">Input</span></button><button class=\"ds-nav-dot\"><span class=\"ds-d ds-done\"></span><span class=\"ds-l\">Software</span></button><button class=\"ds-nav-dot\"><span class=\"ds-d\"></span><span class=\"ds-l\">Board</span></button></div>",
+      "css": ".ds-nav { display: flex; gap: 22px; align-items: center; } .ds-nav-dot { display: flex; flex-direction: column; align-items: center; gap: 7px; cursor: pointer; background: none; border: 0; padding: 0; } .ds-nav-dot .ds-d { width: 8px; height: 8px; border-radius: 50%; background: var(--dim2, #39414d); transition: 0.3s ease; } .ds-nav-dot .ds-l { font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim2, #39414d); transition: 0.3s ease; white-space: nowrap; } .ds-nav-dot:hover .ds-d { background: var(--dim, #5a6472); } .ds-nav-dot .ds-d.ds-done { background: var(--dim, #5a6472); } .ds-nav-dot.is-active .ds-d { background: var(--cyan, #00f0ff); box-shadow: 0 0 0 4px rgba(0,240,255,.12), 0 0 16px var(--cyan, #00f0ff); } .ds-nav-dot.is-active .ds-l { color: var(--text, #f0f4f8); }"
+    },
+    {
+      "name": "Control Cluster",
+      "kind": "nav",
+      "refersTo": "control-cluster",
+      "description": "Floating glass bar grouping the active stage's controls; the system's only drop shadow.",
+      "html": "<div class=\"ds-cluster\"><span class=\"ds-lab\">Dispatch</span><button class=\"ds-chip ds-on\">ADDRESS</button><span class=\"ds-sep\"></span><span class=\"ds-lab\">Clock</span></div>",
+      "css": ".ds-cluster { display: flex; gap: 14px; align-items: center; justify-content: center; background: rgba(16,19,24,0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line, #1e232a); border-radius: 14px; padding: 10px 16px; box-shadow: 0 18px 50px -20px rgba(0,0,0,.9); } .ds-cluster .ds-lab { font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim, #5a6472); } .ds-cluster .ds-sep { width: 1px; height: 22px; background: var(--line, #1e232a); } .ds-cluster .ds-chip { font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.02); color: var(--dim, #5a6472); border: 1px solid var(--line, #1e232a); border-radius: 5px; padding: 8px 13px; cursor: pointer; transition: 0.22s ease; } .ds-cluster .ds-chip.ds-on { color: var(--cyan, #00f0ff); border-color: var(--cyan, #00f0ff); box-shadow: 0 0 20px -8px var(--cyan, #00f0ff); }"
+    },
+    {
+      "name": "Range Slider",
+      "kind": "input",
+      "refersTo": "control-chip",
+      "description": "2px track with a glowing 12px white thumb.",
+      "html": "<input class=\"ds-range\" type=\"range\" min=\"0\" max=\"1\" step=\"0.01\" value=\"0.5\" />",
+      "css": ".ds-range { -webkit-appearance: none; appearance: none; height: 2px; background: var(--line, #1e232a); border-radius: 2px; outline: none; width: 130px; } .ds-range::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text, #f0f4f8); cursor: pointer; border: 0; box-shadow: 0 0 12px rgba(240,244,248,.6); } .ds-range::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--text, #f0f4f8); cursor: pointer; border: 0; }"
+    },
+    {
+      "name": "Legend Row",
+      "kind": "custom",
+      "refersTo": "nav-dot",
+      "description": "Signal-hue swatch beside an uppercase mono caption.",
+      "html": "<div class=\"ds-legend\"><span class=\"ds-lg\"><i style=\"background:#00f0ff\"></i>Address / Control</span><span class=\"ds-lg\"><i style=\"background:#ffb700\"></i>Data / Registers</span><span class=\"ds-lg\"><i style=\"background:#00ff88\"></i>Logic / ALU</span><span class=\"ds-lg\"><i style=\"background:#ff0055\"></i>Interrupt (IRQ)</span></div>",
+      "css": ".ds-legend { display: flex; flex-direction: column; gap: 7px; } .ds-lg { display: flex; align-items: center; gap: 9px; font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim, #5a6472); } .ds-lg i { width: 16px; height: 2px; border-radius: 2px; display: inline-block; }"
+    },
+    {
+      "name": "Restart Button",
+      "kind": "button",
+      "refersTo": "restart-button",
+      "description": "The finale's lone outline button; transparent ground, cyan halo on hover.",
+      "html": "<button class=\"ds-restart\">Replay the tour</button>",
+      "css": ".ds-restart { font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; background: none; color: var(--text, #f0f4f8); border: 1px solid var(--line, #1e232a); border-radius: 10px; padding: 11px 20px; cursor: pointer; transition: 0.25s ease; } .ds-restart:hover { border-color: var(--cyan, #00f0ff); color: var(--cyan, #00f0ff); box-shadow: 0 0 26px -8px var(--cyan, #00f0ff); } .ds-restart:focus-visible { outline: none; border-color: var(--cyan, #00f0ff); color: var(--cyan, #00f0ff); box-shadow: 0 0 26px -8px var(--cyan, #00f0ff); }"
+    },
+    {
+      "name": "Schematic Panel",
+      "kind": "card",
+      "refersTo": "control-cluster",
+      "description": "Translucent tonal canvas container with a 1px hairline; the recurring schematic frame.",
+      "html": "<div class=\"ds-panel\"><span class=\"ds-panel-track\">MOTHERBOARD · SYSTEM BUS FABRIC</span><div class=\"ds-panel-title\">CPU</div><div class=\"ds-panel-sub\">general purpose</div></div>",
+      "css": ".ds-panel { background: rgba(15,18,22,0.5); border: 1px solid var(--line, #1e232a); border-radius: 16px; padding: 22px 24px; min-width: 200px; color: var(--text, #f0f4f8); } .ds-panel .ds-panel-track { display: block; font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--dim2, #39414d); margin-bottom: 18px; } .ds-panel .ds-panel-title { font-family: var(--sans, -apple-system, sans-serif); font-size: 16px; font-weight: 600; } .ds-panel .ds-panel-sub { font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 9px; letter-spacing: 0.06em; color: var(--dim, #5a6472); margin-top: 6px; }"
+    },
+    {
+      "name": "Progress Hairline",
+      "kind": "custom",
+      "refersTo": "nav-dot",
+      "description": "1px stage-progress bar pinned to the top edge, cyan→amber gradient with glow.",
+      "html": "<div class=\"ds-progress\"><div class=\"ds-progress-bar\"></div></div>",
+      "css": ".ds-progress { position: relative; width: 100%; height: 1px; background: transparent; } .ds-progress .ds-progress-bar { height: 1px; width: 66%; background: linear-gradient(90deg, var(--cyan, #00f0ff), var(--amber, #ffb700)); box-shadow: 0 0 10px var(--cyan, #00f0ff); transition: width 0.2s linear; }"
+    },
+    {
+      "name": "Stage Caption",
+      "kind": "custom",
+      "refersTo": "restart-button",
+      "description": "Centered top-bar caption: 26px accent bar, mono kicker, sans title, dim body.",
+      "html": "<div class=\"ds-caption\"><div class=\"ds-caption-bar\"></div><div class=\"ds-caption-kicker\">Stage 01 · Input</div><h2>Input</h2><p>Hardware controllers digitize live physical signals into binary packets.</p></div>",
+      "css": ".ds-caption { max-width: 680px; } .ds-caption .ds-caption-bar { width: 26px; height: 2px; background: var(--cyan, #00f0ff); box-shadow: 0 0 12px var(--cyan, #00f0ff); margin-bottom: 11px; } .ds-caption .ds-caption-kicker { font-family: var(--mono, ui-monospace, menlo, monospace); font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--dim, #5a6472); margin-bottom: 7px; } .ds-caption h2 { margin: 0 0 7px; font-family: var(--sans, -apple-system, sans-serif); font-size: 17px; font-weight: 600; letter-spacing: 0.005em; line-height: 1.2; color: var(--text, #f0f4f8); } .ds-caption p { margin: 0; font-family: var(--sans, -apple-system, sans-serif); font-size: 11.5px; line-height: 1.6; color: var(--dim, #5a6472); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Blueprint Instrument",
+    "overview": "A drafting-table schematic that has come alive. The whole surface is a dark blueprint: a deep charcoal field ruled with a muted 44px grid, over which crisp white type and four glowing signal lines carry live traffic. Nothing is decorative — every mark on screen is a wire, a node, a readout, or a control. The vocabulary is that of a lab instrument, not a website: tracked monospace legends, hairline borders, and colored halos that stand in for motion and state.\n\nThe density is deliberately compact. Chrome type sits at 9–11.5px and never competes with the schematic it frames; the drawing itself — buses, registers, cache tiers, transistors — owns the center. Emphasis is achieved through glow, not weight: an active element gains a colored border and a soft halo of the same hue, while inactive elements recede to --dim and --dim2.\n\nThe mood is engineered calm: near-black and near-white, one accent per stage, and four signal colors that are strictly semantic. Motion is continuous but eased — a horizontally panning camera, particles travelling along Bézier paths, slow fades — so the instrument feels alive without ever feeling busy. There is no neutral drop-shadow language; depth comes from tonal panel fills and colored glow.",
+    "keyCharacteristics": [
+      "Dark blueprint field: charcoal ground, muted grid, near-white type.",
+      "Four meaningful signal accents only — cyan, amber, emerald, magenta.",
+      "Tracked uppercase monospace for all labels, readouts, and controls.",
+      "1px hairline borders; active state = accent border + matching halo.",
+      "Depth via tonal panels and glow, never neutral elevation.",
+      "Full-bleed canvas stage with a three-band HUD chrome around the edges."
+    ],
+    "rules": [
+      { "name": "The Four-Signal Rule", "body": "Only cyan, amber, emerald, and magenta carry meaning. They encode bus/semantic roles and are never used as ornament; decorative warmth comes from glow on those same hues, not new ones.", "section": "colors" },
+      { "name": "The One-Accent-Per-Stage Rule", "body": "Each of the six stages declares a single accent hue (accent) that drives its caption bar, nav state, and title conditioning. Never introduce a second stage accent within one stage's drawing.", "section": "colors" },
+      { "name": "The Tracked-Caps Rule", "body": "Every mono label is uppercase and letter-spaced between 0.10em and 0.34em. Tracking increases as size decreases — the smaller the label, the wider it breathes.", "section": "typography" },
+      { "name": "The Sans-Only-for-Sentences Rule", "body": "If it is a word a person reads as language (title, description, quote), it is sans and sentence-cased. If it is a machine readout or a control name, it is uppercase mono. Never mix the two treatments on one string.", "section": "typography" },
+      { "name": "The Glow-Not-Shadow Rule", "body": "Depth and emphasis are expressed as a colored halo on the element's own accent hue. Neutral elevation is reserved for the one floating control cluster; never add drop shadows to panels, nodes, or chips.", "section": "elevation" },
+      { "name": "The Scrim-Above-Art Rule", "body": "Any chrome that sits over the moving canvas must carry its own translucent ground or gradient scrim. Text is never placed directly on moving art.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep a stage to one accent hue: drive its caption bar, nav state, and highlight color from s.accent.",
+      "Do express state with an accent border plus a matching halo, keeping the 1px border weight.",
+      "Do set all chrome labels as uppercase mono with 0.10–0.34em tracking, widening as the size drops.",
+      "Do reserve the four signal hues for their meaning (cyan = address/control, amber = data/registers, emerald = logic/ALU, magenta = IRQ/alert).",
+      "Do wrap any text over moving art in a translucent ground or the top-bar scrim.",
+      "Do draw in-video labels through txt() / track() so canvas and HUD type share one scale.",
+      "Do gate motion on delta time and clamp dt after tab switches, so the tour never jumps."
+    ],
+    "donts": [
+      "Don't add a neutral drop shadow to panels, nodes, or chips — only the control cluster carries one.",
+      "Don't invent a fifth accent hue; glow and tonal fills come from the existing four plus the neutrals.",
+      "Don't thicken borders or fill buttons to show state; state is border-color + halo only.",
+      "Don't set a stage title or description in mono, or a readout in sentence case.",
+      "Don't place text directly on the canvas without a scrim behind it.",
+      "Don't let the HUD chrome compete with the schematic — keep it inside the 9–17px band and off the center.",
+      "Don't break the horizontal-pan model with vertical scroll or a second page."
+    ]
+  }
+}
