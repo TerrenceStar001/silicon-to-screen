@@ -116,7 +116,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="lg"><i style="background:#e11d48"></i>Interrupt (IRQ)</div>
 </div>
 
-<div id="finale">
+<div id="waitGate" style="position:fixed;inset:0;z-index:9999;background:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6vw;font-family:var(--sans)">
+  <div style="font-family:var(--mono);font-size:12px;letter-spacing:.4em;text-transform:uppercase;color:#94a3b8;margin-bottom:28px">Silicon to Screen</div>
+  <div style="font-size:clamp(40px,10vw,120px);font-weight:800;letter-spacing:-.02em;line-height:.95;color:#0f172a">Please wait</div>
+  <div style="margin-top:26px;font-size:clamp(18px,3vw,30px);font-weight:300;color:#475569;max-width:760px;line-height:1.4">
+    This simulation is paused for maintenance.
+  </div>
+  <div style="margin-top:18px;font-family:var(--mono);font-size:14px;letter-spacing:.1em;color:#0284c7">
+    Returning on <b style="color:#0f172a">November 3rd</b> &middot; after the token reset
+  </div>
+  <div style="margin-top:34px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#94a3b8">
+    Huge quality issues are being fixed &middot; see you then
+  </div>
+</div>
+
+<div id="finale" style="display:none">
   <div class="kick">Silicon to Screen</div>
   <blockquote>"What a computer is to me is the most remarkable tool that we have ever come up with.
   It's the equivalent of a <span class="hl">bicycle for our minds</span>."</blockquote>
@@ -662,7 +676,7 @@ function sliderToCam(v){
   setTarget(zoom,FLOOR_Y[activeIdx]);
   rewindAnim=null;finaleUp=false;document.getElementById('finale').classList.remove('show');
 }
-slider.addEventListener('input',()=>{sliderToCam(parseInt(slider.value,10));});
+slider.addEventListener('input',()=>{});// disabled
 // keep slider in sync
 setInterval(()=>{
   if(!touring){
@@ -677,7 +691,7 @@ function playTour(){
   goStage(0);
 }
 function pauseTour(){touring=false;playBtn.textContent='▶ Play Tour';}
-playBtn.addEventListener('click',()=>{if(touring)pauseTour();else playTour();});
+playBtn.addEventListener('click',()=>{});// disabled
 let tourIdx=0;
 function goStage(i){
   tourIdx=i;
@@ -688,20 +702,10 @@ function startRewind(){
   rewindAnim={start:performance.now(),dur:3000};
   tourIdx=5;
 }
-document.getElementById('replayBtn').addEventListener('click',()=>{
-  document.getElementById('finale').classList.remove('show');finaleUp=false;
-  rewindAnim=null;parts.length=0;pool.length=0;parts.forEach(p=>pool.push(p));
-  setTarget(1,FLOOR_Y[0]);touring=true;playBtn.textContent='❚❚ Pause';goStage(0);
-});
+document.getElementById('replayBtn').addEventListener('click',()=>{});// disabled
 
 // keyboard
-document.addEventListener('keydown',e=>{
-  if(e.key===' '){e.preventDefault();touring?pauseTour():playTour();}
-  else if(e.key==='ArrowRight'){if(tourIdx<5){touring=false;tourIdx++;goStage(tourIdx);playBtn.textContent='▶ Play Tour';}}
-  else if(e.key==='ArrowLeft'){if(tourIdx>0){touring=false;tourIdx--;goStage(tourIdx);playBtn.textContent='▶ Play Tour';}}
-  else if(e.key==='Home'){touring=false;tourIdx=0;goStage(0);}
-  else if(e.key==='End'){touring=false;tourIdx=5;goStage(5);}
-});
+document.addEventListener('keydown',(e)=>{});// disabled — engine stopped
 
 /* =====================================================================
    BOOT
@@ -709,8 +713,12 @@ document.addEventListener('keydown',e=>{
 function boot(){
   resize();
   setTarget(1,FLOOR_Y[0]);
-  requestAnimationFrame(frame);
+  // ENGINE STOPPED — pending quality fixes (Nov 3rd token reset).
+  // The full codebase is preserved; simply re-enable the line below to resume.
+  // requestAnimationFrame(frame);
 }
+// Re-enable the running tour on load, or keep paused:
+if(false) window.addEventListener('DOMContentLoaded',boot);
 window.addEventListener('DOMContentLoaded',boot);
 window.addEventListener('resize',resize);
 </script>
