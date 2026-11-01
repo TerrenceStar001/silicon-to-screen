@@ -360,27 +360,65 @@ function seekTo(pct) {
   
   // Find which stage we're in
   let accum = 0;
+  let targetStage = 0;
   for (let i = 0; i < stages.length; i++) {
     if (accum + stages[i].duration >= targetTime) {
-      tourTime = accum + (targetTime - accum);
-      
-      if (state === 'scene' || state === 'done') {
-        // Jump to stage and show text
-        currentStage = i;
-        startTyping(i);
-      } else {
-        // Already in typing, just update time
-        currentStage = i;
-        tourTime = accum + (targetTime - accum);
-      }
-      updateProgress();
-      return;
+      targetStage = i;
+      break;
     }
     accum += stages[i].duration;
   }
   
-  // At end
-  tourTime = TOTAL_DURATION;
+  // Reset timer and state
+  clearTimeout(typTimer);
+  clearInterval(timerInterval);
+  startTime = performance.now() - (targetTime * 1000);
+  tourTime = targetTime;
+  currentStage = targetStage;
+  
+  // Determine state based on where we are in the stage
+  const timeInStage = targetTime - accum;
+  const stage = stages[targetStage];
+  
+  if (timeInStage < stage.duration * 0.6) {
+    // In typing phase
+    state = 'typing';
+    typChars = stage.desc;
+    typIdx = Math.floor((timeInStage / stage.duration) * stage.desc.length);
+    stageNum.textContent = `STAGE ${targetStage + 1} OF ${stages.length}`;
+    stageTitle.textContent = stage.title;
+    stageDesc.innerHTML = typChars.substring(0, typIdx) + '<span class="cursor">|</span>';
+    overlay.classList.remove('hidden');
+    hint.classList.remove('show');
+    // Resume typing if needed
+    if (typIdx < typChars.length) {
+      typTimer = setTimeout(animateTyping, 10);
+    }
+  } else {
+    // In scene phase
+    state = 'scene';
+    overlay.classList.add('hidden');
+    hint.classList.remove('show');
+    stageCounter.textContent = `${targetStage + 1} / ${stages.length}`;
+    // Show camera at appropriate zoom
+    camAnim = null;
+    const zoomTargets = [1, 2, 4, 8, 16, 50];
+    cam.zoom = zoomTargets[Math.min(targetStage, zoomTargets.length - 1)];
+    cam.x = 0;
+    cam.y = 0;
+    
+    // Auto advance from this point
+    if (playing) {
+      setTimeout(() => {
+        if (state === 'scene' && currentStage < stages.length - 1) {
+          nextStage();
+        } else if (currentStage >= stages.length - 1) {
+          startRewind();
+        }
+      }, (stage.duration - timeInStage) * 1000);
+    }
+  }
+  
   updateProgress();
 }
 
@@ -411,8 +449,12 @@ playBtn.addEventListener('click', () => {
   playing = !playing;
   playBtn.textContent = playing ? '❚❚' : '▶';
   playBtn.classList.toggle('active', playing);
-  if (playing) startTimer();
-  else stopTimer();
+  if (playing) {
+    if (!startTime) startTime = performance.now() - (tourTime * 1000);
+    startTimer();
+  } else {
+    stopTimer();
+  }
 });
 
 document.addEventListener('keydown', e => {
@@ -453,6 +495,7 @@ function restartTour() {
   finale.classList.remove('show');
   playBtn.textContent = '❚❚';
   playBtn.classList.add('active');
+  startTime = performance.now();
   startTimer();
   startTyping(0);
   updateProgress();
@@ -472,11 +515,16 @@ function stopTimer() {
   clearInterval(timerInterval);
 }
 
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
 function showFinale() {
   state = 'finale';
   tourTime = TOTAL_DURATION;
   updateProgress();
   finale.classList.add('show');
+  stopTimer();
 }
 
 // =====================================================
