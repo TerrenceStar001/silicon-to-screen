@@ -25,13 +25,17 @@
   #scene{z-index:1}
   #hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:grid;grid-template-rows:auto 1fr auto;padding:22px 26px}
   #hud *{pointer-events:auto}
+  /* soft scrim so the top-bar caption always reads over the schematic */
+  #hud::before{content:'';position:fixed;top:0;left:0;right:0;height:190px;z-index:-1;pointer-events:none;
+    background:linear-gradient(180deg,rgba(13,15,18,.94) 0%,rgba(13,15,18,.62) 46%,rgba(13,15,18,0) 100%)}
+  .grow{min-height:0}
 
   /* top bar */
-  #top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+  #top{display:grid;grid-template-columns:1fr minmax(0,680px) 1fr;align-items:start;gap:26px}
   #brand{display:flex;flex-direction:column;gap:3px}
   #brand .t{font-size:15px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
   #brand .s{font-family:var(--mono);font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim)}
-  #topRight{display:flex;align-items:center;gap:18px}
+  #topRight{display:flex;align-items:center;gap:18px;justify-self:end}
   #stageReadout{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);text-align:right}
   #stageReadout b{color:var(--text);font-weight:600;display:block;font-size:11px;letter-spacing:.14em}
   .icobtn{
@@ -46,10 +50,12 @@
   #progBar{height:1px;width:0;background:linear-gradient(90deg,var(--cyan),var(--amber));transition:width .2s linear;box-shadow:0 0 10px var(--cyan)}
 
   /* center hint + legend */
-  #mid{align-self:center;justify-self:start;max-width:360px;opacity:.9}
-  #mid h2{margin:0 0 8px;font-size:20px;font-weight:600;letter-spacing:.01em;line-height:1.15}
-  #mid p{margin:0;font-size:12.5px;line-height:1.6;color:var(--dim)}
-  #mid .accentbar{width:34px;height:2px;background:var(--cyan);margin-bottom:14px;box-shadow:0 0 12px var(--cyan)}
+  /* centered stage caption (docked in the top bar — clear of the schematic) */
+  #mid{justify-self:center;text-align:center;max-width:680px;opacity:.96}
+  #mid .kicker{font-family:var(--mono);font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+  #mid h2{margin:0 0 7px;font-size:17px;font-weight:600;letter-spacing:.005em;line-height:1.2}
+  #mid p{margin:0;font-size:11.5px;line-height:1.6;color:var(--dim)}
+  #mid .accentbar{width:26px;height:2px;background:var(--cyan);margin:0 auto 11px;box-shadow:0 0 12px var(--cyan)}
 
   /* bottom: nav + controls */
   #bottom{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
@@ -105,7 +111,13 @@
 
   .fadein{animation:fadein .7s ease}
   @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @media(max-width:820px){#legend{display:none}#mid{max-width:300px}#nav{gap:14px}.navdot .l{display:none}}
+  @media(max-width:900px){
+    #legend{display:none}#nav{gap:14px}.navdot .l{display:none}
+    #top{grid-template-columns:1fr;gap:12px}
+    #mid{justify-self:start;text-align:left;max-width:100%}
+    #mid .accentbar{margin:0 0 10px}
+    #topRight{position:fixed;top:22px;right:20px}
+  }
 </style>
 </head>
 <body>
@@ -120,17 +132,19 @@
       <span class="t">Silicon to Screen</span>
       <span class="s">The Computer System Engine</span>
     </div>
+    <div id="mid">
+      <div class="accentbar" id="midBar"></div>
+      <div class="kicker" id="midKicker">Stage 01 · Input</div>
+      <h2 id="midTitle">Input</h2>
+      <p id="midText"></p>
+    </div>
     <div id="topRight">
       <div id="stageReadout"><b id="roName">Input</b><span id="roNum">Stage 01 / 06</span></div>
       <div class="icobtn" id="playBtn" title="Toggle auto tour"></div>
     </div>
   </div>
 
-  <div id="mid">
-    <div class="accentbar" id="midBar"></div>
-    <h2 id="midTitle">Input</h2>
-    <p id="midText"></p>
-  </div>
+  <div class="grow"></div>
 
   <div id="bottom">
     <div id="controls"></div>
@@ -446,6 +460,7 @@ function updateNav(){
   if(s){
     $('#roName').textContent = s.short;
     $('#roNum').textContent = 'Stage ' + String(stageIndex+1).padStart(2,'0') + ' / ' + String(stages.length).padStart(2,'0');
+    $('#midKicker').textContent = 'Stage ' + String(stageIndex+1).padStart(2,'0') + ' · ' + s.short;
     $('#midTitle').textContent = s.title;
     $('#midText').innerHTML = s.desc;
     $('#midBar').style.background = s.accent;
