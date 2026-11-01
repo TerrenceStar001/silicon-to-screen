@@ -40,12 +40,12 @@
   #hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:grid;grid-template-rows:auto 1fr auto;padding:22px 26px}
   #hud *{pointer-events:auto}
   /* soft scrim so the top-bar caption always reads over the schematic */
-  #hud::before{content:'';position:fixed;top:0;left:0;right:0;height:190px;z-index:-1;pointer-events:none;
-    background:linear-gradient(180deg,rgba(13,15,18,.94) 0%,rgba(13,15,18,.62) 46%,rgba(13,15,18,0) 100%)}
+  #hud::before{content:'';position:fixed;top:0;left:0;right:0;height:240px;z-index:-1;pointer-events:none;
+    background:linear-gradient(180deg,rgba(13,15,18,.96) 0%,rgba(13,15,18,.78) 42%,rgba(13,15,18,.38) 72%,rgba(13,15,18,0) 100%)}
   .grow{min-height:0}
 
-  /* top bar */
-  #top{display:grid;grid-template-columns:1fr minmax(0,680px) 1fr;align-items:start;gap:26px}
+  /* top bar — brand left · caption center · readout right */
+  #top{display:grid;grid-template-columns:1fr minmax(0,680px) 1fr;align-items:center;gap:26px}
   #brand{display:flex;flex-direction:column;gap:3px}
   #brand .t{font-size:var(--fs-brand);font-weight:600;letter-spacing:.16em;text-transform:uppercase}
   #brand .s{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
@@ -59,17 +59,16 @@
   .icobtn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 22px -6px var(--cyan)}
   .icobtn svg{width:13px;height:13px;fill:currentColor}
 
-  /* progress hairline */
+  /* progress hairline — moved to sit just under the scrim */
   #progTrack{position:fixed;left:0;top:0;height:1px;width:100%;background:transparent;z-index:11}
-  #progBar{height:1px;width:0;background:linear-gradient(90deg,var(--cyan),var(--amber));transition:width .2s linear;box-shadow:0 0 10px var(--cyan)}
+  #progBar{height:2px;width:0;background:linear-gradient(90deg,var(--cyan),var(--amber));transition:width .2s linear;box-shadow:0 0 10px var(--cyan)}
 
-  /* center hint + legend */
-  /* centered stage caption (docked in the top bar — clear of the schematic) */
-  #mid{justify-self:center;text-align:center;max-width:680px;opacity:.96}
-  #mid .kicker{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
-  #mid h2{margin:0 0 7px;font-size:var(--fs-title);font-weight:600;letter-spacing:-.01em;line-height:1.15;text-wrap:balance}
-  #mid p{margin:0 auto;max-width:62ch;font-size:var(--fs-body);line-height:1.62;color:var(--text-2);text-wrap:pretty}
-  #mid .accentbar{width:26px;height:2px;background:var(--cyan);margin:0 auto 11px;box-shadow:0 0 12px var(--cyan)}
+  /* centered stage caption — docked in the top bar, above the schematic */
+  #mid{justify-self:center;text-align:center;max-width:680px;opacity:.96;padding:6px 12px 4px;border-radius:10px;background:rgba(13,15,18,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(30,35,42,.7)}
+  #mid .kicker{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:3px}
+  #mid h2{margin:0 0 4px;font-size:var(--fs-title);font-weight:600;letter-spacing:-.01em;line-height:1.1;text-wrap:balance}
+  #mid p{margin:0 auto;max-width:60ch;font-size:var(--fs-body);line-height:1.5;color:var(--text-2);text-wrap:pretty}
+  #mid .accentbar{width:26px;height:2px;background:var(--cyan);margin:0 auto 6px;box-shadow:0 0 12px var(--cyan)}
 
   /* bottom: nav + controls */
   #bottom{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
@@ -141,7 +140,8 @@
   /* boot ignition — gated on .js so a failed script leaves the HUD fully visible */
   .js #brand{animation:hudRise .7s var(--ease-out) both}
   .js #topRight{animation:hudRise .7s var(--ease-out) both;animation-delay:.08s}
-  .js #controls{animation:hudRise .7s var(--ease-out) both;animation-delay:.22s}
+  .js #mid{animation:hudRise .7s var(--ease-out) both;animation-delay:.14s}
+  .js #controls{animation:hudRise .7s var(--ease-out) both;animation-delay:.26s}
   .js .navdot{animation:dotPop .5s var(--ease-out) both}
   .js .navdot:nth-child(1){animation-delay:.26s}
   .js .navdot:nth-child(2){animation-delay:.30s}
@@ -158,11 +158,13 @@
   .navdot.active .d{background:var(--cyan);animation:dotGlow .55s var(--ease-out) both}
   @media(max-width:900px){
     #legend{display:none}#nav{gap:14px}.navdot .l{display:none}
-    #top{grid-template-columns:1fr;gap:12px}
+    #top{grid-template-columns:1fr;gap:10px}
     #mid{justify-self:start;text-align:left;max-width:100%}
-    #mid .accentbar{margin:0 0 10px}
+    #mid .accentbar{margin:0 0 6px}
     #topRight{position:fixed;top:22px;right:20px}
-    #mid p{max-width:100%;margin:0;overflow-wrap:anywhere}
+    #mid p{overflow-wrap:anywhere;font-size:12px;line-height:1.5}
+    #mid h2{font-size:16px}
+    #mid .kicker{margin-bottom:2px}
   }
 
   /* theme the browser surfaces so the page reads as authored, not assembled */
