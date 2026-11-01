@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Silicon to Screen — The Computer System Engine</title>
+<style>
+  :root{
+    --bg:#0d0f12;
+    --panel:#14171c;
+    --panel2:#1b1f26;
+    --line:#2a3038;
+    --text:#e8ebef;
+    --dim:#8b95a3;
+    --dim2:#5f6875;
+    --accent:#4fd1c5;
+    --good:#3ddc97;
+    --bad:#ff6b6b;
+    --warn:#ffcb6b;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:14px;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    height:100vh;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    overflow:hidden;
+  }
+
+  /* ---------- HEADER ---------- */
+  #hud{
+    display:flex;align-items:center;gap:18px;
+    padding:10px 16px;
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  #brand{display:flex;flex-direction:column;line-height:1.05;min-width:190px}
+  #brand .t{font-weight:700;letter-spacing:.2px;font-size:15px}
+  #brand .s{color:var(--dim2);font-size:11px;font-family:var(--mono)}
+  .hdrmetrics{display:flex;gap:14px;flex-wrap:wrap}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;min-width:78px}
+  .metric .k{color:var(--dim2);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono)}
+  .metric .v{font-family:var(--mono);font-size:14px;font-weight:600}
+  .metric .v .u{color:var(--dim);font-size:10px;font-weight:400}
+  #progress{display:flex;gap:6px;align-items:center;flex:1;justify-content:flex-end}
+  .pill{
+    width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--mono);font-size:11px;color:var(--dim);
+    border:1px solid var(--line);background:var(--panel2);transition:.25s;
+  }
+  .pill.done{background:var(--good);color:#05140d;border-color:var(--good)}
+  .pill.active{background:var(--accent);color:#04110f;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,209,197,.15)}
+  #scoreMetric .v{color:var(--accent)}
+
+  /* ---------- BODY ---------- */
+  #body{display:grid;grid-template-columns:1fr 340px;overflow:hidden;min-height:0}
+  #stage{position:relative;overflow:hidden;background:
+      radial-gradient(circle at 30% 20%,rgba(79,209,197,.05),transparent 60%),
+      linear-gradient(180deg,#0e1116,#0b0d10);}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #overlay{position:absolute;inset:0;overflow:auto;padding:18px;z-index:2}
+  #console{
+    background:#0a0c0f;border-left:1px solid var(--line);
+    display:flex;flex-direction:column;min-height:0;
+  }
+  .console-hd{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  #console .stream{flex:1;overflow:auto;padding:8px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.5}
+  .log{display:flex;gap:8px;margin-bottom:5px;color:var(--dim);animation:in .18s ease-out}
+  @keyframes in{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:none}}
+  .log .ts{color:var(--dim2);flex:none}
+  .log.good .msg{color:var(--good)}
+  .log.bad .msg{color:var(--bad)}
+  .log.warn .msg{color:var(--warn)}
+  .log.sys .msg{color:var(--accent)}
+  .log .msg b{color:var(--text)}
+
+  /* ---------- CONTROLS ---------- */
+  #controls{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    padding:10px 14px;background:var(--panel);border-top:1px solid var(--line);
+    min-height:56px;
+  }
+  button.btn{
+    font-family:var(--mono);font-size:12px;letter-spacing:.03em;
+    background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    border-radius:8px;padding:9px 14px;cursor:pointer;transition:.15s;white-space:nowrap;
+  }
+  button.btn:hover{border-color:var(--accent);color:var(--accent)}
+  button.btn:active{transform:translateY(1px)}
+  button.btn.primary{background:var(--accent);color:#04110f;border-color:var(--accent);font-weight:600}
+  button.btn.primary:hover{filter:brightness(1.1);color:#04110f}
+  button.btn.ghost{background:transparent}
+  button.btn[disabled]{opacity:.35;cursor:not-allowed}
+  .spacer{flex:1}
+  .ctrl-note{color:var(--dim2);font-family:var(--mono);font-size:11px}
+
+  /* ---------- MODULE COMMON ---------- */
+  .mod-head{margin-bottom:14px;max-width:900px}
+  .mod-head .kicker{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+  .mod-head h1{margin:4px 0 6px;font-size:22px;font-weight:700}
+  .mod-head p{margin:0;color:var(--dim);font-size:13px;line-height:1.55}
+  .card{background:rgba(20,23,28,.86);border:1px solid var(--line);border-radius:12px;padding:14px;backdrop-filter:blur(3px)}
+  .card h3{margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.02em;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card h3 .tag{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dim2);text-transform:uppercase}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:1100px){#body{grid-template-columns:1fr}#console{display:none}.grid2,.grid3{grid-template-columns:1fr}}
+
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+    padding:9px 12px;margin:4px;cursor:pointer;user-select:none;font-size:12.5px;
+    transition:.15s;position:relative;
+  }
+  .chip:hover{border-color:var(--dim)}
+  .chip.sel{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,209,197,.15);color:var(--accent)}
+  .chip.used{opacity:.35;pointer-events:none}
+  .chip .ic{font-family:var(--mono);font-size:10px;color:var(--dim2)}
+  .chip.ok{border-color:var(--good);color:var(--good)}
+  .chip.no{animation:shake .3s}
+  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+  .zone{
+    border:1.5px dashed var(--line);border-radius:11px;padding:12px;min-height:70px;
+    transition:.18s;cursor:pointer;background:rgba(255,255,255,.012);
+  }
+  .zone:hover{border-color:var(--dim)}
+  .zone.hot{border-color:var(--accent);background:rgba(79,209,197,.06)}
+  .zone.filled{border-style:solid;border-color:var(--good)}
+  .zone .zl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);margin-bottom:8px}
+  .slot{min-height:54px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;transition:.18s;cursor:pointer;background:rgba(255,255,255,.012)}
+  .slot:hover{border-color:var(--dim)}
+  .slot.hot{border-color:var(--accent);background:rgba(79,209,197,.06)}
+  .slot.filled{border-style:solid;border-color:var(--good);background:rgba(61,220,151,.05)}
+  .slot .idx{font-family:var(--mono);color:var(--dim2);font-size:11px;width:18px}
+
+  .hint{color:var(--dim2);font-size:11.5px;font-family:var(--mono);margin-top:6px}
+  .kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:0}
+  .kv .vk{color:var(--dim2)}
+  .binary{font-family:var(--mono);letter-spacing:2px;font-size:16px;color:var(--accent)}
+  .bite{display:inline-grid;place-items:center;width:22px;height:26px;border:1px solid var(--line);border-radius:4px;margin:0 1px;font-family:var(--mono);font-size:13px;color:var(--dim)}
+  .bite.on{color:#04110f;background:var(--accent);border-color:var(--accent)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--line);border-radius:3px;outline:none;width:100%}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+  .bar{height:8px;background:var(--line);border-radius:5px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:var(--accent);transition:.3s}
+  .mini{font-size:10px;color:var(--dim2);font-family:var(--mono)}
+  .opt{
+    display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+    border-radius:9px;padding:11px 13px;margin:6px 0;cursor:pointer;color:var(--text);font-size:13px;transition:.15s;font-family:inherit;
+  }
+  .opt:hover{border-color:var(--dim)}
+  .opt.ok{border-color:var(--good);background:rgba(61,220,151,.08)}
+  .opt.no{border-color:var(--bad);background:rgba(255,107,107,.08)}
+  .flash{animation:flash .5s}
+  @keyframes flash{0%{background:rgba(79,209,197,.35)}100%{background:transparent}}
+
+  /* finale */
+  #finale{position:absolute;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;background:radial-gradient(circle at 50% 40%,rgba(79,209,197,.08),transparent 65%),var(--bg)}
+  #finale.show{display:flex;animation:in .5s}
+  #finale blockquote{max-width:760px;font-size:24px;line-height:1.5;font-weight:300;margin:0 0 8px}
+  #finale blockquote .hl{color:var(--accent);font-weight:500}
+  #finale .who{color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.1em}
+  #finale .bigscore{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--accent);margin:26px 0 0}
+  *::-webkit-scrollbar{width:9px;height:9px}
+  *::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+  *::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div id="brand">
+      <span class="t">Silicon to Screen</span>
+      <span class="s">Computer System Engine</span>
+    </div>
+    <div class="hdrmetrics">
+      <div class="metric"><div class="k">Clock</div><div class="v"><span id="mClock">2.4</span><span class="u"> GHz</span></div></div>
+      <div class="metric"><div class="k">Memory</div><div class="v"><span id="mMem">512</span><span class="u"> MB</span></div></div>
+      <div class="metric"><div class="k">Temp</div><div class="v"><span id="mTemp">38</span><span class="u"> °C</span></div></div>
+      <div class="metric" id="scoreMetric"><div class="k">Score</div><div class="v" id="mScore">0</div></div>
+    </div>
+    <div id="progress"></div>
+  </header>
+
+  <div id="body">
+    <section id="stage">
+      <canvas id="cv"></canvas>
+      <div id="overlay"></div>
+    </section>
+    <aside id="console">
+      <div class="console-hd"><span>Diagnostic Console</span><span id="modLabel">M1</span></div>
+      <div class="stream" id="stream"></div>
+    </aside>
+  </div>
+
+  <footer id="controls"></footer>
+</div>
+
+<div id="finale">
+  <blockquote>
+    “What a computer is to me is the most remarkable tool that we have ever come up with.
+    It's the equivalent of a <span class="hl">bicycle for our minds</span>.”
+  </blockquote>
+  <div class="who">— Steve Jobs</div>
+  <div class="bigscore" id="finalScore">0</div>
+  <div class="mini" style="margin-top:4px">TOTAL SCORE</div>
+  <div class="row" style="margin-top:26px;justify-content:center">
+    <button class="btn primary" id="restartBtn">RESTART ENGINE</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   SILICON TO SCREEN — The Computer System Engine
+   Single-file interactive simulation of the full computer-system pipeline.
+   ===================================================================== */
+
+/* ------------------------------ tiny DOM helpers ------------------------------ */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+function el(tag, attrs={}, ...kids){
+  const n = document.createElement(tag);
+  for(const k in attrs){
+    const v = attrs[k];
+    if(v == null) continue;
+    if(k === 'class') n.className = v;
+    else if(k === 'html') n.innerHTML = v;
+    else if(k === 'text') n.textContent = v;
+    else if(k === 'style' && typeof v === 'object') Object.assign(n.style, v);
+    else if(k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  for(const kid of kids.flat()){
+    if(kid == null || kid === false) continue;
+    n.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return n;
+}
+
+/* ------------------------------ Web Audio synth ------------------------------ */
+const Audio_ = (() => {
+  let ctx = null;
+  function ac(){
+    if(!ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      ctx = new AC();
+    }
+    if(ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function tone(freq, dur=0.12, type='square', gain=0.05, when=0){
+    const c = ac(); if(!c) return;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    o.connect(g); g.connect(c.destination);
+    const t = c.currentTime + when;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+  return {
+    click: () => tone(520, 0.05, 'square', 0.025),
+    select:() => tone(700, 0.04, 'sine', 0.03),
+    ok:    () => { tone(660, 0.09, 'sine', 0.06); tone(990, 0.12, 'sine', 0.05, 0.075); },
+    err:   () => { tone(180, 0.16, 'sawtooth', 0.05); tone(120, 0.18, 'sawtooth', 0.04, 0.05); },
+    irq:   () => { tone(1300, 0.04, 'square', 0.04); tone(340, 0.1, 'square', 0.035, 0.045); },
+    tick:  () => tone(880, 0.03, 'square', 0.02),
+    win:   () => [523,659,784,1046].forEach((f,i)=>tone(f,0.16,'sine',0.06,i*0.1)),
+    boot:  () => [330,440,554,660].forEach((f,i)=>tone(f,0.14,'triangle',0.05,i*0.09)),
+  };
+})();
+function unlockAudio(){ Audio_.click(); }
+window.addEventListener('pointerdown', unlockAudio, { once:true });
+
+/* ------------------------------ diagnostic console ------------------------------ */
+const streamEl = $('#stream');
+function logmsg(msg, type='info'){
+  const line = el('div', { class:'log ' + type },
+    el('span', { class:'ts' }, new Date().toLocaleTimeString([], { hour12:false })),
+    el('span', { class:'msg', html: msg })
+  );
+  streamEl.append(line);
+  streamEl.scrollTop = streamEl.scrollHeight;
+  while(streamEl.children.length > 260) streamEl.removeChild(streamEl.firstChild);
+}
+function clearLog(){ streamEl.innerHTML = ''; }
+
+/* ------------------------------ global state ------------------------------ */
+const state = {
+  moduleIndex: 0,
+  score: 0,
+  clock: 2.4,
+  mem: 512,
+  temp: 38,
+  completed: {},
+};
+
+function setMetric(id, val){ const n = $('#'+id); if(n) n.textContent = val; }
+function updateHUD(){
+  setMetric('mClock', state.clock.toFixed(1));
+  setMetric('mMem', Math.round(state.mem));
+  setMetric('mTemp', Math.round(state.temp));
+  setMetric('mScore', state.score);
+  const pills = $$('#progress .pill');
+  pills.forEach((p, i) => {
+    p.classList.toggle('done', !!state.completed[i]);
+    p.classList.toggle('active', i === state.moduleIndex && !state.completed[i]);
+  });
+  $('#modLabel').textContent = 'M' + (state.moduleIndex + 1);
+}
+function addScore(n, reason){
+  state.score += n;
+  if(n > 0) Audio_.ok(); else if(n < 0) Audio_.err();
+  updateHUD();
+  if(reason) logmsg((n>0?'+':'') + n + ' — ' + reason, n > 0 ? 'good' : 'bad');
+}
+function animateMetrics(toClock, toMem, toTemp){
+  const from = { c: state.clock, m: state.mem, t: state.temp };
+  const t0 = performance.now(), dur = 700;
+  (function step(now){
+    const k = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - k, 3);
+    state.clock = from.c + (toClock - from.c) * e;
+    state.mem   = from.m + (toMem   - from.m) * e;
+    state.temp  = from.t + (toTemp  - from.t) * e;
+    updateHUD();
+    if(k < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+/* ------------------------------ canvas engine ------------------------------ */
+const cv = $('#cv');
+const ctx = cv.getContext('2d');
+let currentModule = null;
+let canvasW = 0, canvasH = 0;
+
+function resizeCanvas(){
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvasW = r.width; canvasH = r.height;
+  cv.width = Math.max(1, Math.floor(r.width * dpr));
+  cv.height = Math.max(1, Math.floor(r.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+
+let tGlobal = 0;
+function drawGrid(){
+  ctx.clearRect(0, 0, canvasW, canvasH);
+  const gap = 34;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(79,209,197,0.055)';
+  ctx.lineWidth = 1;
+  for(let x=0; x<=canvasW; x+=gap){
+    ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,canvasH); ctx.stroke();
+  }
+  for(let y=0; y<=canvasH; y+=gap){
+    ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(canvasW,y+0.5); ctx.stroke();
+  }
+  ctx.restore();
+  // drifting scan pulse
+  const py = (tGlobal * 60) % (canvasH + 200) - 100;
+  const g = ctx.createLinearGradient(0, py-40, 0, py+40);
+  g.addColorStop(0,'rgba(79,209,197,0)');
+  g.addColorStop(.5,'rgba(79,209,197,0.05)');
+  g.addColorStop(1,'rgba(79,209,197,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, py-40, canvasW, 80);
+}
+function loop(now){
+  tGlobal = now / 1000;
+  drawGrid();
+  if(currentModule && typeof currentModule.draw === 'function'){
+    ctx.save();
+    try{ currentModule.draw(ctx, canvasW, canvasH, tGlobal); }catch(e){ /* keep loop alive */ }
+    ctx.restore();
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ------------------------------ control panel + module shell ------------------------------ */
+const overlayEl = $('#overlay');
+const controlsEl = $('#controls');
+
+function setControls(items, note){
+  controlsEl.innerHTML = '';
+  for(const it of items){
+    if(!it) continue;
+    const b = el('button', { class:'btn ' + (it.kind || ''), onclick: it.onClick, id: it.id || null }, it.label);
+    if(it.disabled) b.setAttribute('disabled','');
+    controlsEl.append(b);
+  }
+  if(note) controlsEl.append(el('div',{class:'spacer'}), el('div',{class:'ctrl-note', html:note}));
+}
+function enableBtn(id, on=true){
+  const b = $('#'+id);
+  if(b){ if(on) b.removeAttribute('disabled'); else b.setAttribute('disabled',''); }
+}
+function setBtnLabel(id, txt){ const b = $('#'+id); if(b) b.textContent = txt; }
+
+const MODULES = [];
+
+function showModule(i){
+  state.moduleIndex = i;
+  resizeCanvas();
+  overlayEl.innerHTML = '';
+  overlayEl.scrollTop = 0;
+  currentModule = MODULES[i] || null;
+  updateHUD();
+  if(currentModule){
+    logmsg('<b>MODULE ' + (i+1) + '</b> — ' + currentModule.title, 'sys');
+    currentModule.init(overlayEl);
+  }
+}
+function completeModule(i, summary){
+  if(state.completed[i]) return;
+  state.completed[i] = true;
+  Audio_.win();
+  updateHUD();
+  logmsg('<b>✓ MODULE ' + (i+1) + ' COMPLETE</b>' + (summary ? ' — ' + summary : ''), 'good');
+  // advance
+  const next = i + 1;
+  if(next < MODULES.length){
+    setTimeout(()=>showModule(next), 900);
+  } else {
+    setTimeout(showFinale, 900);
+  }
+}
+function showFinale(){
+  logmsg('<b>System pipeline verified end-to-end.</b> All 6 modules complete.', 'sys');
+  $('#finalScore').textContent = state.score;
+  $('#finale').classList.add('show');
+  Audio_.win();
+}
+$('#restartBtn').addEventListener('click', ()=>{
+  $('#finale').classList.remove('show');
+  state.score = 0; state.completed = {}; state.clock = 2.4; state.mem = 512; state.temp = 38;
+  clearLog();
+  showModule(0);
+});
+
+/* ------------------------------ shared interaction helpers ------------------------------ */
+function makeChip(label, data, icon){
+  return el('div', {
+    class:'chip', draggable:'true', 'data-label':label, 'data-data':data,
+    onclick(e){
+      e.stopPropagation();
+      $$('.chip.sel').forEach(c=>c!==e.currentTarget && c.classList.remove('sel'));
+      e.currentTarget.classList.toggle('sel');
+      Audio_.select();
+    },
+    ondragstart(e){
+      e.dataTransfer.setData('text/plain', data);
+      e.dataTransfer.effectAllowed = 'move';
+      $$('.chip.sel').forEach(c=>c.classList.remove('sel'));
+      e.currentTarget.classList.add('sel');
+    }
+  }, icon ? el('span',{class:'ic'}, icon) : null, el('span',{},label));
+}
+function currentSelectedChip(){ return $('.chip.sel'); }
+function markUsed(chip){
+  chip.classList.remove('sel');
+  chip.classList.add('used','ok');
+}
+function shake(chip){ chip.classList.add('no'); setTimeout(()=>chip.classList.remove('no'), 320); }
+
+/* a click/drop target zone. accept(chipData) -> {ok:bool, label:string} */
+function bindZone(zone, accept, onOk){
+  function attempt(dataStr, chipEl){
+    const res = accept(dataStr, chipEl);
+    if(res && res.ok){ onOk(res, chipEl); }
+    else {
+      Audio_.err();
+      if(chipEl){ shake(chipEl); if(res && res.msg) logmsg(res.msg, 'bad'); }
+    }
+  }
+  zone.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const chip = currentSelectedChip();
+    if(!chip){ logmsg('Select a component first, then tap a slot to place it.', 'warn'); return; }
+    if(chip.classList.contains('used')) return;
+    attempt(chip.dataset.data, chip);
+  });
+  zone.addEventListener('dragover', (e)=>{ e.preventDefault(); zone.classList.add('hot'); });
+  zone.addEventListener('dragleave', ()=>zone.classList.remove('hot'));
+  zone.addEventListener('drop', (e)=>{
+    e.preventDefault(); zone.classList.remove('hot');
+    const data = e.dataTransfer.getData('text/plain');
+    const chip = $$('.chip').find(c=>c.dataset.data===data && !c.classList.contains('used') && !c.classList.contains('placed'));
+    attempt(data, chip);
+  });
+}
+
+/* insert a chip visual into a slot/zone */
+function fillZone(zone, chipEl, smallText){
+  zone.classList.add('filled');
+  zone.innerHTML = '';
+  const clone = chipEl.cloneNode(true);
+  clone.classList.remove('sel'); clone.classList.add('ok', 'placed'); clone.style.margin='0';
+  zone.append(clone);
+  if(smallText) zone.append(el('div',{class:'mini', style:{marginTop:'6px'}}, smallText));
+}
+
+/* =====================================================================
+   MODULE 1 — The Input & Signal Conversion Stage
+   ===================================================================== */
+const M1 = (() => {
+  let root, samples=0, irqs=0, pending=null, irqPulse=null, sorted={src:0,io:0};
+  let zoneSrc, zoneIO, pool;
+
+  function bin8(v){ return v.toString(2).padStart(8,'0'); }
+
+  function init(r){
+    root = r; samples = 0; irqs = 0; pending = null; irqPulse = null; sorted={src:0,io:0};
+    root.innerHTML = '';
+
+    zoneSrc = el('div',{class:'zone'}, el('div',{class:'zl'},'drop source files here'));
+    zoneIO  = el('div',{class:'zone'}, el('div',{class:'zl'},'drop live inputs here'));
+    pool    = el('div',{});
+
+    root.append(
+      el('div',{class:'mod-head'},
+        el('div',{class:'kicker'},'Module 01 · Input & Signal Conversion'),
+        el('h1',{},'Input & Signal Conversion'),
+        el('p',{html:'Two different worlds meet the computer. <b>Software source files</b> are translated <b>at compile time</b> by a compiler into machine code. <b>Live peripheral inputs</b> are <b>digitized at runtime</b> by hardware controllers — never by the compiler. Sort every chip, then operate the digitizer and raise interrupt requests (IRQs) on the bus.'})
+      ),
+      el('div',{class:'grid2', style:{marginBottom:'14px'}},
+        el('div',{class:'card'},
+          el('h3',{},'Compiler Node', el('span',{class:'tag'},'compile-time')),
+          el('p',{class:'mini'},'Accepts high-level SOURCE FILES. Translates .py / .cpp / .js → machine code BEFORE the program ever runs.'),
+          zoneSrc,
+          el('div',{class:'mini', id:'m1out', style:{marginTop:'8px', minHeight:'16px'}}, 'awaiting machine code…')
+        ),
+        el('div',{class:'card'},
+          el('h3',{},'Peripheral Controllers', el('span',{class:'tag'},'runtime')),
+          el('p',{class:'mini'},'Accept LIVE INPUTS. Hardware controllers digitize physical signals in real time and raise IRQs.'),
+          zoneIO,
+          el('div',{class:'mini', id:'m1out2', style:{marginTop:'8px', minHeight:'16px'}}, 'no live signal yet…')
+        )
+      ),
+      el('div',{class:'card', style:{marginBottom:'14px'}},
+        el('h3',{},'Input Palette', el('span',{class:'tag'},'tap to select · tap a slot to place')),
+        pool
+      ),
+      el('div',{class:'card'},
+        el('h3',{},'Hardware Digitization Bench', el('span',{class:'tag'},'analog → binary → IRQ')),
+        el('div',{class:'mini', style:{marginBottom:'8px'}},'Drag the slider to set an analog voltage, then use the control panel to DIGITIZE and FIRE IRQ.'),
+        el('input',{type:'range', min:'0', max:'255', value:'128', id:'m1slider'}),
+        el('div',{class:'row', style:{marginTop:'10px'}},
+          el('span',{class:'mini'},'Analog'),
+          el('span',{class:'binary', id:'m1analog'},'128'),
+          el('span',{class:'mini'},'→ Sample (8-bit)'),
+          el('span',{id:'m1bits'})
+        )
+      )
+    );
+
+    const chipDefs = [
+      {l:'main.py',        d:'src',   icon:'SRC'},
+      {l:'engine.cpp',     d:'src',   icon:'SRC'},
+      {l:'app.js',         d:'src',   icon:'SRC'},
+      {l:'Keyboard keystroke',    d:'io', icon:'LIVE'},
+      {l:'Valorant crosshair',    d:'io', icon:'LIVE'},
+      {l:'OCR camera scan',       d:'io', icon:'LIVE'},
+      {l:'Microphone audio',      d:'io', icon:'LIVE'},
+    ];
+    chipDefs.sort(()=>Math.random()-0.5);
+    chipDefs.forEach(c => pool.append(makeChip(c.l, c.d, c.icon)));
+
+    bindZone(zoneSrc, (data)=>{
+      if(['main.py','engine.cpp','app.js'].includes(data)) return {ok:true};
+      return {ok:false, msg:'<b>Rejected:</b> ' + data + ' is a runtime peripheral input — it must NOT go through the compiler.'};
+    }, (res, chip)=>{
+      markUsed(chip); sorted.src++;
+      fillZone(zoneSrc, chip, '→ compiled to machine code');
+      logmsg('<b>' + chip.dataset.label + '</b> → Compiler: high-level source translated at compile time into machine code.', 'good');
+      addScore(10, 'compile-time translation');
+      $('#m1out').innerHTML = 'machine code emitted for <b>' + chip.dataset.label + '</b>';
+      check();
+    });
+
+    bindZone(zoneIO, (data)=>{
+      if(['Keyboard keystroke','Valorant crosshair','OCR camera scan','Microphone audio'].includes(data)) return {ok:true};
+      return {ok:false, msg:'<b>Rejected:</b> ' + data + ' is a source file — it belongs to the compiler, not a peripheral controller.'};
+    }, (res, chip)=>{
+      markUsed(chip); sorted.io++;
+      fillZone(zoneIO, chip, '→ digitized live signal');
+      logmsg('<b>' + chip.dataset.label + '</b> → Peripheral controller digitizes the physical signal in real time.', 'good');
+      addScore(10, 'runtime input digitization');
+      $('#m1out2').innerHTML = 'live buffer active for <b>' + chip.dataset.label + '</b>';
+      check();
+    });
+
+    const slider = $('#m1slider');
+    slider.addEventListener('input', ()=>{
+      $('#m1analog').textContent = slider.value;
+      renderBits(parseInt(slider.value,10), false);
+    });
+    renderBits(128, false);
+
+    setControls([
+      { label:'DIGITIZE INPUT', id:'m1Dig', onClick: doDigitize },
+      { label:'FIRE IRQ', id:'m1Irq', disabled:true, onClick: doIrq },
+      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
+          if(check(true)) return;
+          logmsg('Verification failed — sort every chip (' + (sorted.src+sorted.io) + '/7) and fire at least 3 IRQs (' + irqs + '/3).', 'warn');
+        } },
+    ], 'Analog signal → hardware sampler → binary buffer → interrupt request.');
+  }
+
+  function renderBits(v, on){
+    const host = $('#m1bits'); if(!host) return;
+    host.innerHTML = '';
+    for(const ch of bin8(v)) host.append(el('span',{class:'bite'+(on?' on':'')}, ch));
+  }
+  function doDigitize(){
+    const slider = $('#m1slider'); if(!slider) return;
+    const v = parseInt(slider.value,10);
+    pending = v; samples++;
+    renderBits(v, true);
+    Audio_.tick();
+    logmsg('<b>DIGITIZE:</b> hardware sampled analog voltage ' + v + ' → binary buffer <span class="binary">' + bin8(v) + '</span> (8-bit).', 'sys');
+    enableBtn('m1Irq', true);
+  }
+  function doIrq(){
+    if(pending == null){ logmsg('Digitize a sample before firing an IRQ.', 'warn'); return; }
+    irqs++; Audio_.irq();
+    irqPulse = { x:0, active:true };
+    logmsg('<b>IRQ #' + irqs + '</b> — the controller raises an Interrupt Request straight onto the control bus, bypassing the compiler entirely.', 'good');
+    addScore(8, 'hardware IRQ #' + irqs);
+    enableBtn('m1Irq', false);
+    pending = null;
+    check();
+  }
+  function check(verbose){
+    const done = sorted.src + sorted.io;
+    if(done === 7 && irqs >= 3){ completeModule(0, 'compile-time vs runtime digitization mastered'); return true; }
+    if(verbose) logmsg('Status — components sorted ' + done + '/7 · IRQs ' + irqs + '/3', irqs>=3 ? 'info' : 'warn');
+    return false;
+  }
+  function draw(c, w, h){
+    const y = h - 46;
+    c.strokeStyle = 'rgba(79,209,197,0.45)'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(30, y); c.lineTo(w-30, y); c.stroke();
+    c.fillStyle = 'rgba(139,149,163,0.8)'; c.font = '10px ui-monospace, monospace';
+    c.fillText('SYSTEM BUS', 30, y-9);
+    c.fillText(irqs + '/3 IRQs', w-96, y-9);
+    if(irqPulse && irqPulse.active){
+      irqPulse.x += 7;
+      const px = 30 + (irqPulse.x % (w-60));
+      c.fillStyle = 'rgba(61,220,151,0.22)'; c.beginPath(); c.arc(px,y,11,0,Math.PI*2); c.fill();
+      c.fillStyle = '#3ddc97'; c.beginPath(); c.arc(px,y,5,0,Math.PI*2); c.fill();
+      if(irqPulse.x > w-60) irqPulse.active = false;
+    }
+  }
+  return { title:'Input & Signal Conversion', init, draw };
+})();
+MODULES.push(M1);
+
+/* =====================================================================
+   MODULE 2 — The Software Stack & Hardware Interactivity Layer
+   ===================================================================== */
+const M2 = (() => {
+  let root, placed = 0, stackDone = false, callDone = false, trapDone = false;
+  let sysBtnRefs = [];
+
+  function init(r){
+    root = r; placed = 0; stackDone = false; callDone = false; trapDone = false; sysBtnRefs = [];
+    root.innerHTML = '';
+
+    const stackChips = [
+      {l:'Application Software (Valorant / Chrome / Neovim)', d:'app', icon:'USER'},
+      {l:'OS Kernel (macOS / Windows / Linux) + Utilities',   d:'os',  icon:'KERNEL'},
+      {l:'Device Driver Translators',                         d:'drv', icon:'DRV'},
+      {l:'Hardware Control Registers',                        d:'hw',  icon:'HW'},
+    ];
+    const slotHints = [
+      'Runs in User Space · requests services',
+      'Provides GUI/CLI · manages processes, memory, files, networks',
+      'Translates OS requests into hardware register values',
+      'Physical memory-mapped control registers',
+    ];
+    const expected = ['app','os','drv','hw'];
+
+    const palette = el('div',{});
+    stackChips.slice().sort(()=>Math.random()-0.5).forEach(c=> palette.append(makeChip(c.l, c.d, c.icon)));
+
+    const stackHost = el('div',{style:{display:'flex', flexDirection:'column', gap:'10px'}});
+    for(let i=0;i<4;i++){
+      const slot = el('div',{class:'slot', 'data-i':i},
+        el('span',{class:'idx'}, String(i+1)),
+        el('span',{class:'mini'}, slotHints[i])
+      );
+      stackHost.append(slot);
+      bindZone(slot, (data)=>{
+        if(data === expected[i]) return {ok:true};
+        return {ok:false, msg:'<b>Out of order:</b> that layer does not sit at position ' + (i+1) + '. Layers stack top-down: App → OS → Drivers → Hardware.'};
+      }, (res, chip)=>{
+        markUsed(chip);
+        fillZone(slot, chip);
+        placed++;
+        logmsg('<b>' + chip.dataset.label + '</b> placed at stack level ' + (i+1) + '.', 'good');
+        addScore(12, 'stack layer ' + (i+1));
+        if(placed === 4){
+          stackDone = true;
+          logmsg('<b>Stack aligned.</b> Application → OS Kernel/Utilities → Device Drivers → Hardware Registers.', 'sys');
+          setBtnLabel('m2Call', 'ISSUE SYSTEM CALL');
+          enableBtn('m2Call', true);
+        }
+      });
+    }
+
+    const callHost = el('div',{id:'m2CallHost'});
+    const trapHost = el('div',{id:'m2TrapHost'});
+
+    root.append(
+      el('div',{class:'mod-head'},
+        el('div',{class:'kicker'},'Module 02 · Software Stack & Interactivity'),
+        el('h1',{},'The Software Stack & Hardware Layer'),
+        el('p',{html:'Software is layered. Applications make requests; the <b>Operating System</b> manages processes, memory, files and networks; <b>Device Drivers</b> translate those requests into hardware register values. Drivers are NOT middleware — middleware is a higher-level, database/API abstraction that never touches a control register.'})
+      ),
+      el('div',{class:'grid2', style:{marginBottom:'14px'}},
+        el('div',{class:'card'},
+          el('h3',{},'Layer Alignment', el('span',{class:'tag'},'top → bottom')),
+          stackHost
+        ),
+        el('div',{class:'card'},
+          el('h3',{},'Component Palette', el('span',{class:'tag'},'tap-select · tap-slot')),
+          palette,
+          el('div',{style:{marginTop:'14px'}}, callHost),
+          el('div',{style:{marginTop:'14px'}}, trapHost)
+        )
+      )
+    );
+
+    setControls([
+      { label:'ISSUE SYSTEM CALL', id:'m2Call', disabled:true, onClick: startCall },
+      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
+          if(stackDone && callDone && trapDone){ completeModule(1, 'software stack, system call & driver semantics mastered'); return; }
+          logmsg('Verification failed — complete the stack, the system call route, and the diagnostic trap.', 'warn');
+        } },
+    ], 'User Space → Kernel Space → Hardware, one layer at a time.');
+  }
+
+  function startCall(){
+    if(!stackDone) return;
+    const host = $('#m2CallHost'); if(!host) return;
+    host.innerHTML = '';
+    const steps = [
+      { key:'user',  label:'① User Space: application issues a SYSTEM CALL (mode switch trap)' },
+      { key:'kern',  label:'② Kernel Space: OS validates the request & dispatches it' },
+      { key:'drv',   label:'③ Device Driver writes the value into the hardware control register' },
+    ];
+    const order = ['user','kern','drv'];
+    let next = 0;
+    const box = el('div',{class:'zone'}, el('div',{class:'zl'},'System-Call Router — click in order'));
+    host.append(el('h3',{style:{margin:'0 0 8px'}},'System Call Routing'), box);
+    const shuffled = steps.slice().sort(()=>Math.random()-0.5);
+    shuffled.forEach(s=>{
+      const b = el('button',{class:'opt', onclick:()=>{
+        if(s.key === order[next] && !b.classList.contains('ok')){
+          b.classList.add('ok'); next++;
+          logmsg('System call routed: ' + s.label.replace(/^[①②③]\s*/,'') , 'good');
+          addScore(10, 'system call step');
+          Audio_.tick();
+          if(next === 3){
+            callDone = true;
+            logmsg('<b>System call complete</b> — User Space → Kernel Space → Hardware. The privileged boundary was crossed exactly once, in the right direction.', 'sys');
+            showTrap();
+          }
+        } else {
+          b.classList.add('no'); setTimeout(()=>b.classList.remove('no'),320);
+          Audio_.err();
+          logmsg('<b>Wrong order:</b> a system call always travels DOWN: User Space → Kernel Space → Hardware.', 'bad');
+        }
+      }}, s.label);
+      box.append(b);
+    });
+  }
+
+  function showTrap(){
+    const host = $('#m2TrapHost'); if(!host) return;
+    host.innerHTML = '';
+    host.append(
+      el('h3',{style:{margin:'0 0 8px'}},'Diagnostic Trap'),
+      el('p',{class:'mini'},'Which statement correctly describes a Device Driver?')
+    );
+    const opts = [
+      { t:'A low-level program that reads/writes specific hardware control registers, translating OS requests into device-specific signals.', ok:true },
+      { t:'A higher-level software layer that provides database and API connectivity between separate applications (middleware).', ok:false },
+      { t:'A utility that defragments the disk and frees cache memory.', ok:false },
+    ];
+    opts.sort(()=>Math.random()-0.5).forEach(o=>{
+      host.append(el('button',{class:'opt', onclick:(e)=>{
+        if(trapDone) return;
+        const b = e.currentTarget;
+        if(o.ok){
+          b.classList.add('ok'); trapDone = true;
+          logmsg('<b>Correct.</b> A driver is a hardware register translator — distinct from middleware, which sits above the OS.', 'good');
+          addScore(15, 'driver vs middleware');
+        } else {
+          b.classList.add('no');
+          logmsg('<b>Incorrect.</b> That describes middleware or a utility, not a driver. Drivers speak directly to control registers.', 'bad');
+          addScore(-5, 'confused driver with higher-level software');
+        }
+      }}, o.t));
+    });
+  }
+  return { title:'Software Stack & Hardware Layer', init };
+})();
+MODULES.push(M2);
+
+/* =====================================================================
+   MODULE 3 — Motherboard Infrastructure & The Tri-Bus Router
+   ===================================================================== */
+const M3 = (() => {
+  let root, placed = 0, round = 0, correct = 0, TOTAL_ROUNDS = 6;
+  let busPulses = [], activeBus = null, boardDone = false;
+  const ROUNDS = [
+    { q:'CPU must tell RAM <b>which location</b> to read (address 0x1F).', a:'addr' },
+    { q:'Carry the data word <b>0b1011 0010</b> from a RAM cell into a CPU register.', a:'data' },
+    { q:'Assert the <b>READ line</b> with a clock pulse, and receive the pending <b>IRQ</b>.', a:'ctrl' },
+    { q:'CPU publishes the address of a <b>memory-mapped I/O register</b> on the NIC.', a:'addr' },
+    { q:'Carry <b>machine-code instruction bytes</b> from storage up to the CPU.', a:'data' },
+    { q:'Send a <b>WRITE control signal</b> so DRAM commits the bus value.', a:'ctrl' },
+  ];
+  const BUS_INFO = {
+    addr:{ name:'Address Bus', col:'#4fd1c5', dir:'UNIDIRECTIONAL (CPU → memory/MMIO) — carries addresses only.' },
+    data:{ name:'Data Bus',    col:'#ffcb6b', dir:'BIDIRECTIONAL — carries data words AND machine-code instructions both ways.' },
+    ctrl:{ name:'Control Bus', col:'#ff6b6b', dir:'UNIDIRECTIONAL — carries read/write signals, clock timing, and hardware IRQs.' },
+  };
+
+  function init(r){
+    root = r; placed = 0; round = 0; correct = 0; busPulses = []; activeBus = null; boardDone = false;
+    root.innerHTML = '';
+
+    const sockets = [
+      { d:'psu',  label:'Power Rail',       hint:'case foundation · PSU energy balancing' },
+      { d:'cool', label:'Thermal Header',   hint:'fans / heat sinks · prevent thermal throttling' },
+      { d:'pch',  label:'Chipset',          hint:'Platform Controller Hub (PCH)' },
+      { d:'gpu',  label:'PCIe x16 Slot',    hint:'expansion · high-bandwidth graphics' },
+      { d:'nic',  label:'PCIe x1 Slot',     hint:'expansion · Network Interface Card (NIC)' },
+      { d:'sata', label:'SATA Ports',       hint:'storage drives' },
+      { d:'usb',  label:'USB Header',       hint:'external peripherals' },
+    ];
+    const chips = [
+      {l:'Power Supply Unit (PSU)', d:'psu',  icon:'PWR'},
+      {l:'Cooling Fan / Heat Sink',  d:'cool', icon:'THERM'},
+      {l:'Platform Controller Hub',  d:'pch',  icon:'PCH'},
+      {l:'GPU',                      d:'gpu',  icon:'PCIe'},
+      {l:'Network Interface Card',   d:'nic',  icon:'PCIe'},
+      {l:'SATA (Storage)',           d:'sata', icon:'I/O'},
+      {l:'USB Controller',           d:'usb',  icon:'I/O'},
+    ];
+
+    const palette = el('div',{});
+    chips.slice().sort(()=>Math.random()-0.5).forEach(c=> palette.append(makeChip(c.l, c.d, c.icon)));
+
+    const boardHost = el('div',{style:{display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:'8px'}});
+    sockets.forEach(s=>{
+      const slot = el('div',{class:'slot', style:{flexDirection:'column', alignItems:'flex-start', minHeight:'74px'}},
+        el('span',{class:'mini', style:{color:'var(--dim)'}}, s.label),
+        el('span',{class:'mini'}, s.hint)
+      );
+      boardHost.append(slot);
+      bindZone(slot, (data)=>{
+        if(data === s.d) return {ok:true};
+        return {ok:false, msg:'<b>Wrong socket:</b> that component does not belong in the ' + s.label + '.'};
+      }, (res, chip)=>{
+        markUsed(chip); placed++;
+        fillZone(slot, chip);
+        logmsg('<b>' + chip.dataset.label + '</b> seated in ' + s.label + '.', 'good');
+        addScore(8, 'component seated');
+        if(placed === sockets.length){
+          boardDone = true;
+          logmsg('<b>Infrastructure online.</b> PSU, cooling, PCH, PCIe devices, SATA and USB all interlinked.', 'sys');
+          if(round === 0){ logmsg('Tri-Bus Dispatcher armed — dispatch each signal on the correct bus.', 'sys'); startRound(); }
+        }
+      });
+    });
+
+    const busHost = el('div',{id:'m3bus'});
+    const qHost = el('div',{id:'m3q'});
+
+    root.append(
+      el('div',{class:'mod-head'},
+        el('div',{class:'kicker'},'Module 03 · Motherboard & System Buses'),
+        el('h1',{},'Motherboard Infrastructure & Tri-Bus Router'),
+        el('p',{html:'The motherboard interconnects every component. Three system buses carry all CPU traffic: the <b>Address Bus</b> (unidirectional, addresses only), the <b>Data Bus</b> (bidirectional, data &amp; instructions), and the <b>Control Bus</b> (unidirectional, read/write signals, clock timing and IRQs).'})
+      ),
+      el('div',{class:'card', style:{marginBottom:'14px'}},
+        el('h3',{},'Infrastructure Routing Board', el('span',{class:'tag'},'tap to select · tap a socket')),
+        boardHost,
+        el('div',{style:{marginTop:'12px'}}, palette)
+      ),
+      el('div',{class:'card'},
+        el('h3',{},'Tri-Bus Dispatcher', el('span',{class:'tag'},'core loop')),
+        el('div',{class:'mini', id:'m3prog'},'Complete the routing board to arm the dispatcher.'),
+        qHost,
+        busHost
+      )
+    );
+
+    setControls([
+      { label:'DISPATCH BUS SIGNAL', id:'m3Dispatch', disabled:true, onClick:()=> logmsg('Pick a bus lane by tapping ADDRESS / DATA / CONTROL for the pending task.', 'warn') },
+      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
+          if(boardDone && correct >= TOTAL_ROUNDS){ completeModule(2, 'motherboard & tri-bus routing mastered'); return; }
+          logmsg('Verification failed — board ' + (boardDone?'OK':'incomplete') + ' · dispatches ' + correct + '/' + TOTAL_ROUNDS + '.', 'warn');
+        } },
+    ], 'Route each signal on Address / Data / Control.');
+  }
+
+  function startRound(){
+    const qHost = $('#m3q'), busHost = $('#m3bus');
+    if(!qHost || !busHost) return;
+    if(round >= TOTAL_ROUNDS){
+      qHost.innerHTML = '<div class="mini" style="color:var(--good)">All dispatch tasks cleared.</div>';
+      busHost.innerHTML = '';
+      return;
+    }
+    const cur = ROUNDS[round];
+    qHost.innerHTML = '';
+    qHost.append(el('div',{class:'card', style:{marginTop:'12px', background:'var(--panel2)'}},
+      el('h3',{},'Dispatch Task ' + (round+1) + ' / ' + TOTAL_ROUNDS),
+      el('p',{class:'mini', html:cur.q, style:{fontSize:'13px', color:'var(--text)'}})
+    ));
+    busHost.innerHTML = '';
+    const lanes = ['addr','data','ctrl'];
+    const laneHost = el('div',{class:'row', style:{marginTop:'10px'}});
+    lanes.sort(()=>Math.random()-0.5).forEach(k=>{
+      const info = BUS_INFO[k];
+      laneHost.append(el('button',{class:'opt', style:{width:'auto', flex:'1', textAlign:'center'},
+        onclick:()=> choose(k, cur.a)}));
+      // set label/colour after creation
+      laneHost.lastChild.textContent = info.name;
+      laneHost.lastChild.style.borderColor = info.col + '55';
+    });
+    busHost.append(el('div',{class:'mini', style:{marginTop:'8px'}},'Select the correct bus lane:'), laneHost);
+    enableBtn('m3Dispatch', true);
+  }
+
+  function choose(k, answer){
+    const info = BUS_INFO[k];
+    if(k === answer){
+      correct++; round++;
+      activeBus = k;
+      busPulses.push({bus:k, x:0, col:info.col});
+      Audio_.ok();
+      logmsg('<b>' + info.name + ' ✓</b> — ' + info.dir, 'good');
+      addScore(12, 'correct bus dispatch');
+      startRound();
+      if(correct >= TOTAL_ROUNDS && boardDone){
+        setTimeout(()=>completeModule(2, 'motherboard & tri-bus routing mastered'), 500);
+      }
+    } else {
+      Audio_.err();
+      logmsg('<b>' + info.name + ' ✗</b> — ' + info.dir, 'bad');
+      addScore(-4, 'mis-routed signal');
+    }
+  }
+
+  function draw(c, w, h){
+    const lanes = [
+      { k:'addr', y:h*0.46 },
+      { k:'data', y:h*0.56 },
+      { k:'ctrl', y:h*0.66 },
+    ];
+    lanes.forEach(l=>{
+      const info = BUS_INFO[l.k];
+      c.strokeStyle = info.col + (activeBus===l.k ? 'cc' : '55');
+      c.lineWidth = activeBus===l.k ? 3 : 2;
+      c.beginPath(); c.moveTo(24, l.y); c.lineTo(w-24, l.y); c.stroke();
+      c.fillStyle = info.col; c.font = '10px ui-monospace, monospace';
+      c.fillText(info.name.toUpperCase(), 26, l.y - 7);
+    });
+    busPulses.forEach(p=>{
+      p.x += 9;
+      const info = BUS_INFO[p.bus];
+      const ly = lanes.find(l=>l.k===p.bus).y;
+      const px = 24 + (p.x % (w-48));
+      c.fillStyle = info.col; c.beginPath(); c.arc(px, ly, 5, 0, Math.PI*2); c.fill();
+      c.fillStyle = info.col + '33'; c.beginPath(); c.arc(px, ly, 12, 0, Math.PI*2); c.fill();
+    });
+    busPulses = busPulses.filter(p=> p.x < w);
+  }
+  return { title:'Motherboard & Tri-Bus Router', init, draw };
+})();
+MODULES.push(M3);
+
+/* =====================================================================
+   MODULE 4 — Memory Hierarchy & Cache Multi-Tier Blitz
+   ===================================================================== */
+const M4 = (() => {
+  let root, bootStep = 0, bootDone = false, sortedCount = 0, storageDone = false;
+  let cacheRound = 0, expectedTier = 0, hitIndex = 0, cycles = 0, cacheDone = false, cacheUnlocked = false;
+  const CACHE_ROUNDS = 3;
+  const TIERS = [
+    { k:'reg',  label:'Registers (CPU internal)', lat:1 },
+    { k:'l1',   label:'L1 Cache (SRAM)',          lat:3 },
+    { k:'l2',   label:'L2 Cache (SRAM)',          lat:12 },
+    { k:'l3',   label:'L3 Cache (SRAM)',          lat:40 },
+    { k:'dram', label:'Main Memory (DRAM)',       lat:200 },
+    { k:'ssd',  label:'Secondary Storage (SSD)',  lat:20000 },
+  ];
+
+  function init(r){
+    root = r; bootStep = 0; bootDone = false; sortedCount = 0; storageDone = false;
+    cacheRound = 0; cacheDone = false; cycles = 0; cacheUnlocked = false;
+    root.innerHTML = '';
+
+    // ---- boot sequence ----
+    const bootHost = el('div',{id:'m4boot'});
+    const bootSteps = [
+      '⏻ POWER ON — verify ROM holds non-volatile firmware',
+      'ROM → load BIOS firmware into execution',
+      'POST — initialize memory, PCIe, storage & peripherals',
+      'SSD → load the OPERATING SYSTEM into volatile RAM (DRAM)',
+    ];
+
+    // ---- storage sorter ----
+    const bins = [
+      { d:'mag', label:'Magnetic',   hint:'spinning platters / tape' },
+      { d:'opt', label:'Optical',    hint:'laser pit & land' },
+      { d:'sol', label:'Solid-State / Electric', hint:'flash cells, no moving parts' },
+    ];
+    const storeChips = [
+      { l:'Hard Disk Drive (HDD)', d:'mag', icon:'MAG' },
+      { l:'Magnetic Tape (sequential)', d:'mag', icon:'SEQ' },
+      { l:'Compact Disc (CD)', d:'opt', icon:'OPT' },
+      { l:'Solid State Drive (SSD)', d:'sol', icon:'FLASH' },
+    ];
+    const binHost = el('div',{class:'grid3'});
+    const storePalette = el('div',{});
+    storeChips.slice().sort(()=>Math.random()-0.5).forEach(c=> storePalette.append(makeChip(c.l, c.d, c.icon)));
+    bins.forEach(b=>{
+      const slot = el('div',{class:'zone', style:{minHeight:'96px'}},
+        el('div',{class:'zl'}, b.label),
+        el('div',{class:'mini'}, b.hint)
+      );
+      binHost.append(slot);
+      bindZone(slot, (data)=>{
+        if(data === b.d) return {ok:true};
+        return {ok:false, msg:'<b>Wrong medium:</b> that device does not use ' + b.label + ' storage.'};
+      }, (res, chip)=>{
+        markUsed(chip); sortedCount++;
+        fillZone(slot, chip);
+        logmsg('<b>' + chip.dataset.label + '</b> → ' + b.label + ' storage.', 'good');
+        addScore(10, 'storage classification');
+        if(sortedCount === storeChips.length){
+          storageDone = true;
+          logmsg('<b>Storage classified.</b> Note: tape & HDD are magnetic (HDD random, tape sequential); CD is optical; SSD is non-volatile, electric, random-access.', 'sys');
+          unlockCache();
+        }
+      });
+    });
+
+    const cacheHost = el('div',{id:'m4cache'});
+
+    root.append(
+      el('div',{class:'mod-head'},
+        el('div',{class:'kicker'},'Module 04 · Memory Hierarchy & Cache'),
+        el('h1',{},'Memory Hierarchy & Cache Blitz'),
+        el('p',{html:'Non-volatile <b>ROM</b> holds the BIOS firmware that boots the machine; volatile <b>RAM/DRAM</b> holds the running OS and active data. To beat DRAM latency the CPU keeps a pyramid of fast <b>SRAM caches</b> — L1, L2, L3 — exploiting locality of reference.'})
+      ),
+      el('div',{class:'grid2', style:{marginBottom:'14px'}},
+        el('div',{class:'card'},
+          el('h3',{},'Boot Sequence', el('span',{class:'tag'},'ROM → RAM')),
+          bootHost
+        ),
+        el('div',{class:'card'},
+          el('h3',{},'Storage Classification', el('span',{class:'tag'},'physical mechanism')),
+          binHost,
+          el('div',{style:{marginTop:'12px'}}, storePalette)
+        )
+      ),
+      el('div',{class:'card'},
+        el('h3',{},'Multi-Level Cache Arcade', el('span',{class:'tag'},'locality of reference')),
+        el('div',{class:'mini', id:'m4cacheProg'},'Complete boot & storage classification to unlock.'),
+        cacheHost
+      )
+    );
+
+    // build boot buttons (ordered)
+    const order = bootSteps.slice();
+    const shuffledBoot = order.slice().sort(()=>Math.random()-0.5);
+    shuffledBoot.forEach((label, idx)=>{
+      const b = el('button',{class:'opt', onclick:()=>{
+        if(label === order[bootStep] && !b.classList.contains('ok')){
+          b.classList.add('ok'); bootStep++;
+          Audio_.tick();
+          logmsg('<b>Boot step ' + bootStep + ':</b> ' + label.replace(/^[⏻]\s*/,'') , 'good');
+          addScore(9, 'boot step');
+          if(bootStep === order.length){
+            bootDone = true;
+            logmsg('<b>Boot complete.</b> Non-volatile ROM firmware initialized hardware, then the volatile OS was loaded into DRAM.', 'sys');
+            unlockCache();
+          }
+        } else {
+          b.classList.add('no'); setTimeout(()=>b.classList.remove('no'),320);
+          Audio_.err();
+          logmsg('<b>Out of order:</b> firmware must run from ROM before the volatile OS is loaded into RAM.', 'bad');
+        }
+      }}, label);
+      bootHost.append(b);
+    });
+
+    setControls([
+      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
+          if(bootDone && storageDone && cacheDone){ completeModule(3, 'memory hierarchy & cache tiers mastered'); return; }
+          logmsg('Verification failed — boot ' + (bootDone?'OK':'×') + ' · storage ' + (storageDone?'OK':'×') + ' · cache ' + (cacheDone?'OK':'×') + '.', 'warn');
+        } },
+    ], 'Registers → L1 → L2 → L3 → DRAM → SSD.');
+  }
+
+  function unlockCache(){
+    if(!bootDone || !storageDone || cacheUnlocked) return;
+    cacheUnlocked = true;
+    const prog = $('#m4cacheProg');
+    if(prog) prog.textContent = 'CPU issuing data requests — search the pyramid in order.';
+    startCacheRound();
+  }
+
+  function startCacheRound(){
+    const host = $('#m4cache'); if(!host) return;
+    if(cacheRound >= CACHE_ROUNDS){
+      cacheDone = true;
+      host.innerHTML = '<div class="mini" style="color:var(--good)">All cache lookups resolved. Total cycles spent: ' + cycles + '.</div>';
+      return;
+    }
+    hitIndex = Math.floor(Math.random()*5); // usually a cache hit, sometimes DRAM/SSD
+    expectedTier = 0;
+    const target = TIERS[hitIndex];
+    host.innerHTML = '';
+    host.append(
+      el('div',{class:'card', style:{marginTop:'12px', background:'var(--panel2)'}},
+        el('h3',{},'Request ' + (cacheRound+1) + ' / ' + CACHE_ROUNDS + ' — lookup: <span style="font-family:var(--mono)">0x' + Math.floor(Math.random()*65536).toString(16).padStart(4,'0').toUpperCase() + '</span>'),
+        el('div',{class:'mini', html:'Search the hierarchy top-down. Stop when the block is found (a <b>hit</b>).', style:{marginBottom:'8px'}}),
+        el('div',{class:'row', id:'m4tierHost', style:{marginTop:'4px'}})
+      )
+    );
+    const tierHost = $('#m4tierHost');
+    const shuffled = TIERS.map((t,i)=>({t,i})).sort(()=>Math.random()-0.5);
+    shuffled.forEach(({t,i})=>{
+      tierHost.append(el('button',{class:'opt', style:{width:'auto'},
+        onclick:(e)=> lookup(e.currentTarget, i)}));
+      tierHost.lastChild.textContent = t.label;
+    });
+  }
+
+  function lookup(btn, idx){
+    if(idx === expectedTier){
+      const t = TIERS[idx];
+      cycles += t.lat;
+      btn.classList.add('ok');
+      Audio_.tick();
+      logmsg('Lookup → <b>' + t.label + '</b> (+' + t.lat + ' cycles).', 'info');
+      expectedTier++;
+      if(idx === hitIndex){
+        Audio_.ok();
+        logmsg('<b>HIT</b> at ' + t.label + '. ' + (idx <= 2 ? 'SRAM cache erased the DRAM bottleneck via locality of reference.' : 'Missed all caches — a costly trip down the hierarchy.'), idx <= 2 ? 'good' : 'warn');
+        addScore(idx <= 2 ? 15 : 6, 'cache lookup resolved');
+        cacheRound++;
+        setTimeout(startCacheRound, 550);
+      } else if(expectedTier >= TIERS.length){
+        logmsg('Searched to the bottom with no hit.', 'warn');
+        cacheRound++; setTimeout(startCacheRound, 550);
+      }
+    } else {
+      btn.classList.add('no'); setTimeout(()=>btn.classList.remove('no'),320);
+      Audio_.err();
+      logmsg('<b>Out of order:</b> the hierarchy descends Registers → L1 → L2 → L3 → DRAM → SSD.', 'bad');
+      addScore(-3, 'searched hierarchy out of order');
+    }
+  }
+
+  function draw(c, w, h){
+    // pyramid of cache tiers
+    const cx = w*0.5;
+    const top = h*0.30;
+    const rows = 6;
+    for(let i=0;i<rows;i++){
+      const rw = 40 + i*30;
+      const y = top + i*22;
+      const isHit = i === hitIndex && cacheRound < CACHE_ROUNDS && bootDone && storageDone;
+      c.fillStyle = isHit ? 'rgba(79,209,197,0.35)' : 'rgba(79,209,197,0.10)';
+      c.strokeStyle = 'rgba(79,209,197,0.35)'; c.lineWidth = 1;
+      c.fillRect(cx - rw/2, y, rw, 18);
+      c.strokeRect(cx - rw/2 + 0.5, y + 0.5, rw, 18);
+    }
+  }
+  return { title:'Memory Hierarchy & Cache', init, draw };
+})();
+MODULES.push(M4);
+
+/* =====================================================================
+   MODULE 5 — Microarchitecture Machine Cycle & Circuit Builder
+   ===================================================================== */
+const M5 = (() => {
+  let root, transistorsDone=false, gatesDone=false, aluDone=false, regDone=false;
+  let insPtr=0, micro=0, machineDone=false, cyclesRun=0;
+  const PROG = [ {op:'LDA', arg:5}, {op:'ADD', arg:3} ];
+  const PHASES = ['F1','F2','F3','F4','D','E'];
+  const R = { PC:0, MAR:0, MDR:'--', CIR:'--', ACC:0, ALU:0, CU:'idle' };
+
+  function init(r){
+    root = r;
+    transistorsDone = gatesDone = aluDone = regDone = false;
+    insPtr = 0; micro = 0; machineDone = false; cyclesRun = 0;
+    R.PC=0; R.MAR=0; R.MDR='--'; R.CIR='--'; R.ACC=0; R.ALU=0; R.CU='idle';
+    root.innerHTML = '';
+
+    const palette = el('div',{});
+    const chipDefs = [
+      {l:'NPN Transistor ×2',        d:'npn',  icon:'SILICON'},
+      {l:'AND Gate',                 d:'and',  icon:'GATE'},
+      {l:'OR Gate',                  d:'or',   icon:'GATE'},
+      {l:'NOT Gate',                 d:'not',  icon:'GATE'},
+      {l:'Adder (full adder)',       d:'add',  icon:'COMB'},
+      {l:'Multiplexer (2:1 MUX)',    d:'mux',  icon:'COMB'},
+      {l:'Flip-Flop (D type)',       d:'ff',   icon:'SEQ'},
+      {l:'Latch (SR)',               d:'latch',icon:'SEQ'},
+    ];
+    chipDefs.slice().sort(()=>Math.random()-0.5).forEach(c=> palette.append(makeChip(c.l, c.d, c.icon)));
+
+    const zT = el('div',{class:'zone'}, el('div',{class:'ph zl'},'Layer 1 · Silicon — place NPN transistors'));
+    const zG = el('div',{class:'zone locked', style:{opacity:'.35', pointerEvents:'none'}}, el('div',{class:'ph zl'},'Layer 2 · Logic Gates — place AND, OR, NOT'));
+    const zA = el('div',{class:'zone locked', style:{opacity:'.35', pointerEvents:'none'}}, el('div',{class:'ph zl'},'Layer 3a · Combinational → ALU — place Adder + MUX'));
+    const zR = el('div',{class:'zone locked', style:{opacity:'.35', pointerEvents:'none'}}, el('div',{class:'ph zl'},'Layer 3b · Sequential → Registers — place Flip-Flop + Latch'));
+
+    function unlock(z){ z.classList.remove('locked'); z.style.opacity='1'; z.style.pointerEvents='auto'; }
+
+    multiZone(zT, ['npn'], ()=>{
+      transistorsDone = true;
+      logmsg('<b>Silicon layer built.</b> NPN transistors are the physical switches from which all logic is made.', 'sys');
+      addScore(10,'silicon layer'); unlock(zG);
+    });
+    multiZone(zG, ['and','or','not'], ()=>{
+      gatesDone = true;
+      logmsg('<b>Gate layer built.</b> Transistors combine into AND, OR and NOT logic gates.', 'sys');
+      addScore(15,'logic gates'); unlock(zA); unlock(zR);
+    });
+    multiZone(zA, ['add','mux'], ()=>{
+      aluDone = true;
+      logmsg('<b>ALU assembled.</b> Combinational logic (adders + multiplexers) performs arithmetic & logic.', 'sys');
+      addScore(15,'ALU combinational logic'); tryEnableMachine();
+    });
+    multiZone(zR, ['ff','latch'], ()=>{
+      regDone = true;
+      logmsg('<b>Registers assembled.</b> Sequential logic (flip-flops + latches) stores state — PC, MDR, CIR, ACC.', 'sys');
+      addScore(15,'register sequential logic'); tryEnableMachine();
+    });
+
+    // register readout
+    const regHost = el('div',{class:'grid3', id:'m5regs'});
+
+    root.append(
+      el('div',{class:'mod-head'},
+        el('div',{class:'kicker'},'Module 05 · Microarchitecture & Machine Cycle'),
+        el('h1',{},'Machine Cycle & Circuit Builder'),
+        el('p',{html:'Every computation begins with silicon. NPN transistors form logic gates; gates form <b>combinational</b> logic (adders, multiplexers → ALU) and <b>sequential</b> logic (flip-flops, latches → registers). Then the CPU runs the <b>Fetch → Decode → Execute</b> cycle.'})
+      ),
+      el('div',{class:'grid2', style:{marginBottom:'14px'}},
+        el('div',{class:'card'},
+          el('h3',{},'Sub-Logic Circuit Builder', el('span',{class:'tag'},'bottom-up')),
+          el('div',{style:{display:'flex', flexDirection:'column', gap:'10px'}}, zT, zG, zA, zR),
+          el('div',{style:{marginTop:'12px'}}, palette)
+        ),
+        el('div',{class:'card', id:'m5machine'},
+          el('h3',{},'Machine Cycle Simulator', el('span',{class:'tag'},'Fetch → Decode → Execute')),
+          el('div',{class:'mini', id:'m5prog'},'Assemble the ALU and registers to arm the machine cycle.'),
+          regHost,
+          el('div',{class:'card', style:{marginTop:'12px', background:'var(--panel2)'}},
+            el('h3',{},'RAM (machine code in memory)'),
+            el('div',{class:'kv'}, el('span',{class:'vk'},'0x00'), el('span',{id:'m5ram0'},'LDA 5')),
+            el('div',{class:'kv'}, el('span',{class:'vk'},'0x01'), el('span',{id:'m5ram1'},'ADD 3')),
+            el('div',{class:'kv'}, el('span',{class:'vk'},'0x02'), el('span',{},'HALT'))
+          )
+        )
+      )
+    );
+
+    renderRegs();
+    setControls([
+      { label:'STEP MACHINE CYCLE', id:'m5Step', disabled:true, onClick: step },
+      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
+          if(aluDone && regDone && machineDone){ completeModule(4, 'circuit architecture & machine cycle mastered'); return; }
+          logmsg('Verification failed — ALU ' + (aluDone?'OK':'×') + ' · Registers ' + (regDone?'OK':'×') + ' · cycle ' + (machineDone?'OK':'×') + '.', 'warn');
+        } },
+    ], 'PC → MAR → Address Bus → RAM → MDR → CIR → CU → ALU → ACC.');
+  }
+
+  function multiZone(zone, req, onAll){
+    const got = new Set();
+    bindZone(zone, (data)=>{
+      if(!req.includes(data)) return {ok:false, msg:'<b>Wrong layer:</b> that component does not belong here.'};
+      if(got.has(data)) return {ok:false, msg:'That component is already placed.'};
+      return {ok:true};
+    }, (res, chip)=>{
+      got.add(chip.dataset.data);
+      markUsed(chip);
+      const clone = chip.cloneNode(true);
+      clone.classList.remove('sel'); clone.classList.add('ok'); clone.style.margin = '3px';
+      const ph = zone.querySelector('.ph'); if(ph) ph.remove();
+      zone.append(clone);
+      logmsg('<b>' + chip.dataset.label + '</b> added to ' + (zone.querySelector('.zl')?.textContent || 'layer') + '.', 'good');
+      addScore(8, 'circuit component');
+      if(got.size === req.length){ zone.classList.add('filled'); onAll(); }
+    });
+  }
+
+  function tryEnableMachine(){
+    if(aluDone && regDone){
+      const p = $('#m5prog');
+      if(p) p.textContent = 'CPU armed. Use STEP MACHINE CYCLE to run the program.';
+      enableBtn('m5Step', true);
+    }
+  }
+
+  function renderRegs(){
+    const host = $('#m5regs'); if(!host) return;
+    host.innerHTML = '';
+    const items = [
+      ['PC (Program Counter)', R.PC, 'next instruction address'],
+      ['MAR (Memory Address Reg)', R.MAR, 'address on the bus'],
+      ['MDR (Memory Data Reg)', R.MDR, 'data from/to memory'],
+      ['CIR (Current Instr Reg)', R.CIR, 'instruction being decoded'],
+      ['ACC (Accumulator)', R.ACC, 'ALU result holder'],
+      ['CU (Control Unit)', R.CU, 'decoded control state'],
+    ];
+    items.forEach(([k,v,sub])=>{
+      host.append(el('div',{class:'card', style:{background:'var(--panel2)', padding:'10px'}},
+        el('div',{class:'mini'}, k),
+        el('div',{class:'binary', style:{fontSize:'18px', marginTop:'4px'}}, String(v)),
+        el('div',{class:'mini'}, sub)
+      ));
+    });
+  }
+
+  function step(){
+    if(machineDone){ logmsg('Machine cycle finished. All instructions executed.', 'sys'); return; }
+    if(!(aluDone && regDone)){ logmsg('Assemble the ALU and registers first.', 'warn'); return; }
+    const ins = PROG[insPtr];
+    const ph = PHASES[micro];
+    Audio_.tick();
+    switch(ph){
+      case 'F1':
+        R.MAR = R.PC;
+        logmsg('<b>FETCH 1/4:</b> MAR ← PC, placing address <b>0x0' + R.PC + '</b> on the Address Bus.', 'info'); break;
+      case 'F2':
+        R.MDR = ins.op + ' ' + ins.arg;
+        logmsg('<b>FETCH 2/4:</b> RAM returns <b>' + R.MDR + '</b> on the Data Bus into the MDR.', 'info'); break;
+      case 'F3':
+        R.CIR = R.MDR;
+        logmsg('<b>FETCH 3/4:</b> CIR ← MDR (raw instruction register now holds the machine code).', 'info'); break;
+      case 'F4':
+        R.PC = R.PC + 1;
+        logmsg('<b>FETCH 4/4:</b> PC ← PC + 1 → <b>' + R.PC + '</b>.', 'info'); break;
+      case 'D':
+        R.CU = ins.op;
+        logmsg('<b>DECODE:</b> CU splits the opcode <b>' + ins.op + '</b> into electrical control signals.', 'sys'); break;
+      case 'E':
+        if(ins.op === 'LDA'){
+          R.ACC = ins.arg; R.ALU = ins.arg;
+          logmsg('<b>EXECUTE:</b> ALU passes operand → ACC ← <b>' + R.ACC + '</b>.', 'good');
+        } else {
+          const prior = R.ACC;
+          R.ALU = prior + ins.arg; R.ACC = R.ALU;
+          logmsg('<b>EXECUTE:</b> ALU adds ' + prior + ' + ' + ins.arg + ' → ACC ← <b>' + R.ACC + '</b>.', 'good');
+        }
+        addScore(10, 'instruction executed'); break;
+    }
+    micro++;
+    if(micro >= PHASES.length){
+      micro = 0;
+      insPtr++;
+      cyclesRun++;
+      logmsg('<b>Cycle ' + cyclesRun + ' complete.</b>', 'sys');
+    }
+    renderRegs();
+    if(insPtr >= PROG.length){
+      machineDone = true;
+      logmsg('<b>Program complete — ACC = ' + R.ACC + '.</b> Fetch → Decode → Execute ran to completion.', 'good');
+      addScore(20, 'machine cycle complete');
+      enableBtn('m5Step', false);
+    }
+  }
+
+  function draw(c, w, h){
+    // draw the datapath as blocks
+    const blocks = [
+      { x:60,  y:70,  t:'CU' },
+      { x:60,  y:150, t:'ALU' },
+      { x:60,  y:230, t:'REGISTERS' },
+      { x:w-190, y:150, t:'RAM' },
+    ];
+    c.font = '11px ui-monospace, monospace';
+    blocks.forEach(b=>{
+      c.fillStyle = 'rgba(255,203,107,0.10)';
+      c.strokeStyle = 'rgba(255,203,107,0.4)';
+      c.fillRect(b.x, b.y, 120, 44);
+      c.strokeRect(b.x+0.5, b.y+0.5, 120, 44);
+      c.fillStyle = '#ffcb6b';
+      c.fillText(b.t, b.x+10, b.y+27);
+    });
+    c.strokeStyle = 'rgba(79,209,197,0.4)'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(180, 172); c.lineTo(w-190, 172); c.stroke();
+    c.fillStyle = 'rgba(139,149,163,0.9)';
+    c.fillText('System Buses', w*0.5-38, 164);
+  }
+  return { title:'Machine Cycle & Circuit Builder', init, draw };
+})();
+MODULES.push(M5);
+
+/* =====================================================================
+   MODULE 6 — Output Display Pipeline & Thermal Energy Balancing
+   ===================================================================== */
+const M6 = (() => {
+  let root, rendered = false, calibDone = false, scan = 0;
+  const DISP = [
+    { k:'crt', label:'CRT',       contrast:1, power:4 },
+    { k:'lcd', label:'LCD',       contrast:2, power:3 },
+    { k:'oled',label:'OLED',      contrast:3, power:2 },
+    { k:'uled',label:'micro-LED', contrast:4, power:1 },
+  ];
+  const CONTRAST_ORDER = ['crt','lcd','oled','uled']; // ascending
+  const POWER_ORDER    = ['crt','lcd','oled','uled']; // descending power = same sequence
+
+  function init(r){
+    root = r; rendered = false; calibDone = false; scan = 0;
+    root.innerHTML = '';
+
+    const palette = el('div',{});
+    // two chip sets: one for the contrast row, one for the power row
+    DISP.concat(DISP).sort(()=>Math.random()-0.5).forEach(d=> palette.append(makeChip(d.label, d.k, 'DISPLAY')));
+
+    const cRow = el('div',{class:'row'});
+    const pRow = el('div',{class:'row'});
+    buildOrderRow(cRow, 'contrast', CONTRAST_ORDER);
+    buildOrderRow(pRow, 'power', POWER_ORDER);
+
+    const barHost = el('div',{style:{marginTop:'10px'}});
+    DISP.forEach(d=>{
+      barHost.append(
+        el('div',{class:'mini', style:{marginTop:'8px'}}, d.label + ' — contrast ' + d.contrast + '/4'),
+        el('div',{class:'bar'}, el('i',{style:{width:(d.contrast/4*100)+'%', background:'var(--accent)'}})),
+        el('div',{class:'mini', style:{marginTop:'4px'}}, 'power draw ' + d.power + '/4'),
+        el('div',{class:'bar'}, el('i',{style:{width:(d.power/4*100)+'%', background:'#ff6b6b'}}))
+      );
+    });
+
+    root.append(
+      el('div',{class:'mod-head'},
+        el('div',{class:'kicker'},'Module 06 · Output & Thermal Energy'),
+        el('h1',{},'Output Display Pipeline & Thermal Balancing'),
+        el('p',{html:'The <b>GPU</b> renders frames into a buffer; the pipeline pushes those pixels to a display. Display technologies trade quality against power: as <b>contrast ratio climbs</b> (CRT &lt; LCD &lt; OLED &lt; micro-LED), <b>power consumption falls</b> (CRT &gt; LCD &gt; OLED &gt; micro-LED).'})
+      ),
+      el('div',{class:'grid2', style:{marginBottom:'14px'}},
+        el('div',{class:'card'},
+          el('h3',{},'Display Calibration Matrix', el('span',{class:'tag'},'tap-select · tap-slot')),
+          el('p',{class:'mini'},'Contrast Ratio — ascending (low → high):'),
+          cRow,
+          el('p',{class:'mini', style:{marginTop:'12px'}},'Power Consumption — descending (high → low):'),
+          pRow,
+          el('div',{style:{marginTop:'14px'}}, palette)
+        ),
+        el('div',{class:'card'},
+          el('h3',{},'Panel Comparison', el('span',{class:'tag'},'teal = contrast · red = power')),
+          barHost
+        )
+      )
+    );
+
+    setControls([
+      { label:'RENDER FRAME BUFFER', id:'m6Render', onClick: renderFrame },
+      { label:'VERIFY SYSTEM', kind:'primary', onClick:()=>{
+          if(rendered && calibDone){ completeModule(5, 'output pipeline & display matrix mastered'); return; }
+          logmsg('Verification failed — frame ' + (rendered?'rendered':'pending') + ' · matrix ' + (calibDone?'OK':'incomplete') + '.', 'warn');
+        } },
+    ], 'GPU frame buffer → display panel.');
+  }
+
+  function buildOrderRow(row, kind, order){
+    const host = el('div',{style:{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'6px', marginTop:'6px'}});
+    order.forEach((_, i)=>{
+      const slot = el('div',{class:'slot', style:{justifyContent:'center', minHeight:'44px'}},
+        el('span',{class:'mini'}, '#' + (i+1)));
+      host.append(slot);
+      bindZone(slot, (data)=>{
+        if(data === order[i]) return {ok:true};
+        return {ok:false, msg:'<b>Wrong position:</b> ' + (kind==='contrast' ? 'contrast ratio increases' : 'power consumption decreases') + ' CR T → LCD → OLED → micro-LED.'};
+      }, (res, chip)=>{
+        markUsed(chip);
+        fillZone(slot, chip);
+        const d = DISP.find(x=>x.k===chip.dataset.data);
+        logmsg('<b>' + d.label + '</b> placed at rank ' + (i+1) + ' in the ' + kind + ' order.', 'good');
+        addScore(6, kind + ' ordering');
+        checkCalib();
+      });
+    });
+    row.append(host);
+  }
+
+  function checkCalib(){
+    // both rows filled with correct chips => all slots filled
+    const filled = $$('#overlay .slot.filled').length;
+    if(filled >= 8 && !calibDone){ calibDone = true; logmsg('<b>Calibration matrix complete.</b> Quality ascends CRT→LCD→OLED→micro-LED while power descends the same way.', 'sys'); addScore(15,'display matrix verified'); }
+  }
+
+  function renderFrame(){
+    rendered = true;
+    scan = 0;
+    Audio_.boot();
+    logmsg('<b>RENDER FRAME:</b> GPU computed pixel frame buffer and pushed it through the display pipeline to the panel.', 'good');
+    addScore(12, 'frame buffer rendered');
+  }
+
+  function draw(c, w, h, t){
+    // monitor on the right
+    const mx = w - 300, my = 80, mw = 240, mh = 150;
+    c.fillStyle = 'rgba(20,23,28,0.9)';
+    c.strokeStyle = 'rgba(79,209,197,0.5)'; c.lineWidth = 2;
+    c.fillRect(mx, my, mw, mh);
+    c.strokeRect(mx+0.5, my+0.5, mw, mh);
+    c.fillStyle = 'rgba(139,149,163,0.9)'; c.font = '10px ui-monospace, monospace';
+    c.fillText('DISPLAY PANEL', mx+8, my-8);
+
+    if(rendered){
+      // framebuffer picture
+      const g = c.createLinearGradient(mx, my, mx+mw, my+mh);
+      g.addColorStop(0, '#0b3b39'); g.addColorStop(0.5, '#4fd1c5'); g.addColorStop(1, '#123');
+      c.fillStyle = g; c.fillRect(mx+6, my+6, mw-12, mh-12);
+      c.fillStyle = 'rgba(0,0,0,0.55)';
+      c.beginPath(); c.moveTo(mx+mw*0.35, my+mh-24); c.lineTo(mx+mw*0.5, my+26); c.lineTo(mx+mw*0.65, my+mh-24); c.closePath(); c.fill();
+      // scanline sweep
+      scan += 4; if(scan > mh) scan = 0;
+      c.fillStyle = 'rgba(255,255,255,0.12)';
+      c.fillRect(mx+6, my+6+scan, mw-12, 3);
+    } else {
+      c.fillStyle = 'rgba(139,149,163,0.5)';
+      c.fillText('no signal', mx+mw/2-28, my+mh/2);
+    }
+    // GPU block
+    c.fillStyle = 'rgba(79,209,197,0.10)';
+    c.strokeStyle = 'rgba(79,209,197,0.4)';
+    c.fillRect(60, 90, 140, 60); c.strokeRect(60.5, 90.5, 140, 60);
+    c.fillStyle = '#4fd1c5'; c.font = '11px ui-monospace, monospace';
+    c.fillText('GPU', 68, 112);
+    c.fillStyle = 'rgba(139,149,163,0.8)';
+    c.fillText('parallel pixel rendering', 68, 130);
+    if(rendered){
+      c.strokeStyle = 'rgba(255,203,107,0.7)'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(200, 120); c.lineTo(mx, 120); c.stroke();
+    }
+  }
+  return { title:'Output & Display Pipeline', init, draw };
+})();
+MODULES.push(M6);
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+(function boot(){
+  const prog = $('#progress');
+  prog.innerHTML = '';
+  MODULES.forEach((_, i)=> prog.append(el('div',{class:'pill', 'data-i':i}, String(i+1))));
+  updateHUD();
+  resizeCanvas();
+  requestAnimationFrame(loop);
+
+  logmsg('<b>Silicon to Screen</b> — The Computer System Engine online.', 'sys');
+  logmsg('Complete all 6 modules to master the full pipeline: input → software → motherboard → memory → CPU → display.', 'info');
+  showModule(0);
+})();
+
+</script>
+</body>
+</html>
