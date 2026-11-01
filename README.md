@@ -46,3 +46,4 @@ Closes on Steve Jobs: *"…the equivalent of a bicycle for our minds."*
 Single `index.html` — inline CSS, vanilla JavaScript, HTML5 Canvas, Web Audio API.
 No frameworks, no build step, no dependencies. Layered rendering, delta-time
 `requestAnimationFrame`, eased camera, and a pooled particle system keep it smooth.
+Updated Sun Nov  1 23:28:37 HKT 2026
