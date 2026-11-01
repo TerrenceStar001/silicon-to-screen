@@ -280,21 +280,21 @@ function nextStage() {
 // CINEMATIC ZOOM
 // =====================================================
 function startCinematicZoom(stageIndex) {
-  // Different zoom patterns for each stage
+  // Different zoom patterns for each stage - gradual increase
   const zoomPatterns = [
     { x: 0, y: 0, zoom: 1.0 },      // Stage 0: Overview
-    { x: 0, y: -100, zoom: 2.0 },    // Stage 1: Software stack
-    { x: 0, y: -200, zoom: 4.0 },    // Stage 2: Motherboard
-    { x: 0, y: -300, zoom: 8.0 },    // Stage 3: Memory pyramid
-    { x: 0, y: -400, zoom: 16.0 },   // Stage 4: CPU
-    { x: 0, y: -500, zoom: 50.0 }    // Stage 5: Transistors
+    { x: 0, y: -50, zoom: 1.5 },    // Stage 1: Software stack
+    { x: 0, y: -100, zoom: 3.0 },   // Stage 2: Motherboard
+    { x: 0, y: -150, zoom: 6.0 },   // Stage 3: Memory pyramid
+    { x: 0, y: -200, zoom: 12.0 },  // Stage 4: CPU
+    { x: 0, y: -250, zoom: 25.0 }   // Stage 5: Transistors
   ];
   
   const target = zoomPatterns[Math.min(stageIndex, zoomPatterns.length - 1)];
   
   camAnim = {
     start: performance.now(),
-    duration: 3500,
+    duration: 3000,
     from: { x: cam.x, y: cam.y, zoom: cam.zoom },
     to: { x: target.x, y: target.y, zoom: target.zoom }
   };
@@ -380,7 +380,7 @@ function seekTo(pct) {
   const timeInStage = targetTime - accum;
   const stage = stages[targetStage];
   
-  if (timeInStage < stage.duration * 0.6) {
+  if (timeInStage < stage.duration * 0.5) {
     // In typing phase
     state = 'typing';
     typChars = stage.desc;
@@ -395,17 +395,23 @@ function seekTo(pct) {
       typTimer = setTimeout(animateTyping, 10);
     }
   } else {
-    // In scene phase
+    // In scene phase - show correct zoom immediately
     state = 'scene';
     overlay.classList.add('hidden');
     hint.classList.remove('show');
     stageCounter.textContent = `${targetStage + 1} / ${stages.length}`;
-    // Show camera at appropriate zoom
-    camAnim = null;
-    const zoomTargets = [1, 2, 4, 8, 16, 50];
-    cam.zoom = zoomTargets[Math.min(targetStage, zoomTargets.length - 1)];
-    cam.x = 0;
-    cam.y = 0;
+    
+    // Set camera to correct zoom for this stage
+    const zoomTargets = [1, 1.5, 3, 6, 12, 30];
+    const targetZoom = zoomTargets[Math.min(targetStage, zoomTargets.length - 1)];
+    
+    // Animate to target zoom
+    camAnim = {
+      start: performance.now(),
+      duration: 800,
+      from: { x: cam.x, y: cam.y, zoom: cam.zoom },
+      to: { x: 0, y: 0, zoom: targetZoom }
+    };
     
     // Auto advance from this point
     if (playing) {
@@ -463,22 +469,20 @@ document.addEventListener('keydown', e => {
     advanceTyping();
   } else if (e.key === 'ArrowRight') {
     e.preventDefault();
-    if (state === 'typing') {
+    if (state === 'typing' || state === 'done') {
       advanceTyping();
     } else if (currentStage < stages.length - 1) {
-      tourTime += stages[currentStage].duration;
-      nextStage();
+      // Jump to next stage
+      let accum = 0;
+      for (let i = 0; i <= currentStage; i++) accum += stages[i].duration;
+      seekTo(accum / TOTAL_DURATION);
     }
   } else if (e.key === 'ArrowLeft') {
     e.preventDefault();
     if (currentStage > 0) {
       let accum = 0;
       for (let i = 0; i < currentStage; i++) accum += stages[i].duration;
-      tourTime = accum;
-      if (state === 'scene' || state === 'done') {
-        currentStage--;
-        startTyping(currentStage);
-      }
+      seekTo(accum / TOTAL_DURATION);
     }
   }
 });
