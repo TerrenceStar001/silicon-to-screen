@@ -8,7 +8,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#f8fafc;--grid:#e2e8f0;--text:#0f172a;--dim:#475569;--dim2:#94a3b8;
+  --bg:#f8fafc;--grid:#e2e8f0;--text:#0f172a;--dim:#475569;--dim2:#64748b;
   --cyan:#0284c7;--amber:#d97706;--emerald:#059669;--magenta:#e11d48;
   --panel:rgba(255,255,255,.92);--line:rgba(226,232,240,.95);
   --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
@@ -16,23 +16,22 @@
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+::selection{background:rgba(2,132,199,.25)}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 
-/* top HUD */
 #hud{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:flex-start;justify-content:space-between;padding:14px 18px;pointer-events:none;background:linear-gradient(180deg,rgba(248,250,252,.95),rgba(248,250,252,0))}
 #brand{display:flex;flex-direction:column;gap:2px}
 #brand .t{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
 #brand .s{font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim2)}
-#stageTag{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:7px 14px}
+#stageTag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:7px 14px}
 #stageTag b{color:var(--text)}
 
-/* minimap radar */
 #minimap{position:fixed;top:62px;right:16px;z-index:30;width:168px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(15,23,42,.08)}
 #minimap .hd{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);margin-bottom:8px}
 #mm{width:100%;height:158px;display:block;cursor:pointer;touch-action:none}
 #mmScale{font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;margin-top:6px}
 #mmScale b{color:var(--cyan)}
 
-/* dock */
 #dock{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 18px;backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(15,23,42,.12);max-width:calc(100vw - 32px)}
 .btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 16px;cursor:pointer;color:var(--text);transition:.18s;white-space:nowrap}
 .btn:hover{border-color:var(--cyan);color:var(--cyan)}
@@ -41,16 +40,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #track{position:relative;flex:1;min-width:220px;height:22px;cursor:pointer;touch-action:none}
 #track::before{content:'';position:absolute;left:0;right:0;top:50%;height:4px;transform:translateY(-50%);background:var(--grid);border-radius:3px}
 #fill{position:absolute;left:0;top:50%;height:4px;transform:translateY(-50%);background:linear-gradient(90deg,var(--cyan),var(--emerald));border-radius:3px;width:0%;pointer-events:none}
+#ticks{position:absolute;inset:0;pointer-events:none}
 #thumb{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--text);transform:translate(-50%,-50%);left:0%;box-shadow:0 1px 5px rgba(15,23,42,.3);pointer-events:none}
 #clock{font-family:var(--mono);font-size:11px;color:var(--dim);min-width:92px;text-align:right;font-variant-numeric:tabular-nums}
 
-/* legend */
 #legend{position:fixed;left:16px;bottom:16px;z-index:30;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px;backdrop-filter:blur(8px)}
 #legend .hd{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);margin-bottom:5px}
 .lg{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--dim);margin:3px 0}
 .lg i{width:16px;height:3px;border-radius:2px}
 
-/* finale */
 #finale{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6vw;background:radial-gradient(circle at 50% 42%,rgba(2,132,199,.07),transparent 55%),rgba(248,250,252,.94)}
 #finale.show{display:flex;animation:fin .9s cubic-bezier(.16,1,.3,1)}
 @keyframes fin{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
@@ -77,7 +75,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 </div>
 
 <div id="minimap">
-  <div class="hd">Pipeline Radar · depth 1×→100×</div>
+  <div class="hd">Pipeline Radar · depth 1× to 100×</div>
   <canvas id="mm" width="144" height="158"></canvas>
   <div id="mmScale">current depth <b id="mmZoom">1.0</b>×</div>
 </div>
@@ -85,8 +83,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <div id="dock">
   <button class="btn primary" id="playBtn">❚❚ Pause</button>
   <div id="track" title="Click or drag to seek">
-    <div id="fill"></div>
     <div id="ticks"></div>
+    <div id="fill"></div>
     <div id="thumb"></div>
   </div>
   <div id="clock">0:00 / 1:32</div>
@@ -105,7 +103,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <blockquote>"What a computer is to me is the most remarkable tool that we have ever come up with.
   It's the equivalent of a <span class="hl">bicycle for our minds</span>."</blockquote>
   <div class="who">— Steve Jobs</div>
-  <div class="sub">Macro input → silicon · end of journey</div>
+  <div class="sub">Macro input to silicon · end of journey</div>
   <button id="replayBtn">↻ Replay Journey</button>
 </div>
 
@@ -113,27 +111,26 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 "use strict";
 /* =====================================================================
    SILICON TO SCREEN — 2D Continuous Zoom Engine
-   One unified world board. The camera is a PURE FUNCTION of tour time,
-   so seeking shows the exact frame, pause truly freezes, and zoom always
-   lands exactly on each stage's magnification.
+   The whole scene is a pure function of tourTime, so seeking shows the
+   exact frame, pause truly freezes, and the camera always lands exactly
+   on each stage's magnification.
    ===================================================================== */
 
-const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
-const mmC=document.getElementById('mm'), mm=mmC.getContext('2d');
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const mmC=document.getElementById('mm'),mm=mmC.getContext('2d');
 const MONO='ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace';
 const SANS='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
-const C={bg:'#f8fafc',grid:'#e2e8f0',text:'#0f172a',dim:'#475569',dim2:'#94a3b8',
+const C={bg:'#f8fafc',grid:'#e2e8f0',text:'#0f172a',dim:'#475569',dim2:'#64748b',
   cyan:'#0284c7',amber:'#d97706',emerald:'#059669',magenta:'#e11d48'};
 function rgba(r,g,b,a){
-  if(typeof r==='string'){const n=parseInt(r.slice(1),16);return`rgba(${n>>16},${(n>>8)&255},${n&255},${g===undefined?1:g})`;}
-  return`rgba(${r},${g},${b},${a===undefined?1:a})`;
+  if(typeof r==='string'){const n=parseInt(r.slice(1),16);return'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+(g===undefined?1:g)+')';}
+  return'rgba('+r+','+g+','+b+','+(a===undefined?1:a)+')';
 }
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const sstep=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
 const easeIO=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 
-/* ---------- sizing ---------- */
 let W=0,H=0,DPR=1;
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
@@ -143,68 +140,73 @@ function resize(){
 }
 window.addEventListener('resize',resize);
 
-/* ---------- timeline (the single source of truth) ---------- */
+/* ---------- timeline ---------- */
 const ZOOMS=[1,2,5,10,25,100];
-const ANCH=[[-0,-0],[-160,-40],[-160,-20],[-60,-90],[-230,30],[-235,33]];
-const MON=[300,-60];              // display monitor anchor (world)
-const STAGE_DUR=11, TRAVEL=3, REWIND_DUR=3, DISPLAY_DUR=8;
+const ANCH=[[0,0],[-190,-10],[-190,55],[-150,35],[-238,75],[-241,77]];
+const MON=[280,-80];
 const NAMES=['Input','Software','Board','Memory','CPU','Transistor'];
+const STAGE_DUR=11,TRAVEL=3,REWIND_DUR=3,DISPLAY_DUR=8;
 
-const segs=[]; let _t=0;
+const segs=[];let _t=0;
 for(let i=0;i<6;i++){
   if(i>0){segs.push({type:'travel',a:i-1,b:i,start:_t,end:_t+TRAVEL});_t+=TRAVEL;}
   segs.push({type:'dwell',i,start:_t,end:_t+STAGE_DUR});_t+=STAGE_DUR;
 }
-const REW_T=_t; segs.push({type:'rewind',start:_t,end:_t+REWIND_DUR});_t+=REWIND_DUR;
-const DISP_T=_t; segs.push({type:'display',start:_t,end:_t+DISPLAY_DUR});_t+=DISPLAY_DUR;
-const FIN_T=_t;  segs.push({type:'finale',start:_t,end:_t+1e9});
-const TOTAL=FIN_T;                // progress bar spans 0 → start of finale
-
-// stage dwell start times (for ticks + seeking)
-const dwellStart=[]; segs.forEach(s=>{if(s.type==='dwell')dwellStart[s.i]=s.start;});
+const REW_T=_t;segs.push({type:'rewind',start:_t,end:_t+REWIND_DUR});_t+=REWIND_DUR;
+const DISP_T=_t;segs.push({type:'display',start:_t,end:_t+DISPLAY_DUR});_t+=DISPLAY_DUR;
+const FIN_T=_t;segs.push({type:'finale',start:_t,end:_t+1e9});
+const TOTAL=FIN_T;
+const dwellStart=[];segs.forEach(s=>{if(s.type==='dwell')dwellStart[s.i]=s.start;});
+const DESCENT_END=dwellStart[5]+STAGE_DUR;
 
 function segAt(t){for(let i=0;i<segs.length;i++){const s=segs[i];if(t>=s.start&&t<s.end)return s;}return segs[segs.length-1];}
 
-/* ---------- camera: pure function of tour time ---------- */
-const cam={x:0,y:0,zoom:1};
+/* camera: pure function of tour time.
+   travel uses zoom-to-point: the destination anchor slides to screen
+   center while the magnification rises — a true dissection move. */
 function camAt(t){
   const s=segAt(t);
   if(s.type==='dwell'){
-    const L=t-s.start, Z=ZOOMS[s.i];
-    return {x:ANCH[s.i][0]+Math.sin(L*0.5)*2, y:ANCH[s.i][1]+Math.cos(L*0.4)*2, zoom:Z};
+    const L=t-s.start,Z=ZOOMS[s.i];
+    return{x:ANCH[s.i][0]+Math.sin(L*0.5)*2,y:ANCH[s.i][1]+Math.cos(L*0.4)*2,zoom:Z};
   }
   if(s.type==='travel'){
     const f=easeIO(clamp((t-s.start)/(s.end-s.start),0,1));
-    const lg=lerp(Math.log10(ZOOMS[s.a]),Math.log10(ZOOMS[s.b]),f);
-    return {x:lerp(ANCH[s.a][0],ANCH[s.b][0],f), y:lerp(ANCH[s.a][1],ANCH[s.b][1],f), zoom:Math.pow(10,lg)};
+    const zoom=Math.pow(10,lerp(Math.log10(ZOOMS[s.a]),Math.log10(ZOOMS[s.b]),f));
+    const P=ANCH[s.a],Tg=ANCH[s.b];
+    const k=(ZOOMS[s.a]/zoom)*(1-f);
+    return{x:Tg[0]-(Tg[0]-P[0])*k,y:Tg[1]-(Tg[1]-P[1])*k,zoom:zoom};
   }
   if(s.type==='rewind'){
     const f=easeIO(clamp((t-s.start)/(s.end-s.start),0,1));
-    const lg=lerp(2,0,f);
-    return {x:lerp(ANCH[5][0],MON[0],f), y:lerp(ANCH[5][1],MON[1],f), zoom:Math.pow(10,lg)};
+    return camAt(DESCENT_END*(1-f));
   }
-  // display / finale → locked on monitor at 1×
-  return {x:MON[0],y:MON[1],zoom:1};
+  if(s.type==='display'){
+    const f=easeIO(clamp((t-s.start)/0.9,0,1));
+    return{x:lerp(ANCH[0][0],MON[0],f),y:lerp(ANCH[0][1],MON[1],f),zoom:1};
+  }
+  return{x:MON[0],y:MON[1],zoom:1};
 }
 const depthAt=t=>clamp(Math.log10(camAt(t).zoom)/2,0,1);
 
 /* ---------- state ---------- */
-let tourTime=0, playing=true, lastNow=performance.now();
-let draggingProgress=false, draggingDepth=false;
-let lastDwell=-1;
+let tourTime=0,playing=true;
+let draggingProgress=false,draggingDepth=false;
+let lastDwell=-1,P_REV=false;
 
-/* audio (subtle, unlocked on first gesture) */
+/* audio */
 const AU=(()=>{
   let c=null,m=null;
   function ac(){if(!c){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;c=new AC();m=c.createGain();m.gain.value=0.05;m.connect(c.destination);}if(c.state==='suspended')c.resume();return c;}
   function tone(f,d,g,ty,when){const x=ac();if(!x)return;const o=x.createOscillator(),v=x.createGain();
-    o.type=ty||'sine';o.frequency.value=f;v.gain.setValueAtTime(0.0001,x.currentTime+(when||0));
+    o.type=ty||'sine';o.frequency.value=f;
+    v.gain.setValueAtTime(0.0001,x.currentTime+(when||0));
     v.gain.linearRampToValueAtTime(g||.04,x.currentTime+(when||0)+.01);
     v.gain.exponentialRampToValueAtTime(0.0001,x.currentTime+(when||0)+d);
     o.connect(v);v.connect(m);o.start(x.currentTime+(when||0));o.stop(x.currentTime+(when||0)+d+.02);}
   return{
     chime(){[523,659,784].forEach((f,i)=>tone(f,.28,.035,'sine',i*.07));},
-    sweep(){tone(180,1.6,.03,'sine',0);tone(720,1.4,.025,'triangle',.5);},
+    sweep(){tone(160,1.5,.03,'sine',0);tone(700,1.3,.025,'triangle',.5);},
     tick(){tone(900,.06,.02,'square');},
     unlock(){ac();}
   };
@@ -212,8 +214,8 @@ const AU=(()=>{
 window.addEventListener('pointerdown',()=>AU.unlock(),{once:true});
 window.addEventListener('keydown',()=>AU.unlock(),{once:true});
 
-/* ---------- world→screen + draw helpers (crisp fixed-px strokes/text) ---------- */
-function w2s(wx,wy){return{x:(wx-cam.x)*cam.zoom+W/2, y:(wy-cam.y)*cam.zoom+H*0.5};}
+/* ---------- world->screen + fixed-px draw helpers ---------- */
+function w2s(wx,wy){return{x:(wx-cam.x)*cam.zoom+W/2,y:(wy-cam.y)*cam.zoom+H*0.5};}
 function box(wx,wy,ww,wh,r,fill,stroke,lw,glow){
   const a=w2s(wx,wy),w=ww*cam.zoom,h=wh*cam.zoom;
   if(w<1.5||h<1.5||a.x+w<-60||a.x>W+60||a.y+h<-60||a.y>H+60)return;
@@ -227,7 +229,7 @@ function box(wx,wy,ww,wh,r,fill,stroke,lw,glow){
 function seg(wx,wy,wx2,wy2,col,alpha,lw,dash){
   const a=w2s(wx,wy),b=w2s(wx2,wy2);
   if((a.x<-60&&b.x<-60)||(a.x>W+60&&b.x>W+60)||(a.y<-60&&b.y<-60)||(a.y>H+60&&b.y>H+60))return;
-  ctx.strokeStyle=alpha===undefined?col:rgba(col,alpha===1?1:alpha);
+  ctx.strokeStyle=alpha===undefined?col:rgba(col,alpha);
   ctx.lineWidth=lw||1.2;
   if(dash)ctx.setLineDash(dash);
   ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
@@ -242,23 +244,37 @@ function orb(wx,wy,r,col,glow,a){
 }
 function lab(wx,wy,str,o){
   o=o||{};const p=w2s(wx,wy);
-  if(p.x<-260||p.x>W+260||p.y<-120||p.y>H+120)return;
+  if(p.x<-280||p.x>W+280||p.y<-140||p.y>H+140)return;
   ctx.globalAlpha=o.a===undefined?1:o.a;
   ctx.font=(o.weight?o.weight+' ':'')+(o.size||11)+'px '+(o.mono?MONO:SANS);
   ctx.fillStyle=o.color||C.dim;ctx.textAlign=o.align||'left';ctx.textBaseline=o.base||'middle';
   ctx.fillText(str,p.x,p.y);ctx.globalAlpha=1;
 }
-
-/* deterministic signal packets — pure function of local time */
+function chev(wx,wy,dir,col,alpha,size){
+  const p=w2s(wx,wy),s=(size||5);
+  ctx.strokeStyle=rgba(col,alpha===undefined?.9:alpha);ctx.lineWidth=1.6;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();
+  if(dir===0){ctx.moveTo(p.x-s*.4,p.y-s*.6);ctx.lineTo(p.x+s*.6,p.y);ctx.lineTo(p.x-s*.4,p.y+s*.6);}
+  else if(dir===1){ctx.moveTo(p.x-s*.6,p.y-s*.4);ctx.lineTo(p.x,p.y+s*.6);ctx.lineTo(p.x+s*.4,p.y-s*.4);}
+  else if(dir===2){ctx.moveTo(p.x+s*.4,p.y-s*.6);ctx.lineTo(p.x-s*.6,p.y);ctx.lineTo(p.x+s*.4,p.y+s*.6);}
+  else{ctx.moveTo(p.x-s*.6,p.y+s*.4);ctx.lineTo(p.x,p.y-s*.6);ctx.lineTo(p.x+s*.4,p.y+s*.4);}
+  ctx.stroke();
+}
+function noIcon(wx,wy,r,col){
+  const p=w2s(wx,wy);ctx.strokeStyle=col;ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.arc(p.x,p.y,r,0,7);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(p.x-r*.7,p.y-r*.7);ctx.lineTo(p.x+r*.7,p.y+r*.7);ctx.stroke();
+}
+/* deterministic packets — pure function of local time */
 function packets(t,o){
-  const rate=o.rate||1.2, life=o.life||1.6, period=1/rate;
+  const rate=o.rate||1.2,life=o.life||1.6,period=1/rate;
   const n=Math.ceil(life*rate)+1;
   for(let j=0;j<n;j++){
     let f=(t-j*period)/life;
     if(o.both&&(j%2===1))f=1-f;
-    if(o.rev)f=1-f;
+    if(P_REV)f=1-f;
     if(f<0||f>1)continue;
-    const x=lerp(o.ax,o.bx,f), y=lerp(o.ay,o.by,f)+(o.curve||0)*Math.sin(Math.PI*f);
+    const x=lerp(o.ax,o.bx,f),y=lerp(o.ay,o.by,f)+(o.curve||0)*Math.sin(Math.PI*f);
     orb(x,y,o.sz||2.4,o.col||C.cyan,10,.9);
   }
 }
@@ -266,340 +282,341 @@ function packets(t,o){
 /* ---------- stage visibility ---------- */
 function stageAlpha(i){
   const Z=ZOOMS[i],z=cam.zoom;
-  return Math.min(sstep(Z*0.5,Z*0.85,z), 1-sstep(Z*1.5,Z*2.4,z));
+  return Math.min(sstep(Z*0.5,Z*0.85,z),1-sstep(Z*1.5,Z*2.4,z));
 }
-function stageLocal(t,i){return Math.max(0,t-dwellStart[i]);}
+const stageLocal=(t,i)=>Math.max(0,t-dwellStart[i]);
 
 /* =====================================================================
-   STAGE 1 — macro workspace (1×)   extent ~1300×800 around (0,0)
+   STAGE 1 — macro workspace (1×)  anchor (0,0)  extent 1000×560
    ===================================================================== */
 function drawS1(t,a){
   ctx.globalAlpha=a;
-  // desk surface hint
-  seg(-640,320,640,320,C.grid,.9,2);
-  track: {
-    lab(-620,296,'MACRO WORKSPACE · 1×',{size:10,weight:'700',color:C.dim2,mono:true});
-  }
-  // ---- PC chassis (tower) ----
-  box(-390,-190,240,330,14,C.panel,C.grid,1.5,'rgba(2,132,199,.10)');
-  lab(-270,-166,'PC CHASSIS',{size:12,weight:'700',color:C.text,align:'center'});
-  lab(-270,-148,'the machine itself',{size:9,color:C.dim2,align:'center'});
-  // proxy: software layer inside chassis
-  box(-360,-120,180,64,8,rgba(2,132,199,.05),rgba(2,132,199,.45));
-  lab(-270,-92,'software stack',{size:9,color:C.cyan,align:'center'});
-  lab(-270,-76,'→ 2×',{size:8,color:C.dim2,align:'center',mono:true});
-  // proxy: motherboard inside chassis
-  box(-360,-40,180,120,8,rgba(C.emerald,.05),C.grid,1);
-  lab(-270,-10,'motherboard',{size:9,color:C.dim,align:'center'});
-  lab(-270,6,'→ 5×',{size:8,color:C.dim2,align:'center',mono:true});
-  // front LED breathing
-  const led=(Math.sin(t*2.4)+1)/2;
-  orb(-370,-160,3,led>.5?C.emerald:C.dim2,8);
-  // ---- monitor ----
-  box(150,-230,420,260,12,C.panel,C.grid,1.5,'rgba(2,132,199,.14)');
-  box(166,-214,388,212,8,'#0b1220',rgba(2,132,199,.5),1);
-  // mini game scene on screen
-  const gsc=w2s(360,-108);const R=22;
-  ctx.strokeStyle=rgba(C.magenta,.6);ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.arc(gsc.x,gsc.y,R,0,7);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(gsc.x-R-8,gsc.y);ctx.lineTo(gsc.x-R+2,gsc.y);ctx.moveTo(gsc.x+R-2,gsc.y);ctx.lineTo(gsc.x+R+8,gsc.y);
-  ctx.moveTo(gsc.x,gsc.y-R-8);ctx.lineTo(gsc.x,gsc.y-R+2);ctx.moveTo(gsc.x,gsc.y+R-2);ctx.lineTo(gsc.x,gsc.y+R+8);ctx.stroke();
-  lab(200,-196,'DISPLAY',{size:10,weight:'700',color:C.cyan});
-  lab(200,-180,'GPU framebuffer → pixels',{size:8.5,color:C.dim});
-  lab(200,44,'display panel · illuminated at the end of the tour',{size:8,color:C.dim2});
-  // ---- keyboard ----
-  box(-160,120,260,86,10,C.panel,C.grid,1.2);
-  lab(-30,134,'KEYBOARD',{size:9,weight:'700',color:C.text,align:'center'});
+  lab(-480,-262,'01 · Input & Signal Conversion',{size:11,weight:'700',color:C.text});
+  lab(-480,-248,'1× magnification · live signals vs compiled code',{size:8,color:C.dim2,mono:true});
+  /* chassis — center is stage 2's anchor */
+  box(-310,-175,240,330,14,C.panel,C.grid,1.5,'rgba(2,132,199,.12)');
+  lab(-190,-150,'PC CHASSIS',{size:11,weight:'700',color:C.text,align:'center'});
+  orb(-288,-150,3,(Math.sin(t*2.4)+1)/2>.5?C.emerald:C.dim2,8);
+  box(-280,-120,160,50,8,rgba(C.cyan,.05),rgba(C.cyan,.45));
+  lab(-200,-99,'software stack',{size:8.5,color:C.cyan,align:'center'});
+  lab(-200,-84,'zoom 2×',{size:7,color:C.dim2,align:'center',mono:true});
+  chev(-200,-72,1,C.dim2,.8,4);
+  box(-280,-55,160,80,8,rgba(C.emerald,.04),C.grid,1);
+  lab(-200,-31,'motherboard',{size:8.5,color:C.dim,align:'center'});
+  lab(-200,-16,'zoom 5×',{size:7,color:C.dim2,align:'center',mono:true});
+  for(let q=0;q<5;q++)seg(-280,-40+q*9,-240,-40+q*9,C.grid,.6,1.5);
+  /* monitor — center is the display anchor */
+  box(110,-190,340,220,12,C.panel,C.grid,1.5,'rgba(2,132,199,.14)');
+  box(124,-176,312,176,8,'#0b1220',rgba(2,132,199,.5),1);
+  const gx=280+Math.sin(t*0.9)*60,gy=-88+Math.cos(t*0.7)*38;
+  const gs=w2s(gx,gy);
+  ctx.strokeStyle=rgba(C.magenta,.65);ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(gs.x,gs.y,20,0,7);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(gs.x-28,gs.y);ctx.lineTo(gs.x-10,gs.y);ctx.moveTo(gs.x+10,gs.y);ctx.lineTo(gs.x+28,gs.y);
+  ctx.moveTo(gs.x,gs.y-28);ctx.lineTo(gs.x,gs.y-10);ctx.moveTo(gs.x,gs.y+10);ctx.lineTo(gs.x,gs.y+28);ctx.stroke();
+  lab(140,-160,'DISPLAY',{size:10,weight:'700',color:C.cyan});
+  lab(140,-146,'GPU framebuffer drives pixels',{size:8,color:C.dim});
+  lab(280,26,'display technologies revealed at the end of the tour',{size:7.5,color:C.dim2,align:'center'});
+  box(250,30,80,22,4,C.panel,C.grid,1);
+  box(230,52,120,10,4,C.panel,C.grid,1);
+  /* keyboard */
+  box(-55,132,230,76,10,C.panel,C.grid,1.2);
+  lab(60,146,'KEYBOARD',{size:9,weight:'700',color:C.text,align:'center'});
   for(let r=0;r<3;r++)for(let k=0;k<10;k++){
-    const kw=21,kx=-146+k*(kw+2.5),ky=146+r*18;
-    const dn=(Math.sin(t*6+r*3+k)>0.86);
-    box(kx,ky,kw,14,3,dn?rgba(2,132,199,.25):'rgba(226,232,240,.9)',C.grid,.8);
+    const kx=-41+k*22.5,ky=154+r*17;
+    const dn=((Math.floor(t*3)+r*10+k)%37)===0;
+    box(kx,ky,20,13,3,dn?rgba(2,132,199,.28):'rgba(226,232,240,.95)',C.grid,.8);
   }
-  packets(t,{ax:-30,ay:120,bx:-270,by:-40,col:C.cyan,rate:1.1,life:1.4,curve:-30,sz:2.2});
-  // ---- mouse ----
-  box(150,150,58,88,16,C.panel,C.grid,1.2);
-  lab(179,168,'MOUSE',{size:8,weight:'700',color:C.text,align:'center'});
-  const mx=179+Math.sin(t*1.7)*16,my=205+Math.cos(t*1.3)*22;
-  orb(mx,my,4,C.amber,10);
-  lab(179,232,'Valorant aim',{size:7.5,color:C.dim2,align:'center'});
-  packets(t,{ax:mx,ay:my,bx:-270,by:-30,col:C.amber,rate:1.3,life:1.5,curve:40,sz:2.2});
-  // ---- OCR camera ----
-  box(-40,-290,150,74,10,C.panel,C.grid,1.2);
-  lab(35,-272,'OCR CAMERA',{size:8.5,weight:'700',color:C.text,align:'center'});
-  const scan=-40+((t*1.2)%1.6/1.6)*138;
-  seg(scan,-262,scan,-226,C.emerald,.9,2);
-  for(let q=0;q<3;q++)seg(-30,-252+q*8,-30+40*(0.5+0.4*Math.sin(q*2+t)),-252+q*8,C.emerald,.3,2);
-  packets(t,{ax:35,ay:-216,bx:-270,by:-60,col:C.emerald,rate:.9,life:1.6,curve:30,sz:2.2});
-  // ---- microphone ----
-  box(320,140,110,96,12,C.panel,C.grid,1.2);
-  orb(375,180,16,C.panel,C.grid,1);
-  orb(375,180,10,'rgba(225,29,72,.15)',0);
-  lab(375,204,'MIC',{size:8.5,weight:'700',color:C.text,align:'center'});
+  packets(t,{ax:60,ay:132,bx:-190,by:-30,col:C.magenta,rate:1.1,life:1.4,curve:-36,sz:2.2});
+  lab(-120,72,'IRQ on each keypress',{size:7,color:C.magenta});
+  /* mouse */
+  box(196,152,38,56,14,C.panel,C.grid,1.2);
+  lab(215,166,'MOUSE',{size:7.5,weight:'700',color:C.text,align:'center'});
+  const mx=215+Math.sin(t*1.7)*13,my=192+Math.cos(t*1.3)*18;
+  orb(mx,my,3.5,C.amber,10);
+  packets(t,{ax:mx,ay:my,bx:-190,by:-20,col:C.amber,rate:1.3,life:1.5,curve:44,sz:2.2});
+  /* OCR camera */
+  box(-60,-240,120,60,10,C.panel,C.grid,1.2);
+  lab(0,-224,'OCR CAMERA',{size:8.5,weight:'700',color:C.text,align:'center'});
+  const sc=-52+((t*1.2)%1.6/1.6)*104;
+  seg(sc,-214,sc,-186,C.emerald,.9,2);
+  packets(t,{ax:0,ay:-180,bx:-190,by:-40,col:C.emerald,rate:.9,life:1.6,curve:30,sz:2.2});
+  /* microphone */
+  box(295,125,70,70,10,C.panel,C.grid,1.2);
+  orb(330,150,11,C.panel,0);
+  orb(330,150,7,'rgba(225,29,72,.14)',0);
+  lab(330,170,'MIC',{size:8,weight:'700',color:C.text,align:'center'});
   ctx.beginPath();
-  for(let k=0;k<=30;k++){const p=w2s(336+k*2.6,232+Math.sin(k*.6+t*7)*5*(0.6+0.4*Math.sin(t*2)));
+  for(let k=0;k<=26;k++){const p=w2s(306+k*1.8,182+Math.sin(k*.6+t*7)*4.5*(0.6+0.4*Math.sin(t*2)));
     k===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}
-  ctx.strokeStyle=rgba(C.magenta,.8);ctx.lineWidth=1.4;ctx.stroke();
-  packets(t,{ax:375,ay:236,bx:-270,by:-20,col:C.magenta,rate:1,life:1.6,curve:50,sz:2.2});
-  // ---- NIC / network ----
-  box(470,120,150,72,10,C.panel,C.grid,1.2);
-  lab(545,146,'NIC',{size:9,weight:'700',color:C.text,align:'center'});
-  lab(545,162,'network interface',{size:7.5,color:C.dim2,align:'center'});
-  // ---- captions ----
-  lab(-270,166,'hardware controllers digitize live signals',{size:9,color:C.dim,align:'center'});
-  lab(-270,182,'→ binary packets → system bus (no compiler)',{size:9,color:C.dim,align:'center'});
-  lab(360,66,'compile-time: source → machine code, before run',{size:9,color:C.amber,align:'center'});
+  ctx.strokeStyle=rgba(C.magenta,.8);ctx.lineWidth=1.3;ctx.stroke();
+  packets(t,{ax:330,ay:195,bx:-190,by:-10,col:C.amber,rate:1,life:1.6,curve:50,sz:2.2});
+  /* NIC */
+  box(385,30,90,60,10,C.panel,C.grid,1.2);
+  lab(430,54,'NIC',{size:9,weight:'700',color:C.text,align:'center'});
+  lab(430,68,'network interface',{size:7,color:C.dim2,align:'center'});
+  orb(410,44,2.5,(Math.sin(t*5)>0)?C.emerald:C.dim2,6);
+  orb(450,44,2.5,(Math.sin(t*5+2)>0)?C.emerald:C.dim2,6);
+  /* compile-time card */
+  box(320,-268,180,116,10,rgba(217,119,6,.05),rgba(C.amber,.55),1.2);
+  lab(410,-248,'COMPILE-TIME',{size:9.5,weight:'700',color:C.amber,align:'center'});
+  [['Python',.86],['C++',.68],['JavaScript',.8]].forEach((l,i)=>{
+    lab(336,-228+i*22,l[0],{size:9,color:C.text});
+    seg(390,-230+i*22,390+128*l[1],-230+i*22,C.amber,.65,2.5);
+  });
+  chev(410,-158,1,C.amber,.8,5);
+  lab(410,-144,'machine code, before run',{size:7.5,color:C.dim,align:'center'});
+  /* processed data out to display */
+  packets(t,{ax:-70,by:0,ay:-80,bx:110,by:-80,col:C.amber,rate:1,life:1.5,sz:2.2});
+  packets(t,{ax:-70,ay:-80,bx:110,by:-80,col:C.amber,rate:1,life:1.5,sz:2.2});
   ctx.globalAlpha=1;
 }
 
 /* =====================================================================
-   STAGE 2 — software abstraction (2×)   extent ~640×400 around (-160,-40)
+   STAGE 2 — software abstraction (2×)  anchor (-190,-10)  extent 500×280
    ===================================================================== */
 function drawS2(t,a){
   ctx.globalAlpha=a;
-  const X=-320,Y=-215; // top-left of content
-  lab(X+4,Y-8,'SOFTWARE ABSTRACTION · 2× · inside the chassis',{size:10,weight:'700',color:C.dim2,mono:true});
+  lab(-190,-170,'02 · Software Abstraction & Register Mapping',{size:11,weight:'700',color:C.text,align:'center'});
+  lab(-190,-157,'2× magnification · system calls cross the kernel boundary once',{size:8,color:C.dim2,align:'center',mono:true});
   const rows=[
-    {y:Y+16,t:'APPLICATION SOFTWARE',s:'Valorant · Chrome · Neovim — run in user space',c:C.amber},
-    {y:Y+108,t:'OS KERNEL + UTILITIES',s:'macOS / Windows / Linux · GUI+CLI · processes · memory · files · network',c:C.cyan},
-    {y:Y+200,t:'DEVICE DRIVERS',s:'kernel space · translate requests into register writes',c:C.emerald},
-    {y:Y+292,t:'HARDWARE REGISTERS',s:'memory-mapped control registers',c:C.magenta},
+    {y:-96,t:'APPLICATION SOFTWARE',s:'Valorant · Chrome · Neovim — run in user space',c:C.amber},
+    {y:-34,t:'OS KERNEL + UTILITIES',s:'macOS / Windows / Linux · processes · memory · files · network',c:C.cyan},
+    {y:28,t:'DEVICE DRIVERS',s:'translate requests into register writes',c:C.emerald},
+    {y:90,t:'HARDWARE REGISTERS',s:'memory-mapped control registers',c:C.magenta},
   ];
-  // connectors
-  for(let i=0;i<rows.length-1;i++)seg(X+105,rows[i].y+40,X+105,rows[i+1].y-40,C.grid,.9,1.5);
+  for(let i=0;i<rows.length-1;i++)seg(-190,rows[i].y+23,-190,rows[i+1].y-23,C.grid,.9,1.5);
   rows.forEach((r,i)=>{
-    box(X+4,r.y-40,420,80,10,i===3?rgba(r.c,.07):C.panel,rgba(r.c,.65),1.4,i<2?rgba(r.c,.25):null);
-    lab(X+22,r.y-12,r.t,{size:12,weight:'700',color:C.text});
-    lab(X+22,r.y+12,r.s,{size:9,color:C.dim});
+    box(-330,r.y-23,280,46,9,i===3?rgba(r.c,.07):C.panel,rgba(r.c,.65),1.4);
+    lab(-314,r.y-8,r.t,{size:10.5,weight:'700',color:C.text});
+    lab(-314,r.y+8,r.s,{size:7.5,color:C.dim});
   });
-  // utilities chips
-  ['Task Mgr','Firewall','Defrag','Compressor'].forEach((u,i)=>{
-    box(X+180+i*62,Y+96,58,22,6,'rgba(2,132,199,.06)',rgba(C.cyan,.5));
-    lab(X+209+i*62,Y+108,u,{size:7,align:'center',color:C.cyan});
+  /* utilities chips */
+  ['Task Mgr','Firewall','Defrag'].forEach((u,i)=>{
+    box(-140+i*64,-44,58,20,6,rgba(2,132,199,.06),rgba(C.cyan,.5));
+    lab(-111+i*64,-34,u,{size:6.5,align:'center',color:C.cyan});
   });
-  // system call descending
-  const f=(t/3)%1, sy=Y+16-40+f*(Y+292+40-(Y+16-40));
-  seg(X-20,Y+16-40,X-20,Y+292+40,C.cyan,.18,1.5);
-  orb(X-20,sy,4.5,C.cyan,14);
-  lab(X-32,sy,'SYSTEM CALL ↓',{size:8.5,weight:'600',color:C.cyan,align:'right'});
-  // driver → register writes
-  packets(t,{ax:X+424,ay:Y+200,bx:X+520,by:Y+292,col:C.emerald,rate:1.4,life:1.1,sz:2.4});
-  // register nodes
-  for(let k=0;k<4;k++){
-    const rx=X+520+((k%2)*74),ry=Y+292-16+((k/2)|0)*38;
-    box(rx-30,ry-16,60,32,7,rgba(225,29,72,.05),rgba(C.magenta,.55));
-    lab(rx,ry,'REG'+(k+1),{size:8.5,align:'center',color:C.magenta,weight:'600'});
+  /* system call descending */
+  const f=(t/3)%1,sy=-119+f*232;
+  seg(-360,-119,-360,113,C.cyan,.16,1.5);
+  orb(-360,sy,4.5,C.cyan,14);
+  lab(-372,sy,'SYSTEM CALL',{size:8,weight:'600',color:C.cyan,align:'right'});
+  /* ripple when crossing a layer */
+  for(let i=0;i<rows.length;i++){
+    const dy=Math.abs(sy-rows[i].y);
+    if(dy<10){const rr=(10-dy)*3;
+      ctx.strokeStyle=rgba(C.cyan,.5*(1-dy/10));ctx.lineWidth=1.5;
+      const p=w2s(-360,sy);ctx.beginPath();ctx.arc(p.x,p.y,rr,0,7);ctx.stroke();}
   }
-  // middleware (NOT a driver)
-  box(X+560,Y+16,150,110,10,rgba(225,29,72,.04),rgba(C.magenta,.5));
-  lab(X+576,Y+40,'MIDDLEWARE',{size:10,weight:'700',color:C.magenta});
-  lab(X+576,Y+60,'DB / API layer',{size:8.5,color:C.dim});
-  lab(X+576,Y+76,'connects apps to data',{size:8.5,color:C.dim});
-  lab(X+576,Y+100,'✗ NOT a driver',{size:9,weight:'600',color:C.magenta});
-  lab(X+576,Y+116,'never touches registers',{size:8,color:C.dim2});
-  ctx.setLineDash([4,4]);seg(X+560,Y+70,X+424,Y+70,C.magenta,.4,1.2);ctx.setLineDash([]);
-  // proxy: motherboard below
-  box(X+120,Y+344,200,52,8,C.panel,C.grid,1);
-  lab(X+220,Y+364,'motherboard →',{size:9,align:'center',color:C.dim});
-  lab(X+220,Y+380,'5×',{size:8,align:'center',color:C.dim2,mono:true});
+  /* driver writes to register chips */
+  packets(t,{ax:-50,ay:28,bx:110,by:90,col:C.emerald,rate:1.4,life:1.1,sz:2.4});
+  for(let k=0;k<4;k++){
+    const rx=-130+k*40,lit=(Math.floor(t*1.4)%4)===k;
+    box(rx-16,79,32,22,5,lit?rgba(225,29,72,.1):C.panel,lit?C.magenta:rgba(C.magenta,.5));
+    lab(rx,90,'R'+(k+1),{size:7.5,align:'center',color:lit?C.magenta:C.dim,weight:'600'});
+  }
+  lab(60,60,'driver writes',{size:7,color:C.emerald});
+  /* middleware — NOT a driver */
+  box(-130,-140,120,92,10,rgba(225,29,72,.04),rgba(C.magenta,.5));
+  noIcon(-115,-125,6,C.magenta);
+  lab(-100,-125,'MIDDLEWARE',{size:9,weight:'700',color:C.magenta});
+  lab(-120,-104,'DB / API layer',{size:8,color:C.dim});
+  lab(-120,-90,'connects apps to data',{size:8,color:C.dim});
+  lab(-120,-72,'never touches registers',{size:7.5,color:C.dim});
+  lab(-70,-58,'not a driver',{size:8,weight:'600',color:C.magenta});
+  ctx.setLineDash([4,4]);seg(-130,-96,-50,-34,C.magenta,.4,1.2);ctx.setLineDash([]);
+  /* proxy: motherboard below */
+  box(-270,108,160,40,8,C.panel,C.grid,1);
+  lab(-190,122,'motherboard',{size:8.5,align:'center',color:C.dim});
+  lab(-190,136,'zoom 5×',{size:7,align:'center',color:C.dim2,mono:true});
+  chev(-190,110,1,C.dim2,.8,4);
   ctx.globalAlpha=1;
 }
 
 /* =====================================================================
-   STAGE 3 — motherboard (5×)   extent ~260×160 around (-160,-20)
+   STAGE 3 — motherboard (5×)  anchor (-190,55)  extent 200×112
    ===================================================================== */
 function drawS3(t,a){
   ctx.globalAlpha=a;
-  lab(-290,-96,'MOTHERBOARD · 5×',{size:10,weight:'700',color:C.dim2,mono:true});
-  // PCB
-  box(-290,-84,260,166,10,'rgba(255,255,255,.96)',C.grid,1.5,'rgba(15,23,42,.05)');
-  // mounting holes
-  [[-276,-70],[6,-70],[-276,68],[6,68]].forEach(p=>orb(p[0],p[1],1.6,C.dim2,0,.7));
-  // CPU socket (proxy to 25×)
-  box(-272,6,74,60,6,rgba(5,150,105,.06),rgba(C.emerald,.6),1.2);
-  lab(-235,26,'CPU',{size:10,weight:'700',color:C.emerald,align:'center'});
-  lab(-235,40,'die → 25×',{size:7,align:'center',color:C.dim2,mono:true});
-  // heat sink over socket
-  for(let q=0;q<6;q++)seg(-266+q*11,10,-266+q*11,-16,C.emerald,.35,2);
+  lab(-190,11,'03 · Motherboard & Tri-Bus',{size:11,weight:'700',color:C.text,align:'center'});
+  lab(-190,22,'5× magnification · three buses carry all traffic',{size:8,color:C.dim2,align:'center',mono:true});
+  /* PCB */
+  box(-287,25,194,104,8,'rgba(255,255,255,.96)',C.grid,1.5,'rgba(15,23,42,.05)');
+  [[-275,37],[105,37],[-275,117],[105,117]].forEach(p=>orb(p[0],p[1],1.5,C.dim2,0,.7));
+  /* CPU socket — center is stage 5 anchor */
+  box(-260,58,44,34,5,rgba(5,150,105,.06),rgba(C.emerald,.6),1.2,rgba(C.emerald,.25));
+  lab(-238,70,'CPU',{size:9.5,weight:'700',color:C.emerald,align:'center'});
+  lab(-238,82,'die · zoom 25×',{size:6,align:'center',color:C.dim2,mono:true});
+  /* heat sink + thermal */
+  for(let q=0;q<6;q++)seg(-254+q*7,58,-254+q*7,50,C.emerald,.35,2);
   const th=.5+.4*Math.sin(t*1.4);
-  seg(-272,-20,-272+60*th,-20,th>.65?C.magenta:C.emerald,1,3);
-  lab(-235,-30,th>.65?'thermal throttle!':'cooling ok',{size:6.5,align:'center',color:th>.65?C.magenta:C.emerald,mono:true});
-  // RAM slots (proxy to 10×)
-  box(-186,-68,22,64,4,rgba(2,132,199,.10),rgba(C.cyan,.65),1.2,C.cyan);
-  box(-158,-68,22,64,4,C.panel,rgba(C.cyan,.45),1);
-  lab(-161,-80,'RAM → 10×',{size:7,align:'center',color:C.cyan,weight:'600'});
-  // PCH
-  box(-100,40,44,32,5,rgba(2,132,199,.07),rgba(C.cyan,.6),1.2);
-  lab(-78,56,'PCH',{size:8.5,align:'center',weight:'700',color:C.cyan});
-  // PCIe slots
-  box(18,-56,92,12,3,C.panel,rgba(C.amber,.6),1);
-  lab(64,-62,'PCIe ×16 · GPU',{size:6.5,align:'center',color:C.amber});
-  box(18,-38,92,10,3,C.panel,rgba(C.emerald,.5),1);
-  lab(64,-44,'PCIe ×1 · NIC',{size:6.5,align:'center',color:C.emerald});
-  // SATA + USB
-  box(52,44,34,14,3,C.panel,rgba(C.amber,.55),1);lab(69,64,'SATA',{size:6.5,align:'center',color:C.amber});
-  box(-186,22,40,14,3,C.panel,rgba(C.cyan,.55),1);lab(-166,46,'USB',{size:6.5,align:'center',color:C.cyan});
-  box(-100,-68,44,20,3,C.panel,rgba(C.amber,.4),1);lab(-78,-52,'PSU 24-pin',{size:6,align:'center',color:C.amber});
-  // TRI-BUS tracks
+  seg(-262,52,-262+52*th,52,th>.65?C.magenta:C.emerald,1,3);
+  lab(-238,44,th>.65?'throttle guard: hot':'cooling ok',{size:5.5,align:'center',color:th>.65?C.magenta:C.emerald,mono:true});
+  /* RAM slots — near stage 4 anchor */
+  box(-172,41,10,30,2,rgba(2,132,199,.1),rgba(C.cyan,.65),1.1,C.cyan);
+  box(-159,41,10,30,2,C.panel,rgba(C.cyan,.45),1);
+  lab(-155,36,'RAM · zoom 10×',{size:6,align:'center',color:C.cyan,weight:'600'});
+  /* PCH */
+  box(-152,86,26,16,3,rgba(2,132,199,.07),rgba(C.cyan,.6),1.1);
+  lab(-139,94,'PCH',{size:7,align:'center',weight:'700',color:C.cyan});
+  /* PCIe slots */
+  box(-248,26,62,9,2,C.panel,rgba(C.amber,.6),1);
+  lab(-217,22,'PCIe ×16 · GPU',{size:6,align:'center',color:C.amber});
+  box(-248,38,62,7,2,C.panel,rgba(C.emerald,.5),1);
+  lab(-217,34,'PCIe ×1 · NIC',{size:6,align:'center',color:C.emerald});
+  /* SATA + USB + PSU */
+  box(-128,116,20,10,2,C.panel,rgba(C.amber,.55),1);lab(-118,120,'SATA',{size:5.5,align:'center',color:C.amber});
+  box(-279,30,14,10,2,C.panel,rgba(C.cyan,.55),1);lab(-272,26,'USB',{size:5.5,align:'center',color:C.cyan});
+  box(-279,50,14,10,2,C.panel,rgba(C.amber,.4),1);lab(-272,66,'PSU',{size:5.5,align:'center',color:C.amber});
+  /* tri-bus */
   const buses=[
-    {y:-6,  col:C.cyan,   n:'ADDRESS',dir:'uni →'},
-    {y:4,   col:C.amber,  n:'DATA',dir:'⇄'},
-    {y:14,  col:C.magenta,n:'CONTROL',dir:'strobes·IRQ'},
+    {y:62,col:C.cyan,n:'ADDRESS',dir:'uni'},
+    {y:72,col:C.amber,n:'DATA',dir:'bi'},
+    {y:82,col:C.magenta,n:'CONTROL',dir:'IRQ'},
   ];
   buses.forEach(b=>{
-    seg(-280,b.y,-6,b.y,b.col,.55,2.5);
-    packets(t,{ax:-280,ay:b.y,bx:-6,by:b.y,col:b.col,rate:1.6,life:1.1,both:b.n==='DATA',sz:2,rev:false});
-    lab(-284,b.y-8,b.n+' BUS',{size:6.5,color:b.col,weight:'700'});
-    lab(-6,b.y+12,b.dir,{size:6,color:C.dim2,align:'right',mono:true});
+    seg(-279,b.y,-99,b.y,b.col,.55,2.5);
+    packets(t,{ax:-279,ay:b.y,bx:-99,by:b.y,col:b.col,rate:1.6,life:1.1,both:b.n==='DATA',sz:2});
+    lab(-277,b.y-6,b.n,{size:5.5,color:b.col,weight:'700'});
+    if(b.n!=='DATA')chev(-96,b.y,0,b.col,.9,4);else{chev(-96,b.y,0,b.col,.9,4);chev(-282,b.y,2,b.col,.9,4);}
+    lab(-99,b.y+10,b.dir,{size:5,color:C.dim2,align:'right',mono:true});
   });
-  // IRQ burst
   if(Math.floor(t*0.8)%3===0){
-    orb(60,14,3.5,C.magenta,14);
-    lab(72,14,'IRQ!',{size:7,color:C.magenta,weight:'700'});
+    orb(-140,82,3,C.magenta,14);
+    lab(-130,82,'IRQ',{size:6,color:C.magenta,weight:'700'});
   }
   ctx.globalAlpha=1;
 }
 
 /* =====================================================================
-   STAGE 4 — memory hierarchy (10×)   extent ~130×80 around (-60,-90)
+   STAGE 4 — memory hierarchy (10×)  anchor (-150,35)  extent 100×55
    ===================================================================== */
 function drawS4(t,a){
   ctx.globalAlpha=a;
-  const X=-128,Y=-136;
-  lab(X+2,Y-8,'MEMORY HIERARCHY · 10×',{size:10,weight:'700',color:C.dim2,mono:true});
-  // pyramid tiers (SRAM caches → DRAM)
+  lab(-150,13,'04 · Memory Hierarchy',{size:11,weight:'700',color:C.text,align:'center'});
+  lab(-150,22,'10× magnification · locality of reference',{size:7.5,color:C.dim2,align:'center',mono:true});
+  /* pyramid */
   const tiers=[
-    {n:'L1',s:'SRAM · 1 cyc',w:96,y:Y+14,c:C.emerald},
-    {n:'L2',s:'SRAM · 4 cyc',w:126,y:Y+42,c:C.emerald},
-    {n:'L3',s:'SRAM · 12 cyc',w:156,y:Y+70,c:C.emerald},
-    {n:'DRAM',s:'volatile RAM · 100 cyc',w:196,y:Y+108,c:C.cyan},
+    {n:'L1',s:'SRAM · 1 cyc',w:40,y:-12,c:C.emerald},
+    {n:'L2',s:'SRAM · 4 cyc',w:54,y:-4,c:C.emerald},
+    {n:'L3',s:'SRAM · 12 cyc',w:68,y:4,c:C.emerald},
+    {n:'DRAM',s:'volatile RAM · 100 cyc',w:86,y:12,c:C.cyan},
   ];
   tiers.forEach((T,i)=>{
-    box(X+130-T.w/2,T.y-13,T.w,26,6,i<3?rgba(T.c,.1):C.panel,rgba(T.c,.65),1.3,i<3?T.c:null);
-    lab(X+130-T.w/2+12,T.y+1,T.n,{size:11,weight:'700',color:T.c});
-    lab(X+130-T.w/2+44,T.y+1,T.s,{size:8,color:C.dim});
-    if(i<tiers.length-1)seg(X+130,T.y+13,X+130,T.y+29,C.grid,.8,1);
+    box(-150-T.w/2,35+T.y-4.5,T.w,9,2,i<3?rgba(T.c,.1):C.panel,rgba(T.c,.65),1.2);
+    lab(-150-T.w/2+5,35+T.y,T.n,{size:7,weight:'700',color:T.c});
+    lab(-150-T.w/2+18,35+T.y,T.s,{size:5.5,color:C.dim});
+    if(i<tiers.length-1)seg(-150,35+T.y+4.5,-150,35+T.y+11.5,C.grid,.8,1);
   });
-  // ROM chip (non-volatile BIOS) — beside the pyramid
-  box(X+238,Y+6,54,34,6,rgba(217,119,6,.07),rgba(C.amber,.6),1.2);
-  lab(X+265,Y+18,'ROM',{size:9,weight:'700',color:C.amber,align:'center'});
-  lab(X+265,Y+30,'BIOS · boot',{size:6.5,align:'center',color:C.dim});
-  // request particle descending + hit flash
+  /* ROM chip */
+  box(-124,17,20,13,3,rgba(217,119,6,.07),rgba(C.amber,.6),1.1);
+  lab(-114,21,'ROM',{size:6.5,weight:'700',color:C.amber,align:'center'});
+  lab(-114,27,'BIOS · boot',{size:4.5,align:'center',color:C.dim});
+  /* request token + hit flash */
   const f=(t/2.6)%1;
-  const hitTier=f<0.75?0:(f<0.85?1:2);
-  const yy=Y+14+hitTier*28;
-  const px=X+130+Math.sin(f*9)*6;
-  orb(px,Y-2+f*(yy-(Y-2)),3.2,C.emerald,12);
-  if(f>0.72&&f<0.8)lab(px+10,yy,'HIT — locality of reference',{size:7.5,color:C.emerald,weight:'600'});
-  packets(t,{ax:px,ay:Y-8,bx:px,by:yy,rate:2,life:.5,col:C.emerald,sz:1.8});
-  // secondary storage strip
-  box(X,Y+142,300,44,8,C.panel,C.grid,1);
-  lab(X+12,Y+156,'SECONDARY STORAGE',{size:7.5,weight:'700',color:C.dim2});
-  const devs=[['Tape','sequential',C.amber],['HDD','spinning',C.amber],['CD','optical',C.emerald],['SSD','random · NV',C.cyan]];
+  const hitTier=f<0.7?0:(f<0.85?1:2);
+  const ty=-12+hitTier*8;
+  const px=-150+Math.sin(f*9)*4;
+  orb(px,35-18+f*(ty-(35-18)),2.6,C.emerald,10);
+  if(f>0.7&&f<0.82){
+    lab(px+8,35+ty,'HIT',{size:6,color:C.emerald,weight:'700'});
+    ctx.strokeStyle=rgba(C.emerald,.6);ctx.lineWidth=1;
+    const p=w2s(px,35+ty);ctx.beginPath();ctx.arc(p.x,p.y,(f-0.7)*40,0,7);ctx.stroke();
+  }
+  packets(t,{ax:px,ay:35-20,bx:px,by:35+ty,rate:2,life:.5,col:C.emerald,sz:1.6});
+  /* secondary storage strip */
+  box(-198,53,96,18,6,C.panel,C.grid,1);
+  lab(-150,58,'SECONDARY STORAGE',{size:5.5,weight:'700',color:C.dim2,align:'center'});
+  const devs=[['Tape','sequential',C.amber],['HDD','spinning',C.amber],['CD','optical',C.emerald],['SSD','random',C.cyan]];
   devs.forEach((d,i)=>{
-    const dx=X+16+i*72;
-    lab(dx,Y+172,d[0],{size:8.5,weight:'600',color:C.text});
-    lab(dx,Y+180,d[1],{size:6,color:C.dim2});
-    if(i===0)for(let q=0;q<4;q++)orb(dx-2+q*6,Y+166,1.2,d[2],4);
-    if(i===1){ctx.beginPath();const p=w2s(dx+8,Y+164);ctx.arc(p.x,p.y,4,0,7);ctx.strokeStyle=rgba(C.amber,.7);ctx.lineWidth=1;ctx.stroke();}
-    if(i===2){ctx.beginPath();const p=w2s(dx+8,Y+164);ctx.arc(p.x,p.y,4,0,7);ctx.strokeStyle=rgba(C.emerald,.6);ctx.lineWidth=1;ctx.stroke();ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,7);ctx.stroke();}
-    if(i===3)for(let q=0;q<3;q++)box(dx-2+q*6,Y+161,4,6,1,C.panel,rgba(C.cyan,.6),.8);
+    const dx=-150-36+i*24;
+    lab(dx,66,d[0],{size:5.5,weight:'600',color:C.text,align:'center'});
+    lab(dx,71,d[1],{size:4,color:C.dim2,align:'center'});
+    if(i===0)for(let q=0;q<3;q++)orb(dx-4+q*4,64,1,C.d[2]||d[2],3);
+    if(i===1){const p=w2s(dx,64);ctx.beginPath();ctx.arc(p.x,p.y,2.5,0,7);ctx.strokeStyle=rgba(C.amber,.7);ctx.lineWidth=.8;ctx.stroke();}
+    if(i===2){const p=w2s(dx,64);ctx.beginPath();ctx.arc(p.x,p.y,2.5,0,7);ctx.strokeStyle=rgba(C.emerald,.6);ctx.lineWidth=.8;ctx.stroke();}
+    if(i===3)for(let q=0;q<3;q++)box(dx-5+q*4,62.5,3,3,0.5,C.panel,rgba(C.cyan,.6),.7);
   });
-  // cycle counter
+  /* cycle counter */
   const cyc=[1,4,12,100,20000][Math.floor(t/2)%5];
-  lab(X+2,Y+196,'lookup cost: '+cyc+' cycles',{size:9,weight:'600',color:cyc<100?C.emerald:C.amber,mono:true});
+  lab(-150,44,'lookup cost '+cyc+' cycles',{size:7.5,weight:'600',color:cyc<100?C.emerald:C.amber,align:'center',mono:true});
+  lab(-150,49,cyc<100?'SRAM cache erases the DRAM bottleneck':'a long walk down the pyramid',{size:5.5,color:C.dim2,align:'center'});
   ctx.globalAlpha=1;
 }
 
 /* =====================================================================
-   STAGE 5 — CPU machine cycle (25×)   extent ~52×32 around (-230,30)
+   STAGE 5 — CPU machine cycle (25×)  anchor (-238,75)  extent 40×22
    ===================================================================== */
 function drawS5(t,a){
   ctx.globalAlpha=a;
-  const X=-258,Y=12;
-  lab(X,Y-14,'CPU CORE · FETCH-DECODE-EXECUTE · 25×',{size:10,weight:'700',color:C.dim2,mono:true});
+  lab(-238,65,'05 · CPU Machine Cycle',{size:11,weight:'700',color:C.text,align:'center'});
+  lab(-238,69.5,'25× magnification · fetch, decode, execute',{size:6.5,color:C.dim2,align:'center',mono:true});
   const regs={
-    PC: {x:-20,y:-6,c:C.cyan},
-    MAR:{x:-7, y:-6,c:C.cyan},
-    RAM:{x:15, y:-6,c:C.cyan},
-    MDR:{x:-7, y:3, c:C.amber},
-    CIR:{x:5,  y:3, c:C.amber},
-    CU: {x:18, y:3, c:C.emerald},
-    ALU:{x:-7, y:12,c:C.emerald},
-    ACC:{x:8,  y:12,c:C.amber},
+    PC:{x:-14,y:-5,c:C.cyan},MAR:{x:-6.5,y:-5,c:C.cyan},RAM:{x:13,y:-5,c:C.cyan},
+    MDR:{x:-7,y:0.5,c:C.amber},CIR:{x:0,y:0.5,c:C.amber},CU:{x:8,y:0.5,c:C.emerald},
+    ALU:{x:-5,y:6,c:C.emerald},ACC:{x:5,y:6,c:C.amber},
   };
   const path=['PC','MAR','RAM','MDR','CIR','CU','ALU','ACC'];
-  const step=Math.floor(t/0.8)%8, fr=(t/0.8)%1;
+  const step=Math.floor(t/0.8)%8,fr=(t/0.8)%1;
   const nxt=path[(step+1)%8];
-  // wires
   for(let i=0;i<path.length-1;i++){
     const A=regs[path[i]],B=regs[path[i+1]];
     seg(A.x,A.y,B.x,B.y,C.grid,.8,1);
   }
   seg(regs.CU.x,regs.CU.y,regs.MDR.x,regs.MDR.y,C.grid,.5,1);
-  // token
-  const A=regs[path[step]],B=regs[nxt];
-  const tx=lerp(A.x,B.x,fr),ty=lerp(A.y,B.y,fr);
-  // boxes
   for(const k in regs){
     const r=regs[k],active=(k===path[step]||k===nxt);
-    const w=k==='RAM'?9:6.4,h=4.4;
-    box(r.x-w/2,r.y-h/2,w,h,1,active?rgba(r.c,.14):'rgba(255,255,255,.95)',active?r.c:COLgrid(),1,active?r.c:null);
-    lab(r.x,r.y-0.6,k,{size:8,weight:'700',align:'center',color:active?r.c:C.text});
-    if(k==='RAM'){lab(r.x,r.y+1.4,'LDA 5 · ADD 3',{size:5,align:'center',color:C.dim});}
+    const w=k==='RAM'?8:6.4,h=3.4;
+    box(r.x-w/2,r.y-h/2,w,h,0.8,active?rgba(r.c,.14):'rgba(255,255,255,.95)',active?r.c:C.grid,1,active?r.c:null);
+    lab(r.x,r.y,k,{size:5.5,weight:'700',align:'center',color:active?r.c:C.text});
   }
-  orb(tx,ty,2.6,C.cyan,14);
-  // phase label
+  lab(regs.RAM.x,regs.RAM.y+2.6,'LDA 5 · ADD 3',{size:4,align:'center',color:C.dim});
+  const A=regs[path[step]],B=regs[nxt];
+  orb(lerp(A.x,B.x,fr),lerp(A.y,B.y,fr),2,C.cyan,12);
   const phase=step<3?'FETCH':step<5?'DECODE':'EXECUTE';
   const pcol=phase==='FETCH'?C.cyan:phase==='DECODE'?C.magenta:C.emerald;
-  lab(X+52,Y-14,'▶ '+phase,{size:10,weight:'700',color:pcol});
-  lab(X+52,Y-4,'step '+(step+1)+' / 8',{size:7.5,color:C.dim2,mono:true});
-  // ACC result builds up
-  lab(X+52,Y+8,'ACC = '+(step>=7?5:0),{size:9,weight:'700',color:C.amber,mono:true});
-  // proxy: transistors below
-  lab(X+26,Y+21,'transistors → 100×',{size:6.5,align:'center',color:C.dim2,mono:true});
+  lab(-221,65,phase,{size:8,weight:'700',color:pcol});
+  lab(-221,69,'step '+(step+1)+' / 8',{size:5.5,color:C.dim2,mono:true});
+  lab(-221,73,'ACC = '+(step>=7?5:0),{size:7,weight:'700',color:C.amber,mono:true});
+  lab(-238,84.5,'transistors · zoom 100×',{size:6,align:'center',color:C.dim2,mono:true});
+  chev(-238,82.5,1,C.dim2,.8,3.5);
   ctx.globalAlpha=1;
 }
-function COLgrid(){return C.grid;}
 
 /* =====================================================================
-   STAGE 6 — transistors (100×)   extent ~13×8 around (-235,33)
+   STAGE 6 — silicon transistors (100×)  anchor (-241,77)  extent 10×5.5
    ===================================================================== */
 function drawS6(t,a){
   ctx.globalAlpha=a;
-  const X=-242,Y=28.5;
-  lab(X,Y-4.2,'SILICON · 100×',{size:10,weight:'700',color:C.dim2,mono:true});
-  // NPN transistors
+  lab(-241,74.9,'06 · Silicon Transistors · 100×',{size:7,weight:'700',color:C.text,align:'center'});
+  lab(-241,75.9,'NPN switches form every gate',{size:4.5,color:C.dim2,align:'center',mono:true});
   for(let i=0;i<4;i++){
-    const tx=X+2.2+i*3.4, ty=Y+1.2;
+    const tx=-241+(-3.6+i*2.4),ty=77-0.6;
     const on=(Math.floor(t*2+i)%2)===0;
-    seg(tx,ty-1.6,tx,ty+1.6,C.emerald,on?1:.4,2);
-    seg(tx-1.1,ty-0.8,tx+1.1,ty-0.8,C.emerald,on?.9:.4,1.5);
-    seg(tx-1.1,ty+0.8,tx+1.1,ty+0.8,C.emerald,on?.9:.4,1.5);
-    orb(tx-1.1,ty+1.6,.5,C.emerald,on?8:2);
-    orb(tx+1.1,ty-1.6,.5,C.emerald,on?8:2);
-    orb(tx,ty,on?.8:.4,on?C.emerald:C.dim2,6);
-    lab(tx,ty+2.4,'NPN'+(i+1),{size:5,align:'center',color:on?C.emerald:C.dim2,mono:true});
-    if(on&&Math.random()<0.1)packets(t,{ax:tx+1.1,ay:ty-1.6,bx:tx+3.4,by:ty-1.6,rate:3,life:.4,col:C.emerald,sz:1.2});
+    seg(tx,ty-0.8,tx,ty+0.8,C.emerald,on?1:.4,1.6);
+    seg(tx-0.55,ty-0.4,tx+0.55,ty-0.4,C.emerald,on?.9:.4,1.2);
+    seg(tx-0.55,ty+0.4,tx+0.55,ty+0.4,C.emerald,on?.9:.4,1.2);
+    orb(tx-0.55,ty+0.8,0.4,C.emerald,on?8:2);
+    orb(tx+0.55,ty-0.8,0.4,C.emerald,on?8:2);
+    orb(tx,ty,on?.6:.3,on?C.emerald:C.dim2,6);
+    lab(tx,ty+1.15,'NPN'+(i+1),{size:3.5,align:'center',color:on?C.emerald:C.dim2,mono:true});
+    if(on)packets(t,{ax:tx+0.55,ay:ty-0.8,bx:tx+2.4,by:ty-0.8,rate:3,life:.4,col:C.emerald,sz:1});
   }
-  lab(X,Y-2.2,'NPN transistors → logic gates',{size:8,weight:'600',color:C.emerald});
-  // gates
   ['AND','OR','NOT'].forEach((g,i)=>{
-    const gx=X+2.2+i*4.4,gy=Y+4.4;
-    box(gx-1.8,gy-1,3.6,2,0.8,rgba(5,150,105,.1),rgba(C.emerald,.6),1);
-    lab(gx,gy,g,{size:7,align:'center',weight:'700',color:C.emerald});
+    const gx=-241+(-2.7+i*2.7),gy=78;
+    box(gx-1.2,gy-0.55,2.4,1.1,0.4,rgba(5,150,105,.1),rgba(C.emerald,.6),1);
+    lab(gx,gy,g,{size:4.5,align:'center',weight:'700',color:C.emerald});
   });
-  lab(X+15.5,Y+4.4,'combinational\n→ ALU',{size:5.5,color:C.amber});
-  // sequential flip-flop
   const on=(Math.floor(t*1.5)%2)===0;
-  box(X+2.2,Y+6.4,7,2,0.6,on?rgba(2,132,199,.15):C.panel,on?C.cyan:C.grid,1);
-  lab(X+5.7,Y+7.4,on?'1':'0',{size:8,align:'center',weight:'700',color:on?C.cyan:C.dim2});
-  lab(X+10.2,Y+7.4,'flip-flop holds state → register',{size:5.5,color:C.cyan});
-  lab(X,Y+9.4,'electrons → information',{size:6,color:C.dim2,mono:true});
+  box(-242.4,79,2.8,1.2,0.4,on?rgba(2,132,199,.15):C.panel,on?C.cyan:C.grid,1);
+  lab(-241,79.6,on?'1':'0',{size:4.5,align:'center',weight:'700',color:on?C.cyan:C.dim2});
+  lab(-238.8,79.6,'flip-flop holds state',{size:4,color:C.cyan});
+  lab(-241,80.4,'electrons become information',{size:4,color:C.dim2,align:'center',mono:true});
   ctx.globalAlpha=1;
 }
 
 /* =====================================================================
-   DISPLAY STAGE — monitor illumination (after rewind)
+   DISPLAY — monitor illumination (rewind lands here)
    ===================================================================== */
 const TECHS=[
   {n:'CRT',c:1,p:4,col:C.dim},
@@ -608,89 +625,76 @@ const TECHS=[
   {n:'micro-LED',c:4,p:1,col:C.amber},
 ];
 function drawDisplay(t){
-  const local=Math.max(0,(t||0)-DISP_T);
+  const local=Math.max(0,t-DISP_T);
   const idx=((Math.floor(local/2)%4)+4)%4;
-  const T=TECHS[idx]||TECHS[0];
+  const T=TECHS[idx];
+  /* focus wash */
+  ctx.fillStyle='rgba(248,250,252,.62)';ctx.fillRect(0,0,W,H);
   const x=MON[0]-300,y=MON[1]-190;
-  lab(x+4,y-14,'DISPLAY PIPELINE · GPU → panel',{size:10,weight:'700',color:C.dim2,mono:true});
-  // monitor body
-  box(x,y,600,360,16,C.panel,C.grid,2,'rgba(2,132,199,.18)');
-  // screen
-  const sx=x+16,sy=y+16,sw=568,sh=280;
-  box(sx,sy,sw,sh,8,'#0b1220',rgba(2,132,199,.5),1);
-  // framebuffer gradient scene
+  lab(x+4,y-14,'OUTPUT PIPELINE · the GPU framebuffer becomes light',{size:10,weight:'700',color:C.dim2,mono:true});
+  box(x,y,600,340,18,C.panel,C.grid,2,'rgba(2,132,199,.18)');
+  const sx=x+16,sy=y+16,sw=568,sh=250;
+  box(sx,sy,sw,sh,10,'#0b1220',rgba(2,132,199,.5),1);
   ctx.save();
-  const a=w2s(sx,sy);
-  const w=sw*cam.zoom,h=sh*cam.zoom,r=8*cam.zoom;
+  const a=w2s(sx,sy),w=sw*cam.zoom,h=sh*cam.zoom,r=10*cam.zoom;
   ctx.beginPath();ctx.moveTo(a.x+r,a.y);ctx.arcTo(a.x+w,a.y,a.x+w,a.y+h,r);ctx.arcTo(a.x+w,a.y+h,a.x,a.y+h,r);
   ctx.arcTo(a.x,a.y+h,a.x,a.y,r);ctx.arcTo(a.x,a.y,a.x+w,a.y,r);ctx.closePath();ctx.clip();
   const gr=ctx.createLinearGradient(a.x,a.y,a.x+w,a.y+h);
   gr.addColorStop(0,'#03151a');gr.addColorStop(.55,'#0a3a44');gr.addColorStop(1,'#020a0d');
   ctx.fillStyle=gr;ctx.fillRect(a.x,a.y,w,h);
-  // scene triangle + horizon
   ctx.fillStyle=rgba(C.cyan,.4);
-  ctx.beginPath();ctx.moveTo(a.x+w*.3,a.y+h-40);ctx.lineTo(a.x+w*.5,a.y+50);ctx.lineTo(a.x+w*.7,a.y+h-40);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(a.x+w*.3,a.y+h-44);ctx.lineTo(a.x+w*.5,a.y+54);ctx.lineTo(a.x+w*.7,a.y+h-44);ctx.closePath();ctx.fill();
   ctx.strokeStyle=rgba(217,119,6,.5);ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(a.x,a.y+h-40);ctx.lineTo(a.x+w,a.y+h-40);ctx.stroke();
-  // per-tech overlay
-  const k=clamp((local%2)/0.4,0,1); // crossfade factor per mode
-  if(idx===0){ // CRT
+  ctx.beginPath();ctx.moveTo(a.x,a.y+h-44);ctx.lineTo(a.x+w,a.y+h-44);ctx.stroke();
+  if(idx===0){
     ctx.globalAlpha=.3;ctx.fillStyle='#000';
     for(let yy=0;yy<h;yy+=4)ctx.fillRect(a.x,a.y+yy,w,1.8);
-    ctx.globalAlpha=.25;const vg=ctx.createRadialGradient(a.x+w/2,a.y+h/2,20,a.x+w/2,a.y+h/2,w*.6);
+    ctx.globalAlpha=.25;
+    const vg=ctx.createRadialGradient(a.x+w/2,a.y+h/2,20,a.x+w/2,a.y+h/2,w*.6);
     vg.addColorStop(0,'rgba(255,255,255,.15)');vg.addColorStop(1,'rgba(0,0,0,.7)');
     ctx.fillStyle=vg;ctx.fillRect(a.x,a.y,w,h);ctx.globalAlpha=1;
-  }else if(idx===1){ // LCD
+  }else if(idx===1){
     ctx.globalAlpha=.28;ctx.fillStyle='rgba(220,235,245,.5)';ctx.fillRect(a.x,a.y,w,h);ctx.globalAlpha=1;
-  }else if(idx===2){ // OLED
+  }else if(idx===2){
     const vg=ctx.createRadialGradient(a.x+w/2,a.y+h/2,30,a.x+w/2,a.y+h/2,w*.7);
     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.72)');
     ctx.fillStyle=vg;ctx.fillRect(a.x,a.y,w,h);
-  }else{ // micro-LED
+  }else{
     for(let yy=a.y;yy<a.y+h;yy+=7)for(let xx=a.x;xx<a.x+w;xx+=7){
       ctx.fillStyle='rgba(255,255,255,.28)';ctx.fillRect(xx,yy,1.4,1.4);
     }
   }
   ctx.restore();
-  // tech name
-  lab(x+300,y+344,T.n,{size:15,weight:'700',color:T.col,align:'center'});
-  // spectrum bars (ascending contrast / descending power)
-  const bx=x+620,by=y+16;
-  lab(bx,by,'panel matrix',{size:9,weight:'700',color:C.dim2,mono:true});
-  lab(bx,by+22,'CONTRAST — ascending ↑',{size:8,color:C.dim});
-  lab(bx,by+118,'POWER — descending ↓',{size:8,color:C.dim});
+  lab(x+300,y+296,T.n,{size:15,weight:'700',color:T.col,align:'center'});
+  lab(x+300,y+314,'contrast '+T.c+' / 4 · power draw '+T.p+' / 4',{size:8,color:C.dim,align:'center',mono:true});
+  /* spectrum bars */
+  const bx=x+16,byy0=y+296;
   TECHS.forEach((Tk,i)=>{
-    const byy=by+40+i*19;
-    const on=i===idx;
-    box(bx,byy-8,Tk.c*34,14,3,on?rgba(Tk.col,.35):'rgba(226,232,240,.6)',on?Tk.col:C.grid,1);
-    lab(bx+Tk.c*34+10,byy,Tk.n,{size:8.5,color:on?Tk.col:C.dim,weight:on?'700':''});
-    box(bx,byy-8,Tk.p*34,14,3,'rgba(0,0,0,0)','rgba(0,0,0,0)',0);
-    box(bx,byy+118-8,Tk.p*34,14,3,on?rgba(225,29,72,.3):'rgba(226,232,240,.5)',on?C.magenta:C.grid,1);
+    const bxx=bx+300+i*70;
+    box(bxx,byy0-8,Tk.c*13,14,3,i===idx?rgba(Tk.col,.35):'rgba(226,232,240,.6)',i===idx?Tk.col:C.grid,1);
+    lab(bxx+2,byy0-12,Tk.n,{size:6.5,color:i===idx?Tk.col:C.dim});
+    box(bxx,byy0+8,Tk.p*13,10,3,i===idx?rgba(225,29,72,.3):'rgba(226,232,240,.5)',i===idx?C.magenta:C.grid,1);
   });
-  lab(bx,by+214,'contrast: CRT < LCD < OLED < micro-LED',{size:7,color:C.dim2,mono:true});
-  lab(bx,by+226,'power:    CRT > LCD > OLED > micro-LED',{size:7,color:C.dim2,mono:true});
-  // caption
-  lab(x+300,y+382,'the rendered frame you are reading right now · end of pipeline',{size:8.5,color:C.dim2,align:'center'});
+  lab(x+16,byy0+34,'contrast ratio ascends CRT < LCD < OLED < micro-LED · power consumption descends the same way',{size:7.5,color:C.dim,align:'left',mono:true});
+  lab(x+300,y+352,'every pixel you have read on this journey was computed, then lit',{size:8,color:C.dim2,align:'center'});
 }
 
 /* =====================================================================
-   GRID + rewind streaks
+   grid + rewind streaks
    ===================================================================== */
 function drawGrid(t){
   let sp=40;
   while(sp*cam.zoom<34)sp*=2;
   while(sp*cam.zoom>170)sp/=2;
   const o=w2s(0,0);
-  const ox=((o.x%sp)+sp)%sp, oy=((o.y%sp)+sp)%sp;
-  ctx.strokeStyle=rgba(C.grid,clamp(.55+.3*Math.log2(cam.zoom)*.1,.4,.75));
-  ctx.lineWidth=1;ctx.beginPath();
+  const ox=((o.x%sp)+sp)%sp,oy=((o.y%sp)+sp)%sp;
+  ctx.strokeStyle=rgba(C.grid,.6);ctx.lineWidth=1;ctx.beginPath();
   for(let x=ox;x<W;x+=sp){ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,H);}
   for(let y=oy;y<H;y+=sp){ctx.moveTo(0,y+.5);ctx.lineTo(W,y+.5);}
   ctx.stroke();
-  // rewinding streaks
-  const s=segAt(tourTime);
+  const s=segAt(t);
   if(s.type==='rewind'){
-    const f=(tourTime-s.start)/(s.end-s.start);
+    const f=(t-s.start)/(s.end-s.start);
     const fade=(1-f)*.5;
     ctx.strokeStyle=rgba(C.cyan,fade);ctx.lineWidth=1.5;
     for(let i=0;i<26;i++){
@@ -701,7 +705,6 @@ function drawGrid(t){
       ctx.lineTo(W/2+Math.cos(ang)*r2,H*.46+Math.sin(ang)*r2);
       ctx.stroke();
     }
-    // flash rings
     for(let q=0;q<3;q++){
       const rr=((t*1.2+q/3)%1)*Math.max(W,H)*.7;
       ctx.strokeStyle=rgba(C.cyan,fade*.7);ctx.lineWidth=2;
@@ -711,28 +714,25 @@ function drawGrid(t){
 }
 
 /* =====================================================================
-   MINIMAP RADAR (depth rail 1×→100×, draggable + click-to-stage)
+   minimap radar
    ===================================================================== */
-const dLook=(()=>{ // depth → time lookup over the descent (monotonic)
+const dLook=(()=>{
   const arr=[];
-  for(let t=0;t<=dwellStart[5]+STAGE_DUR;t+=0.1)arr.push({t,d:depthAt(t)});
+  for(let t=0;t<=DESCENT_END;t+=0.1)arr.push({t:t,d:depthAt(t)});
   return arr;
 })();
 function timeForDepth(d){
   for(let i=0;i<dLook.length;i++)if(dLook[i].d>=d)return dLook[i].t;
-  return dwellStart[5]+STAGE_DUR;
+  return DESCENT_END;
 }
 function drawMinimap(){
   const w=mmC.width,h=mmC.height;
   mm.clearRect(0,0,w,h);
-  const x=w*0.32, top=16, bot=h-14;
-  // rail
+  const x=w*0.32,top=16,bot=h-14;
   mm.strokeStyle=C.grid;mm.lineWidth=3;mm.lineCap='round';
   mm.beginPath();mm.moveTo(x,top);mm.lineTo(x,bot);mm.stroke();
-  // depth thumb
   const d=clamp(Math.log10(cam.zoom)/2,0,1);
   const ty=top+d*(bot-top);
-  // stage nodes
   for(let i=0;i<6;i++){
     const dd=Math.log10(ZOOMS[i])/2;
     const ny=top+dd*(bot-top);
@@ -753,15 +753,14 @@ function mmSeek(ev){
   const yy=(ev.clientY-r.top)*(mmC.height/r.height);
   const top=16,bot=mmC.height-14;
   const d=clamp((yy-top)/(bot-top),0,1);
-  const t=timeForDepth(d);
-  tourTime=t;updateProgressUI();
+  tourTime=timeForDepth(d);updateProgressUI();
 }
 mmC.addEventListener('pointerdown',e=>{draggingDepth=true;mmC.setPointerCapture(e.pointerId);mmSeek(e);AU.unlock();});
 mmC.addEventListener('pointermove',e=>{if(draggingDepth)mmSeek(e);});
-mmC.addEventListener('pointerup',e=>{draggingDepth=false;});
+mmC.addEventListener('pointerup',()=>{draggingDepth=false;});
 
 /* =====================================================================
-   PROGRESS BAR (accurate: whole scene is a function of tourTime)
+   progress bar
    ===================================================================== */
 const fillEl=document.getElementById('fill'),thumbEl=document.getElementById('thumb'),
       trackEl=document.getElementById('track'),clockEl=document.getElementById('clock');
@@ -769,11 +768,11 @@ const fillEl=document.getElementById('fill'),thumbEl=document.getElementById('th
   const tk=document.getElementById('ticks');
   for(let i=0;i<6;i++){
     const d=document.createElement('div');
-    d.style.cssText=`position:absolute;top:2px;width:2px;height:6px;background:${C.dim2};border-radius:1px;left:${(dwellStart[i]/TOTAL*100)}%`;
+    d.style.cssText='position:absolute;top:2px;width:2px;height:6px;background:'+C.dim2+';border-radius:1px;left:'+(dwellStart[i]/TOTAL*100)+'%';
     tk.appendChild(d);
   }
   const r=document.createElement('div');
-  r.style.cssText=`position:absolute;top:0;width:2px;height:10px;background:${C.magenta};border-radius:1px;left:${(REW_T/TOTAL*100)}%`;
+  r.style.cssText='position:absolute;top:0;width:2px;height:10px;background:'+C.magenta+';border-radius:1px;left:'+(REW_T/TOTAL*100)+'%';
   tk.appendChild(r);
 })();
 function fmt(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
@@ -793,17 +792,14 @@ trackEl.addEventListener('pointermove',e=>{
   if(!draggingProgress)return;
   const r=trackEl.getBoundingClientRect();seekFrac((e.clientX-r.left)/r.width);
 });
-trackEl.addEventListener('pointerup',e=>{draggingProgress=false;});
+trackEl.addEventListener('pointerup',()=>{draggingProgress=false;});
 trackEl.addEventListener('lostpointercapture',()=>{draggingProgress=false;});
 
 /* =====================================================================
-   CONTROLS
+   controls
    ===================================================================== */
 const playBtn=document.getElementById('playBtn');
-function setPlaying(p){
-  playing=p;
-  playBtn.textContent=playing?'❚❚ Pause':'▶ Play Tour';
-}
+function setPlaying(p){playing=p;playBtn.textContent=playing?'❚❚ Pause':'▶ Play Tour';}
 playBtn.addEventListener('click',()=>{setPlaying(!playing);AU.tick();});
 document.getElementById('replayBtn').addEventListener('click',()=>{
   tourTime=0;setPlaying(true);updateProgressUI();AU.chime();
@@ -812,89 +808,75 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Space'){e.preventDefault();setPlaying(!playing);}
   else if(e.key==='ArrowRight'){
     const s=segAt(tourTime);
-    const target=s.type==='dwell'?Math.min(s.i+1,5):s.b!==undefined?s.b:5;
-    if(target<6)tourTime=dwellStart[target];
-    updateProgressUI();
+    const target=s.type==='dwell'?Math.min(s.i+1,5):(s.b!==undefined?s.b:5);
+    tourTime=dwellStart[Math.min(target,5)];updateProgressUI();
   }
   else if(e.key==='ArrowLeft'){
     const s=segAt(tourTime);
-    let target=s.type==='dwell'?Math.max(s.i-1,0):s.a!==undefined?s.a:0;
-    if(s.type==='dwell'&&tourTime-s.start>1.2)target=s.i; // restart current first
-    tourTime=dwellStart[target];
-    updateProgressUI();
+    let target=s.type==='dwell'?Math.max(s.i-1,0):(s.a!==undefined?s.a:0);
+    if(s.type==='dwell'&&tourTime-s.start>1.2)target=s.i;
+    tourTime=dwellStart[target];updateProgressUI();
   }
   else if(e.key==='Home'){tourTime=0;updateProgressUI();}
   else if(e.key==='End'){tourTime=TOTAL;updateProgressUI();}
 });
 
 /* =====================================================================
-   MAIN LOOP
+   main loop
    ===================================================================== */
 const finEl=document.getElementById('finale');
 const stIdxEl=document.getElementById('stIdx'),stNameEl=document.getElementById('stName'),stZoomEl=document.getElementById('stZoom');
-
 let lastTick=performance.now();
+
 function frame(now){
   const dt=Math.min(0.05,(now-lastTick)/1000);lastTick=now;
-  if(playing&&!draggingProgress&&!draggingDepth)tourTime=Math.min(tourTime+dt,FIN_T+1e9);
-  if(!isFinite(tourTime))tourTime=0; // safety net — never let the timeline go NaN
-  if(playing)tourTime=Math.min(tourTime,FIN_T+30);
+  if(playing&&!draggingProgress&&!draggingDepth)tourTime+=dt;
+  if(!isFinite(tourTime))tourTime=0;
 
-  // camera = pure function of tourTime
   const c=camAt(tourTime);
   cam.x=c.x;cam.y=c.y;cam.zoom=c.zoom;
-
   const s=segAt(tourTime);
-  const t=tourTime;
+  P_REV=(s.type==='rewind');
 
-  // render
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
-  drawGrid(t);
+  drawGrid(tourTime);
 
   if(s.type==='display'||s.type==='finale'){
-    drawDisplay(t);
+    drawDisplay(tourTime);
   }else{
     for(let i=0;i<6;i++){
       const al=stageAlpha(i);
       if(al<0.02)continue;
-      const lt=stageLocal(t,i);
-      [drawS1,drawS2,drawS3,drawS4,drawS5,drawS6][i](lt,al);
+      [drawS1,drawS2,drawS3,drawS4,drawS5,drawS6][i](stageLocal(tourTime,i),al);
     }
   }
 
-  // finale overlay
-  finEl.classList.toggle('show',t>=FIN_T-0.05);
+  finEl.classList.toggle('show',tourTime>=FIN_T-0.05&&tourTime<FIN_T+1e8);
 
-  // HUD
-  let idx=0;
+  let idx=5;
   if(s.type==='dwell')idx=s.i;
   else if(s.type==='travel')idx=s.b;
-  else if(s.type==='rewind'){idx=5;}
-  else idx=5;
+  else if(s.type==='rewind')idx=5;
   stIdxEl.textContent=String(idx+1).padStart(2,'0');
-  stNameEl.textContent=s.type==='travel'?(NAMES[s.a]+' → '+NAMES[s.b]):s.type==='rewind'?'Rewind':s.type==='display'||s.type==='finale'?'Display':NAMES[s.i];
+  stNameEl.textContent=s.type==='travel'?(NAMES[s.a]+' to '+NAMES[s.b]):s.type==='rewind'?'Rewind':(s.type==='display'||s.type==='finale')?'Display':NAMES[s.i];
   stZoomEl.textContent=(cam.zoom<1.05?'1.0':cam.zoom<10?cam.zoom.toFixed(1):cam.zoom.toFixed(0))+'×';
 
-  // stage chime
   const di=s.type==='dwell'?s.i:-1;
-  if(di!==lastDwell){if(lastDwell!==-1&&di!==-1)AU.chime();lastDwell=di;}
+  if(di!==lastDwell){if(lastDwell!==-1&&di!==-1)AU.chime();if(di===5&&lastDwell===4)AU.sweep();lastDwell=di;}
 
   drawMinimap();
   updateProgressUI();
   requestAnimationFrame(frame);
 }
 
-/* ---------- boot ---------- */
-function boot(){
-  resize();
-  tourTime=0;setPlaying(true);updateProgressUI();
-  requestAnimationFrame(frame);
-}
-window.addEventListener('DOMContentLoaded',boot);
-window.addEventListener('resize',resize);
 /* debug/testing hook (invisible) */
 window.__engine={seek:seekFrac,depthToTime:timeForDepth,get t(){return tourTime;},set t(v){tourTime=v;},camAt};
+
+/* boot */
+function boot(){resize();tourTime=0;updateProgressUI();requestAnimationFrame(frame);}
+window.addEventListener('DOMContentLoaded',boot);
+window.addEventListener('resize',resize);
 </script>
 </body>
 </html>
