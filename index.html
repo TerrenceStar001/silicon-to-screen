@@ -9,7 +9,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --bg:#f8fafc;--grid:#e2e8f0;--text:#0f172a;--dim:#475569;--dim2:#64748b;
-  --cyan:#0284c7;--amber:#d97706;--emerald:#059669;--magenta:#e11d48;
+  --cyan:#0369a1;--amber:#d97706;--emerald:#059669;--magenta:#e11d48;
   --panel:rgba(255,255,255,.92);--line:rgba(226,232,240,.95);
   --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -22,14 +22,14 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #hud{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:flex-start;justify-content:space-between;padding:14px 18px;pointer-events:none;background:linear-gradient(180deg,rgba(248,250,252,.95),rgba(248,250,252,0))}
 #brand{display:flex;flex-direction:column;gap:2px}
 #brand .t{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
-#brand .s{font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim2)}
-#stageTag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:7px 14px}
+#brand .s{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim2)}
+#stageTag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:7px 14px}
 #stageTag b{color:var(--text)}
 
 #minimap{position:fixed;top:62px;right:16px;z-index:30;width:168px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(15,23,42,.08)}
-#minimap .hd{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);margin-bottom:8px}
+#minimap .hd{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);margin-bottom:8px}
 #mm{width:100%;height:158px;display:block;cursor:pointer;touch-action:none}
-#mmScale{font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;margin-top:6px}
+#mmScale{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;margin-top:6px}
 #mmScale b{color:var(--cyan)}
 
 #dock{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 18px;backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(15,23,42,.12);max-width:calc(100vw - 32px)}
@@ -45,44 +45,65 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #clock{font-family:var(--mono);font-size:11px;color:var(--dim);min-width:92px;text-align:right;font-variant-numeric:tabular-nums}
 
 #legend{position:fixed;left:16px;bottom:16px;z-index:30;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px;backdrop-filter:blur(8px)}
-#legend .hd{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);margin-bottom:5px}
-.lg{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--dim);margin:3px 0}
+#legend .hd{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);margin-bottom:5px}
+.lg{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--dim);margin:3px 0}
 .lg i{width:16px;height:3px;border-radius:2px}
 
-#finale{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6vw;background:radial-gradient(circle at 50% 42%,rgba(2,132,199,.07),transparent 55%),rgba(248,250,252,.94)}
+#finale{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6vw;background:radial-gradient(circle at 50% 42%,rgba(2,132,199,.1),transparent 52%),radial-gradient(circle at 18% 88%,rgba(5,150,105,.07),transparent 46%),#f8fafc}
 #finale.show{display:flex;animation:fin .9s cubic-bezier(.16,1,.3,1)}
-@keyframes fin{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
-#finale .kick{font-family:var(--mono);font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:var(--dim2);margin-bottom:26px}
-#finale blockquote{max-width:840px;font-size:clamp(22px,3.6vw,40px);line-height:1.35;font-weight:300;letter-spacing:-.01em;color:var(--text)}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+#finale .kick{font-family:var(--mono);font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:var(--dim);margin-bottom:30px}
+#finale blockquote{max-width:880px;font-size:clamp(22px,3.6vw,42px);line-height:1.32;font-weight:300;letter-spacing:-.012em;color:var(--text);text-wrap:balance}
 #finale .hl{color:var(--cyan);font-weight:500}
-#finale .who{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-top:28px}
-#finale .sub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);margin-top:8px}
-#finale button{margin-top:34px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 26px;cursor:pointer;color:var(--text);transition:.2s}
+#finale .who{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-top:30px}
+#finale .sub{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+#finale button{margin-top:36px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 26px;cursor:pointer;color:var(--text);transition:.2s}
 #finale button:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 0 4px rgba(2,132,199,.12)}
+#hud,#minimap,#dock,#legend{transition:opacity .45s ease}
+body.ended #hud,body.ended #minimap,body.ended #dock,body.ended #legend{opacity:0;pointer-events:none}
 
-@media(max-width:760px){#minimap,#legend{display:none}#track{min-width:120px}}
+@media(max-width:760px){
+  #minimap,#legend{display:none}
+  #hud{padding:12px 14px;gap:10px}
+  #brand .t{font-size:11px;letter-spacing:.12em}
+  #brand .s{display:none}
+  #stageTag{font-size:11px;letter-spacing:.06em;padding:6px 10px;white-space:nowrap}
+  #dock{gap:9px;padding:10px 12px;border-radius:14px;bottom:12px}
+  .btn{font-size:11px;padding:8px 12px}
+  .btn.primary{min-width:0}
+  #track{min-width:70px}
+  #clock{min-width:0;font-size:10px}
+}
+@media(max-width:420px){
+  #stageTag{padding:5px 8px}
+  #clock{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  #finale.show{animation:none}
+  .btn,#finale button{transition:none}
+}
 </style>
 </head>
 <body>
-<canvas id="cv"></canvas>
+<canvas id="cv" aria-hidden="true"></canvas>
 
 <div id="hud">
   <div id="brand">
     <span class="t">Silicon to Screen</span>
     <span class="s">The Computer System Engine</span>
   </div>
-  <div id="stageTag">Stage <b id="stIdx">01</b> / 06 · <span id="stName">Input</span> · <span id="stZoom">1.0×</span></div>
+  <div id="stageTag" aria-live="polite">Stage <b id="stIdx">01</b> / 06 · <span id="stName">Input</span> · <span id="stZoom">1.0×</span></div>
 </div>
 
 <div id="minimap">
-  <div class="hd">Pipeline Radar · depth 1× to 100×</div>
-  <canvas id="mm" width="144" height="158"></canvas>
+  <div class="hd">Pipeline Radar</div>
+  <canvas id="mm" width="144" height="158" role="img" aria-label="Depth navigator: six stages from Input to Transistor"></canvas>
   <div id="mmScale">current depth <b id="mmZoom">1.0</b>×</div>
 </div>
 
 <div id="dock">
-  <button class="btn primary" id="playBtn">❚❚ Pause</button>
-  <div id="track" title="Click or drag to seek">
+  <button class="btn primary" id="playBtn" aria-label="Pause the tour">❚❚ Pause</button>
+  <div id="track" role="slider" aria-label="Tour progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0" title="Click or drag to seek">
     <div id="ticks"></div>
     <div id="fill"></div>
     <div id="thumb"></div>
@@ -92,7 +113,7 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 
 <div id="legend">
   <div class="hd">Signal Roles</div>
-  <div class="lg"><i style="background:#0284c7"></i>Address / Control</div>
+  <div class="lg"><i style="background:#0369a1"></i>Address / Control</div>
   <div class="lg"><i style="background:#d97706"></i>Data / Registers</div>
   <div class="lg"><i style="background:#059669"></i>Logic / ALU</div>
   <div class="lg"><i style="background:#e11d48"></i>Interrupt (IRQ)</div>
@@ -121,24 +142,34 @@ const mmC=document.getElementById('mm'),mm=mmC.getContext('2d');
 const MONO='ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace';
 const SANS='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
 const C={bg:'#f8fafc',grid:'#e2e8f0',text:'#0f172a',dim:'#475569',dim2:'#64748b',
-  cyan:'#0284c7',amber:'#d97706',emerald:'#059669',magenta:'#e11d48'};
+  cyan:'#0369a1',amber:'#d97706',emerald:'#059669',magenta:'#e11d48',
+  panel:'rgba(255,255,255,.92)',line:'rgba(226,232,240,.95)'};
 function rgba(r,g,b,a){
-  if(typeof r==='string'){const n=parseInt(r.slice(1),16);return'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+(g===undefined?1:g)+')';}
+  if(typeof r==='string'){
+    const s=r.trim();
+    if(s[0]==='#'){const n=parseInt(s.slice(1),16);return'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+(g===undefined?1:g)+')';}
+    const m=s.match(/[\d.]+/g);
+    if(m&&m.length>=3)return'rgba('+m[0]+','+m[1]+','+m[2]+','+(g===undefined?1:g)+')';
+    return s;
+  }
   return'rgba('+r+','+g+','+b+','+(a===undefined?1:a)+')';
 }
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
+const REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sstep=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
 const easeIO=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 
-let W=0,H=0,DPR=1;
+let W=0,H=0,DPR=1,VSCALE=1;
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   W=window.innerWidth;H=window.innerHeight;
   cv.width=Math.max(1,Math.floor(W*DPR));cv.height=Math.max(1,Math.floor(H*DPR));
   ctx.setTransform(DPR,0,0,DPR,0,0);
+  VSCALE=W<760?clamp(Math.min(W/1120,H/700),0.32,1):1;
 }
 window.addEventListener('resize',resize);
+const ez=()=>cam.zoom*VSCALE;
 
 /* ---------- timeline ---------- */
 const ZOOMS=[1,2,5,10,25,100];
@@ -168,7 +199,9 @@ function camAt(t){
   const s=segAt(t);
   if(s.type==='dwell'){
     const L=t-s.start,Z=ZOOMS[s.i];
-    return{x:ANCH[s.i][0]+Math.sin(L*0.5)*2,y:ANCH[s.i][1]+Math.cos(L*0.4)*2,zoom:Z};
+    /* drift in screen pixels, not world units, so deep zooms stay rock-steady */
+    const amp=REDUCED?0:12/Z;
+    return{x:ANCH[s.i][0]+Math.sin(L*0.5)*amp,y:ANCH[s.i][1]+Math.cos(L*0.4)*amp,zoom:Z};
   }
   if(s.type==='travel'){
     const f=easeIO(clamp((t-s.start)/(s.end-s.start),0,1));
@@ -179,7 +212,7 @@ function camAt(t){
   }
   if(s.type==='rewind'){
     const f=easeIO(clamp((t-s.start)/(s.end-s.start),0,1));
-    return camAt(DESCENT_END*(1-f));
+    return camAt(Math.max(0,DESCENT_END*(1-f)-1e-6));
   }
   if(s.type==='display'){
     const f=easeIO(clamp((t-s.start)/0.9,0,1));
@@ -190,6 +223,7 @@ function camAt(t){
 const depthAt=t=>clamp(Math.log10(camAt(t).zoom)/2,0,1);
 
 /* ---------- state ---------- */
+const cam={x:0,y:0,zoom:1};   // written each frame from camAt, read by all draw helpers
 let tourTime=0,playing=true;
 let draggingProgress=false,draggingDepth=false;
 let lastDwell=-1,P_REV=false;
@@ -215,11 +249,11 @@ window.addEventListener('pointerdown',()=>AU.unlock(),{once:true});
 window.addEventListener('keydown',()=>AU.unlock(),{once:true});
 
 /* ---------- world->screen + fixed-px draw helpers ---------- */
-function w2s(wx,wy){return{x:(wx-cam.x)*cam.zoom+W/2,y:(wy-cam.y)*cam.zoom+H*0.5};}
+function w2s(wx,wy){return{x:(wx-cam.x)*ez()+W/2,y:(wy-cam.y)*ez()+H*0.5};}
 function box(wx,wy,ww,wh,r,fill,stroke,lw,glow){
-  const a=w2s(wx,wy),w=ww*cam.zoom,h=wh*cam.zoom;
+  const a=w2s(wx,wy),w=ww*ez(),h=wh*ez();
   if(w<1.5||h<1.5||a.x+w<-60||a.x>W+60||a.y+h<-60||a.y>H+60)return;
-  r=Math.min(r*cam.zoom,w/2,h/2);
+  r=Math.min(r*ez(),w/2,h/2);
   if(glow){ctx.shadowColor=glow;ctx.shadowBlur=14;}
   ctx.beginPath();ctx.moveTo(a.x+r,a.y);ctx.arcTo(a.x+w,a.y,a.x+w,a.y+h,r);ctx.arcTo(a.x+w,a.y+h,a.x,a.y+h,r);
   ctx.arcTo(a.x,a.y+h,a.x,a.y,r);ctx.arcTo(a.x,a.y,a.x+w,a.y,r);ctx.closePath();
@@ -245,9 +279,15 @@ function orb(wx,wy,r,col,glow,a){
 function lab(wx,wy,str,o){
   o=o||{};const p=w2s(wx,wy);
   if(p.x<-280||p.x>W+280||p.y<-140||p.y>H+140)return;
+  const mob=W<760;
+  const fs=(o.size||11)*(mob?0.72:1);
+  if(mob&&fs<5.2)return;
+  if(mob&&o.mono&&(o.size===9||(o.size===8&&o.align==='center')))return;
+  const al=o.align||'left';
+  if(mob){p.x=al==='center'?clamp(p.x,60,W-60):al==='right'?Math.min(p.x,W-12):Math.max(p.x,12);}
   ctx.globalAlpha=o.a===undefined?1:o.a;
-  ctx.font=(o.weight?o.weight+' ':'')+(o.size||11)+'px '+(o.mono?MONO:SANS);
-  ctx.fillStyle=o.color||C.dim;ctx.textAlign=o.align||'left';ctx.textBaseline=o.base||'middle';
+  ctx.font=(o.weight?o.weight+' ':'')+fs.toFixed(1)+'px '+(o.mono?MONO:SANS);
+  ctx.fillStyle=o.color||C.dim;ctx.textAlign=al;ctx.textBaseline=o.base||'middle';
   ctx.fillText(str,p.x,p.y);ctx.globalAlpha=1;
 }
 function chev(wx,wy,dir,col,alpha,size){
@@ -282,7 +322,8 @@ function packets(t,o){
 /* ---------- stage visibility ---------- */
 function stageAlpha(i){
   const Z=ZOOMS[i],z=cam.zoom;
-  return Math.min(sstep(Z*0.5,Z*0.85,z),1-sstep(Z*1.5,Z*2.4,z));
+  /* one stage carries the frame at rest; crossfades happen only while travelling */
+  return Math.min(sstep(Z*0.55,Z*0.82,z),1-sstep(Z*1.02,Z*1.26,z));
 }
 const stageLocal=(t,i)=>Math.max(0,t-dwellStart[i]);
 
@@ -291,8 +332,8 @@ const stageLocal=(t,i)=>Math.max(0,t-dwellStart[i]);
    ===================================================================== */
 function drawS1(t,a){
   ctx.globalAlpha=a;
-  lab(-480,-262,'01 · Input & Signal Conversion',{size:11,weight:'700',color:C.text});
-  lab(-480,-248,'1× magnification · live signals vs compiled code',{size:8,color:C.dim2,mono:true});
+  lab(-480,-268,'01 · Input & Signal Conversion',{size:14,weight:'700',color:C.text});
+  lab(-480,-252,'1× magnification · live signals vs compiled code',{size:9,color:C.dim2,mono:true});
   /* chassis — center is stage 2's anchor */
   box(-310,-175,240,330,14,C.panel,C.grid,1.5,'rgba(2,132,199,.12)');
   lab(-190,-150,'PC CHASSIS',{size:11,weight:'700',color:C.text,align:'center'});
@@ -316,7 +357,7 @@ function drawS1(t,a){
   ctx.moveTo(gs.x,gs.y-28);ctx.lineTo(gs.x,gs.y-10);ctx.moveTo(gs.x,gs.y+10);ctx.lineTo(gs.x,gs.y+28);ctx.stroke();
   lab(140,-160,'DISPLAY',{size:10,weight:'700',color:C.cyan});
   lab(140,-146,'GPU framebuffer drives pixels',{size:8,color:C.dim});
-  lab(280,26,'display technologies revealed at the end of the tour',{size:7.5,color:C.dim2,align:'center'});
+  lab(280,82,'display technologies revealed at the end of the tour',{size:8,color:C.dim2,align:'center',mono:true});
   box(250,30,80,22,4,C.panel,C.grid,1);
   box(230,52,120,10,4,C.panel,C.grid,1);
   /* keyboard */
@@ -357,17 +398,16 @@ function drawS1(t,a){
   lab(430,68,'network interface',{size:7,color:C.dim2,align:'center'});
   orb(410,44,2.5,(Math.sin(t*5)>0)?C.emerald:C.dim2,6);
   orb(450,44,2.5,(Math.sin(t*5+2)>0)?C.emerald:C.dim2,6);
-  /* compile-time card */
-  box(320,-268,180,116,10,rgba(217,119,6,.05),rgba(C.amber,.55),1.2);
-  lab(410,-248,'COMPILE-TIME',{size:9.5,weight:'700',color:C.amber,align:'center'});
+  /* compile-time card — sits clear of the monitor and the radar */
+  box(380,100,180,104,10,rgba(217,119,6,.05),rgba(C.amber,.55),1.2);
+  lab(470,120,'COMPILE-TIME',{size:10,weight:'700',color:C.amber,align:'center'});
   [['Python',.86],['C++',.68],['JavaScript',.8]].forEach((l,i)=>{
-    lab(336,-228+i*22,l[0],{size:9,color:C.text});
-    seg(390,-230+i*22,390+128*l[1],-230+i*22,C.amber,.65,2.5);
+    lab(396,140+i*22,l[0],{size:9,color:C.text});
+    seg(450,138+i*22,450+128*l[1],138+i*22,C.amber,.65,2.5);
   });
-  chev(410,-158,1,C.amber,.8,5);
-  lab(410,-144,'machine code, before run',{size:7.5,color:C.dim,align:'center'});
+  chev(470,212,3,C.amber,.8,5);
+  lab(470,226,'machine code, before run',{size:8,color:C.dim,align:'center'});
   /* processed data out to display */
-  packets(t,{ax:-70,by:0,ay:-80,bx:110,by:-80,col:C.amber,rate:1,life:1.5,sz:2.2});
   packets(t,{ax:-70,ay:-80,bx:110,by:-80,col:C.amber,rate:1,life:1.5,sz:2.2});
   ctx.globalAlpha=1;
 }
@@ -377,8 +417,8 @@ function drawS1(t,a){
    ===================================================================== */
 function drawS2(t,a){
   ctx.globalAlpha=a;
-  lab(-190,-170,'02 · Software Abstraction & Register Mapping',{size:11,weight:'700',color:C.text,align:'center'});
-  lab(-190,-157,'2× magnification · system calls cross the kernel boundary once',{size:8,color:C.dim2,align:'center',mono:true});
+  lab(-190,-170,'02 · Software Abstraction & Register Mapping',{size:14,weight:'700',color:C.text,align:'center'});
+  lab(-190,-156,'2× magnification · system calls cross the kernel boundary once',{size:9,color:C.dim2,align:'center',mono:true});
   const rows=[
     {y:-96,t:'APPLICATION SOFTWARE',s:'Valorant · Chrome · Neovim — run in user space',c:C.amber},
     {y:-34,t:'OS KERNEL + UTILITIES',s:'macOS / Windows / Linux · processes · memory · files · network',c:C.cyan},
@@ -387,20 +427,35 @@ function drawS2(t,a){
   ];
   for(let i=0;i<rows.length-1;i++)seg(-190,rows[i].y+23,-190,rows[i+1].y-23,C.grid,.9,1.5);
   rows.forEach((r,i)=>{
-    box(-330,r.y-23,280,46,9,i===3?rgba(r.c,.07):C.panel,rgba(r.c,.65),1.4);
+    box(-330,r.y-23,280,46,9,i===3?rgba(r.c,.05):C.panel,rgba(r.c,.65),1.4);
     lab(-314,r.y-8,r.t,{size:10.5,weight:'700',color:C.text});
     lab(-314,r.y+8,r.s,{size:7.5,color:C.dim});
   });
-  /* utilities chips */
+  /* register chips sit inside the hardware row, clear of its copy */
+  for(let k=0;k<4;k++){
+    const rx=-172+k*30,lit=(Math.floor(t*1.4)%4)===k;
+    box(rx,78,26,22,5,lit?rgba(225,29,72,.1):C.panel,lit?C.magenta:rgba(C.magenta,.45));
+    lab(rx+13,89,'R'+(k+1),{size:8,align:'center',color:lit?C.magenta:C.dim,weight:'600'});
+  }
+  /* middleware — deliberately apart from the driver stack */
+  box(10,-80,140,100,10,rgba(225,29,72,.04),rgba(C.magenta,.5));
+  noIcon(28,-62,6,C.magenta);
+  lab(45,-62,'MIDDLEWARE',{size:9.5,weight:'700',color:C.magenta});
+  lab(28,-40,'DB / API layer',{size:8,color:C.dim});
+  lab(28,-26,'connects apps to data',{size:8,color:C.dim});
+  lab(28,-12,'never touches registers',{size:7.5,color:C.dim});
+  lab(80,4,'not a driver',{size:8,weight:'600',color:C.magenta});
+  ctx.setLineDash([5,5]);seg(-50,-34,10,-30,C.magenta,.4,1.2);ctx.setLineDash([]);
+  /* utilities chips — OS-layer examples, set in the right column */
   ['Task Mgr','Firewall','Defrag'].forEach((u,i)=>{
-    box(-140+i*64,-44,58,20,6,rgba(2,132,199,.06),rgba(C.cyan,.5));
-    lab(-111+i*64,-34,u,{size:6.5,align:'center',color:C.cyan});
+    box(10+i*52,68,46,20,6,rgba(2,132,199,.06),rgba(C.cyan,.5));
+    lab(33+i*52,78,u,{size:6.2,align:'center',color:C.cyan});
   });
   /* system call descending */
   const f=(t/3)%1,sy=-119+f*232;
-  seg(-360,-119,-360,113,C.cyan,.16,1.5);
+  seg(-360,-119,-360,113,C.cyan,.18,1.5);
   orb(-360,sy,4.5,C.cyan,14);
-  lab(-372,sy,'SYSTEM CALL',{size:8,weight:'600',color:C.cyan,align:'right'});
+  lab(-374,sy,'SYSTEM CALL',{size:8,weight:'600',color:C.cyan,align:'right'});
   /* ripple when crossing a layer */
   for(let i=0;i<rows.length;i++){
     const dy=Math.abs(sy-rows[i].y);
@@ -408,28 +463,15 @@ function drawS2(t,a){
       ctx.strokeStyle=rgba(C.cyan,.5*(1-dy/10));ctx.lineWidth=1.5;
       const p=w2s(-360,sy);ctx.beginPath();ctx.arc(p.x,p.y,rr,0,7);ctx.stroke();}
   }
-  /* driver writes to register chips */
-  packets(t,{ax:-50,ay:28,bx:110,by:90,col:C.emerald,rate:1.4,life:1.1,sz:2.4});
-  for(let k=0;k<4;k++){
-    const rx=-130+k*40,lit=(Math.floor(t*1.4)%4)===k;
-    box(rx-16,79,32,22,5,lit?rgba(225,29,72,.1):C.panel,lit?C.magenta:rgba(C.magenta,.5));
-    lab(rx,90,'R'+(k+1),{size:7.5,align:'center',color:lit?C.magenta:C.dim,weight:'600'});
-  }
-  lab(60,60,'driver writes',{size:7,color:C.emerald});
-  /* middleware — NOT a driver */
-  box(-130,-140,120,92,10,rgba(225,29,72,.04),rgba(C.magenta,.5));
-  noIcon(-115,-125,6,C.magenta);
-  lab(-100,-125,'MIDDLEWARE',{size:9,weight:'700',color:C.magenta});
-  lab(-120,-104,'DB / API layer',{size:8,color:C.dim});
-  lab(-120,-90,'connects apps to data',{size:8,color:C.dim});
-  lab(-120,-72,'never touches registers',{size:7.5,color:C.dim});
-  lab(-70,-58,'not a driver',{size:8,weight:'600',color:C.magenta});
-  ctx.setLineDash([4,4]);seg(-130,-96,-50,-34,C.magenta,.4,1.2);ctx.setLineDash([]);
+  /* driver writes into the register file */
+  packets(t,{ax:-60,ay:28,bx:-172,by:89,col:C.emerald,rate:1.4,life:1.1,sz:2.4});
+  lab(-300,60,'driver writes',{size:7.5,color:C.emerald});
+  chev(-300,66,1,C.emerald,.7,4);
   /* proxy: motherboard below */
-  box(-270,108,160,40,8,C.panel,C.grid,1);
-  lab(-190,122,'motherboard',{size:8.5,align:'center',color:C.dim});
-  lab(-190,136,'zoom 5×',{size:7,align:'center',color:C.dim2,mono:true});
-  chev(-190,110,1,C.dim2,.8,4);
+  box(-270,118,160,40,8,C.panel,C.grid,1);
+  lab(-190,132,'motherboard',{size:8.5,align:'center',color:C.dim});
+  lab(-190,146,'zoom 5×',{size:7,align:'center',color:C.dim2,mono:true});
+  chev(-190,112,1,C.dim2,.8,4);
   ctx.globalAlpha=1;
 }
 
@@ -438,52 +480,54 @@ function drawS2(t,a){
    ===================================================================== */
 function drawS3(t,a){
   ctx.globalAlpha=a;
-  lab(-190,11,'03 · Motherboard & Tri-Bus',{size:11,weight:'700',color:C.text,align:'center'});
-  lab(-190,22,'5× magnification · three buses carry all traffic',{size:8,color:C.dim2,align:'center',mono:true});
+  lab(-190,4,'03 · Motherboard & Tri-Bus',{size:14,weight:'700',color:C.text,align:'center'});
+  lab(-190,14,'5× magnification · three buses carry all traffic',{size:9,color:C.dim2,align:'center',mono:true});
   /* PCB */
-  box(-287,25,194,104,8,'rgba(255,255,255,.96)',C.grid,1.5,'rgba(15,23,42,.05)');
-  [[-275,37],[105,37],[-275,117],[105,117]].forEach(p=>orb(p[0],p[1],1.5,C.dim2,0,.7));
-  /* CPU socket — center is stage 5 anchor */
+  box(-287,24,194,92,8,'rgba(255,255,255,.96)',C.grid,1.5,'rgba(15,23,42,.05)');
+  [[-279,32],[99,32],[-279,108],[99,108]].forEach(p=>orb(p[0],p[1],1.5,C.dim2,0,.7));
+  /* decorative traces */
+  for(let q=0;q<4;q++)seg(-60,30+q*20,80,30+q*20,C.grid,.3,1);
+  /* CPU socket — center is stage 5 anchor (-238,75) */
   box(-260,58,44,34,5,rgba(5,150,105,.06),rgba(C.emerald,.6),1.2,rgba(C.emerald,.25));
-  lab(-238,70,'CPU',{size:9.5,weight:'700',color:C.emerald,align:'center'});
-  lab(-238,82,'die · zoom 25×',{size:6,align:'center',color:C.dim2,mono:true});
-  /* heat sink + thermal */
-  for(let q=0;q<6;q++)seg(-254+q*7,58,-254+q*7,50,C.emerald,.35,2);
+  lab(-238,71,'CPU',{size:10.5,weight:'700',color:C.emerald,align:'center'});
+  lab(-238,83,'die · zoom 25×',{size:7,align:'center',color:C.dim2,mono:true});
+  /* heat sink + thermal bar, top-centre */
+  for(let q=0;q<6;q++)seg(-224+q*8,28,-224+q*8,34,C.emerald,.35,2);
   const th=.5+.4*Math.sin(t*1.4);
-  seg(-262,52,-262+52*th,52,th>.65?C.magenta:C.emerald,1,3);
-  lab(-238,44,th>.65?'throttle guard: hot':'cooling ok',{size:5.5,align:'center',color:th>.65?C.magenta:C.emerald,mono:true});
-  /* RAM slots — near stage 4 anchor */
-  box(-172,41,10,30,2,rgba(2,132,199,.1),rgba(C.cyan,.65),1.1,C.cyan);
-  box(-159,41,10,30,2,C.panel,rgba(C.cyan,.45),1);
-  lab(-155,36,'RAM · zoom 10×',{size:6,align:'center',color:C.cyan,weight:'600'});
+  seg(-224,25,-224+48*th,25,th>.65?C.magenta:C.emerald,1,3);
+  lab(-200,20,th>.65?'throttle guard: hot':'cooling ok',{size:6.5,align:'center',color:th>.65?C.magenta:C.emerald,mono:true});
+  /* RAM slots — near stage 4 anchor (-150,35) */
+  box(-172,30,10,26,2,rgba(2,132,199,.1),rgba(C.cyan,.65),1.1,C.cyan);
+  box(-158,30,10,26,2,C.panel,rgba(C.cyan,.45),1);
+  lab(-165,26,'RAM · zoom 10×',{size:7,align:'center',color:C.cyan,weight:'600'});
   /* PCH */
-  box(-152,86,26,16,3,rgba(2,132,199,.07),rgba(C.cyan,.6),1.1);
-  lab(-139,94,'PCH',{size:7,align:'center',weight:'700',color:C.cyan});
-  /* PCIe slots */
-  box(-248,26,62,9,2,C.panel,rgba(C.amber,.6),1);
-  lab(-217,22,'PCIe ×16 · GPU',{size:6,align:'center',color:C.amber});
-  box(-248,38,62,7,2,C.panel,rgba(C.emerald,.5),1);
-  lab(-217,34,'PCIe ×1 · NIC',{size:6,align:'center',color:C.emerald});
-  /* SATA + USB + PSU */
-  box(-128,116,20,10,2,C.panel,rgba(C.amber,.55),1);lab(-118,120,'SATA',{size:5.5,align:'center',color:C.amber});
-  box(-279,30,14,10,2,C.panel,rgba(C.cyan,.55),1);lab(-272,26,'USB',{size:5.5,align:'center',color:C.cyan});
-  box(-279,50,14,10,2,C.panel,rgba(C.amber,.4),1);lab(-272,66,'PSU',{size:5.5,align:'center',color:C.amber});
-  /* tri-bus */
+  box(-206,62,26,18,3,rgba(2,132,199,.07),rgba(C.cyan,.6),1.1);
+  lab(-193,71,'PCH',{size:8,align:'center',weight:'700',color:C.cyan});
+  /* PCIe slots — labels inside the slots */
+  box(-287,32,62,9,2,C.panel,rgba(C.amber,.6),1);
+  lab(-256,36.5,'PCIe ×16 · GPU',{size:6.5,align:'center',color:C.amber});
+  box(-287,44,62,7,2,C.panel,rgba(C.emerald,.5),1);
+  lab(-256,47.5,'PCIe ×1 · NIC',{size:6.5,align:'center',color:C.emerald});
+  /* SATA + USB + PSU — clear of bus labels */
+  box(-128,34,20,10,2,C.panel,rgba(C.amber,.55),1);lab(-118,39,'SATA',{size:6,align:'center',color:C.amber});
+  box(-128,46,14,10,2,C.panel,rgba(C.cyan,.55),1);lab(-121,51,'USB',{size:5.5,align:'center',color:C.cyan});
+  box(-281,62,14,12,2,C.panel,rgba(C.amber,.4),1);lab(-274,68,'PSU',{size:5.5,align:'center',color:C.amber});
+  /* tri-bus — bottom lanes, labels above each line at the left */
   const buses=[
-    {y:62,col:C.cyan,n:'ADDRESS',dir:'uni'},
-    {y:72,col:C.amber,n:'DATA',dir:'bi'},
-    {y:82,col:C.magenta,n:'CONTROL',dir:'IRQ'},
+    {y:96,col:C.cyan,n:'ADDRESS',dir:'uni'},
+    {y:104,col:C.amber,n:'DATA',dir:'bi'},
+    {y:112,col:C.magenta,n:'CONTROL',dir:'IRQ'},
   ];
   buses.forEach(b=>{
-    seg(-279,b.y,-99,b.y,b.col,.55,2.5);
-    packets(t,{ax:-279,ay:b.y,bx:-99,by:b.y,col:b.col,rate:1.6,life:1.1,both:b.n==='DATA',sz:2});
-    lab(-277,b.y-6,b.n,{size:5.5,color:b.col,weight:'700'});
-    if(b.n!=='DATA')chev(-96,b.y,0,b.col,.9,4);else{chev(-96,b.y,0,b.col,.9,4);chev(-282,b.y,2,b.col,.9,4);}
-    lab(-99,b.y+10,b.dir,{size:5,color:C.dim2,align:'right',mono:true});
+    seg(-281,b.y,-99,b.y,b.col,.6,2.5);
+    packets(t,{ax:-281,ay:b.y,bx:-99,by:b.y,col:b.col,rate:1.6,life:1.1,both:b.n==='DATA',sz:2});
+    lab(-279,b.y-5,b.n,{size:6.5,color:b.col,weight:'700'});
+    if(b.n!=='DATA')chev(-96,b.y,0,b.col,.9,4);else{chev(-96,b.y,0,b.col,.9,4);chev(-284,b.y,2,b.col,.9,4);}
+    lab(-102,b.y+4,b.dir,{size:5.5,color:C.dim2,align:'right',mono:true});
   });
   if(Math.floor(t*0.8)%3===0){
-    orb(-140,82,3,C.magenta,14);
-    lab(-130,82,'IRQ',{size:6,color:C.magenta,weight:'700'});
+    orb(-180,112,3,C.magenta,14);
+    lab(-172,112,'IRQ',{size:7,color:C.magenta,weight:'700'});
   }
   ctx.globalAlpha=1;
 }
@@ -493,8 +537,9 @@ function drawS3(t,a){
    ===================================================================== */
 function drawS4(t,a){
   ctx.globalAlpha=a;
-  lab(-150,13,'04 · Memory Hierarchy',{size:11,weight:'700',color:C.text,align:'center'});
-  lab(-150,22,'10× magnification · locality of reference',{size:7.5,color:C.dim2,align:'center',mono:true});
+  const cyc=[1,4,12,100,20000][Math.floor(t/2)%5];
+  lab(-150,3,'04 · Memory Hierarchy · 10×',{size:14,weight:'700',color:C.text,align:'center'});
+  lab(-150,11,'lookup '+cyc+' cycles — '+(cyc<100?'SRAM erases the DRAM bottleneck':'a long walk down the pyramid'),{size:9,color:C.dim2,align:'center',mono:true});
   /* pyramid */
   const tiers=[
     {n:'L1',s:'SRAM · 1 cyc',w:40,y:-12,c:C.emerald},
@@ -504,14 +549,14 @@ function drawS4(t,a){
   ];
   tiers.forEach((T,i)=>{
     box(-150-T.w/2,35+T.y-4.5,T.w,9,2,i<3?rgba(T.c,.1):C.panel,rgba(T.c,.65),1.2);
-    lab(-150-T.w/2+5,35+T.y,T.n,{size:7,weight:'700',color:T.c});
-    lab(-150-T.w/2+18,35+T.y,T.s,{size:5.5,color:C.dim});
+    lab(-150-T.w/2+5,35+T.y,T.n,{size:10.5,weight:'700',color:T.c});
+    lab(-150+T.w/2-8,35+T.y,T.s,{size:8,color:C.dim,align:'right'});
     if(i<tiers.length-1)seg(-150,35+T.y+4.5,-150,35+T.y+11.5,C.grid,.8,1);
   });
   /* ROM chip */
-  box(-124,17,20,13,3,rgba(217,119,6,.07),rgba(C.amber,.6),1.1);
-  lab(-114,21,'ROM',{size:6.5,weight:'700',color:C.amber,align:'center'});
-  lab(-114,27,'BIOS · boot',{size:4.5,align:'center',color:C.dim});
+  box(-100,40,18,14,3,rgba(217,119,6,.07),rgba(C.amber,.6),1.1);
+  lab(-91,45,'ROM',{size:8,weight:'700',color:C.amber,align:'center'});
+  lab(-91,51,'BIOS · boot',{size:6,align:'center',color:C.dim});
   /* request token + hit flash */
   const f=(t/2.6)%1;
   const hitTier=f<0.7?0:(f<0.85?1:2);
@@ -519,28 +564,24 @@ function drawS4(t,a){
   const px=-150+Math.sin(f*9)*4;
   orb(px,35-18+f*(ty-(35-18)),2.6,C.emerald,10);
   if(f>0.7&&f<0.82){
-    lab(px+8,35+ty,'HIT',{size:6,color:C.emerald,weight:'700'});
+    lab(px+8,35+ty,'HIT',{size:7,color:C.emerald,weight:'700'});
     ctx.strokeStyle=rgba(C.emerald,.6);ctx.lineWidth=1;
     const p=w2s(px,35+ty);ctx.beginPath();ctx.arc(p.x,p.y,(f-0.7)*40,0,7);ctx.stroke();
   }
   packets(t,{ax:px,ay:35-20,bx:px,by:35+ty,rate:2,life:.5,col:C.emerald,sz:1.6});
   /* secondary storage strip */
-  box(-198,53,96,18,6,C.panel,C.grid,1);
-  lab(-150,58,'SECONDARY STORAGE',{size:5.5,weight:'700',color:C.dim2,align:'center'});
+  box(-200,50,100,14,6,C.panel,C.grid,1);
+  lab(-150,54,'SECONDARY STORAGE',{size:7,weight:'700',color:C.dim2,align:'center'});
   const devs=[['Tape','sequential',C.amber],['HDD','spinning',C.amber],['CD','optical',C.emerald],['SSD','random',C.cyan]];
   devs.forEach((d,i)=>{
-    const dx=-150-36+i*24;
-    lab(dx,66,d[0],{size:5.5,weight:'600',color:C.text,align:'center'});
-    lab(dx,71,d[1],{size:4,color:C.dim2,align:'center'});
-    if(i===0)for(let q=0;q<3;q++)orb(dx-4+q*4,64,1,C.d[2]||d[2],3);
-    if(i===1){const p=w2s(dx,64);ctx.beginPath();ctx.arc(p.x,p.y,2.5,0,7);ctx.strokeStyle=rgba(C.amber,.7);ctx.lineWidth=.8;ctx.stroke();}
-    if(i===2){const p=w2s(dx,64);ctx.beginPath();ctx.arc(p.x,p.y,2.5,0,7);ctx.strokeStyle=rgba(C.emerald,.6);ctx.lineWidth=.8;ctx.stroke();}
-    if(i===3)for(let q=0;q<3;q++)box(dx-5+q*4,62.5,3,3,0.5,C.panel,rgba(C.cyan,.6),.7);
+    const dx=-186+i*24;
+    lab(dx,59,d[0],{size:7,weight:'600',color:C.text,align:'center'});
+    lab(dx,63.2,d[1],{size:5.5,color:C.dim2,align:'center'});
+    if(i===0)for(let q=0;q<3;q++)orb(dx-4+q*4,57,1,d[2],3);
+    if(i===1){const p=w2s(dx,57);ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,7);ctx.strokeStyle=rgba(C.amber,.7);ctx.lineWidth=.9;ctx.stroke();}
+    if(i===2){const p=w2s(dx,57);ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,7);ctx.strokeStyle=rgba(C.emerald,.6);ctx.lineWidth=.9;ctx.stroke();}
+    if(i===3)for(let q=0;q<3;q++)box(dx-5+q*4,55.5,3,3,0.5,C.panel,rgba(C.cyan,.6),.7);
   });
-  /* cycle counter */
-  const cyc=[1,4,12,100,20000][Math.floor(t/2)%5];
-  lab(-150,44,'lookup cost '+cyc+' cycles',{size:7.5,weight:'600',color:cyc<100?C.emerald:C.amber,align:'center',mono:true});
-  lab(-150,49,cyc<100?'SRAM cache erases the DRAM bottleneck':'a long walk down the pyramid',{size:5.5,color:C.dim2,align:'center'});
   ctx.globalAlpha=1;
 }
 
@@ -549,37 +590,37 @@ function drawS4(t,a){
    ===================================================================== */
 function drawS5(t,a){
   ctx.globalAlpha=a;
-  lab(-238,65,'05 · CPU Machine Cycle',{size:11,weight:'700',color:C.text,align:'center'});
-  lab(-238,69.5,'25× magnification · fetch, decode, execute',{size:6.5,color:C.dim2,align:'center',mono:true});
+  lab(-238,62,'05 · CPU Machine Cycle',{size:14,weight:'700',color:C.text,align:'center'});
+  lab(-238,66.5,'25× magnification · fetch, decode, execute',{size:9,color:C.dim2,align:'center',mono:true});
   const regs={
-    PC:{x:-14,y:-5,c:C.cyan},MAR:{x:-6.5,y:-5,c:C.cyan},RAM:{x:13,y:-5,c:C.cyan},
-    MDR:{x:-7,y:0.5,c:C.amber},CIR:{x:0,y:0.5,c:C.amber},CU:{x:8,y:0.5,c:C.emerald},
-    ALU:{x:-5,y:6,c:C.emerald},ACC:{x:5,y:6,c:C.amber},
+    PC:{x:-252,y:70,c:C.cyan},MAR:{x:-244.5,y:70,c:C.cyan},RAM:{x:-225,y:70,c:C.cyan},
+    MDR:{x:-245,y:75.5,c:C.amber},CIR:{x:-238,y:75.5,c:C.amber},CU:{x:-230,y:75.5,c:C.emerald},
+    ALU:{x:-243,y:81,c:C.emerald},ACC:{x:-233,y:81,c:C.amber},
   };
   const path=['PC','MAR','RAM','MDR','CIR','CU','ALU','ACC'];
   const step=Math.floor(t/0.8)%8,fr=(t/0.8)%1;
   const nxt=path[(step+1)%8];
   for(let i=0;i<path.length-1;i++){
     const A=regs[path[i]],B=regs[path[i+1]];
-    seg(A.x,A.y,B.x,B.y,C.grid,.8,1);
+    seg(A.x,A.y,B.x,B.y,C.dim2,.32,1.2);
   }
-  seg(regs.CU.x,regs.CU.y,regs.MDR.x,regs.MDR.y,C.grid,.5,1);
+  seg(regs.CU.x,regs.CU.y,regs.MDR.x,regs.MDR.y,C.dim2,.22,1.2);
   for(const k in regs){
     const r=regs[k],active=(k===path[step]||k===nxt);
     const w=k==='RAM'?8:6.4,h=3.4;
     box(r.x-w/2,r.y-h/2,w,h,0.8,active?rgba(r.c,.14):'rgba(255,255,255,.95)',active?r.c:C.grid,1,active?r.c:null);
-    lab(r.x,r.y,k,{size:5.5,weight:'700',align:'center',color:active?r.c:C.text});
+    lab(r.x,r.y,k,{size:10,weight:'700',align:'center',color:active?r.c:C.text});
   }
-  lab(regs.RAM.x,regs.RAM.y+2.6,'LDA 5 · ADD 3',{size:4,align:'center',color:C.dim});
+  lab(regs.RAM.x,regs.RAM.y+2.6,'LDA 5 · ADD 3',{size:5.5,align:'center',color:C.dim});
   const A=regs[path[step]],B=regs[nxt];
   orb(lerp(A.x,B.x,fr),lerp(A.y,B.y,fr),2,C.cyan,12);
   const phase=step<3?'FETCH':step<5?'DECODE':'EXECUTE';
   const pcol=phase==='FETCH'?C.cyan:phase==='DECODE'?C.magenta:C.emerald;
-  lab(-221,65,phase,{size:8,weight:'700',color:pcol});
-  lab(-221,69,'step '+(step+1)+' / 8',{size:5.5,color:C.dim2,mono:true});
-  lab(-221,73,'ACC = '+(step>=7?5:0),{size:7,weight:'700',color:C.amber,mono:true});
-  lab(-238,84.5,'transistors · zoom 100×',{size:6,align:'center',color:C.dim2,mono:true});
-  chev(-238,82.5,1,C.dim2,.8,3.5);
+  lab(-220,63.5,phase,{size:10,weight:'700',color:pcol});
+  lab(-220,67,'step '+(step+1)+' / 8',{size:7,color:C.dim2,mono:true});
+  lab(-220,70.5,'ACC = '+(step>=7?5:0),{size:8.5,weight:'700',color:C.amber,mono:true});
+  lab(-238,87,'transistors · zoom 100×',{size:7,align:'center',color:C.dim2,mono:true});
+  chev(-238,85.2,1,C.dim2,.8,3.5);
   ctx.globalAlpha=1;
 }
 
@@ -588,30 +629,96 @@ function drawS5(t,a){
    ===================================================================== */
 function drawS6(t,a){
   ctx.globalAlpha=a;
-  lab(-241,74.9,'06 · Silicon Transistors · 100×',{size:7,weight:'700',color:C.text,align:'center'});
-  lab(-241,75.9,'NPN switches form every gate',{size:4.5,color:C.dim2,align:'center',mono:true});
-  for(let i=0;i<4;i++){
-    const tx=-241+(-3.6+i*2.4),ty=77-0.6;
-    const on=(Math.floor(t*2+i)%2)===0;
-    seg(tx,ty-0.8,tx,ty+0.8,C.emerald,on?1:.4,1.6);
-    seg(tx-0.55,ty-0.4,tx+0.55,ty-0.4,C.emerald,on?.9:.4,1.2);
-    seg(tx-0.55,ty+0.4,tx+0.55,ty+0.4,C.emerald,on?.9:.4,1.2);
-    orb(tx-0.55,ty+0.8,0.4,C.emerald,on?8:2);
-    orb(tx+0.55,ty-0.8,0.4,C.emerald,on?8:2);
-    orb(tx,ty,on?.6:.3,on?C.emerald:C.dim2,6);
-    lab(tx,ty+1.15,'NPN'+(i+1),{size:3.5,align:'center',color:on?C.emerald:C.dim2,mono:true});
-    if(on)packets(t,{ax:tx+0.55,ay:ty-0.8,bx:tx+2.4,by:ty-0.8,rate:3,life:.4,col:C.emerald,sz:1});
+  const cx0=-241,cy0=77;
+  lab(cx0-5.2,73.45,'06 · Silicon Transistors · 100×',{size:14,weight:'700',color:C.text});
+  /* silicon die background */
+  box(cx0-5.2,cy0-3.1,10.4,6.2,0.5,'rgba(5,150,105,.05)',rgba(C.emerald,.4),1.2);
+  for(let gx=0;gx<9;gx++)for(let gy=0;gy<5;gy++){
+    box(cx0-4.8+gx*1.13,cy0-2.7+gy*1.1,0.9,0.86,0.15,'rgba(5,150,105,.035)','rgba(5,150,105,.12)',.6);
   }
-  ['AND','OR','NOT'].forEach((g,i)=>{
-    const gx=-241+(-2.7+i*2.7),gy=78;
-    box(gx-1.2,gy-0.55,2.4,1.1,0.4,rgba(5,150,105,.1),rgba(C.emerald,.6),1);
-    lab(gx,gy,g,{size:4.5,align:'center',weight:'700',color:C.emerald});
+  lab(cx0-4.9,cy0-2.7,'SILICON DIE · 100×',{size:9,weight:'700',color:C.text});
+  lab(cx0-4.9,cy0-2.4,'NPN switches form every gate',{size:7,color:C.dim2,mono:true});
+  /* NPN transistors with proper symbol */
+  const s=0.45;
+  const npns=[{x:cx0-3.7,y:cy0-1.0,on:(Math.floor(t*2)%2)===0},
+              {x:cx0-3.7,y:cy0+0.2,on:(Math.floor(t*2+1)%2)===0},
+              {x:cx0-3.7,y:cy0+1.4,on:(Math.floor(t*2+2)%2)===0}];
+  npns.forEach((n,i)=>{
+    const col=n.on?C.emerald:C.dim2;
+    ctx.strokeStyle=col;ctx.lineWidth=1.6;
+    const p=w2s(n.x,n.y),r=0.62*s*ez();
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,7);ctx.stroke();
+    seg(n.x-1.15*s,n.y-0.42*s,n.x-1.15*s,n.y+0.42*s,col,.9,1.8);
+    seg(n.x-1.5*s,n.y,n.x-1.15*s,n.y,col,.9,1.4);
+    seg(n.x-0.72*s,n.y-0.22*s,n.x+0.28*s,n.y-0.62*s,col,.9,1.4);
+    seg(n.x+0.28*s,n.y-0.62*s,n.x+0.28*s,n.y-1.0*s,col,.9,1.4);
+    seg(n.x-0.72*s,n.y+0.22*s,n.x+0.28*s,n.y+0.62*s,col,.9,1.4);
+    seg(n.x+0.28*s,n.y+0.62*s,n.x+0.28*s,n.y+1.0*s,col,.9,1.4);
+    if(n.on){
+      orb(n.x,n.y,0.22*s,C.emerald,10);
+      packets(t,{ax:n.x+0.28*s,ay:n.y-1.0*s,bx:n.x+0.28*s,by:n.y+1.0*s,rate:2.5,life:.5,col:C.emerald,sz:1});
+      lab(n.x-1.35*s,n.y-0.62,'NPN'+(i+1),{size:7,color:C.emerald,mono:true});
+    }else{
+      lab(n.x-1.35*s,n.y-0.62,'NPN'+(i+1),{size:7,color:C.dim2,mono:true});
+    }
+    lab(n.x-1.5*s,n.y+0.72,'B · C · E',{size:5.5,color:C.dim2,mono:true});
   });
+  lab(cx0-3.9,cy0+2.65,'NPN TRANSISTORS',{size:8,weight:'700',color:C.emerald});
+  /* wires to gates */
+  packets(t,{ax:cx0-2.4,ay:cy0-1.0,bx:cx0-0.9,by:cy0-1.7,rate:1.6,life:.8,col:C.emerald,sz:1.4});
+  packets(t,{ax:cx0-2.4,ay:cy0+0.2,bx:cx0-0.9,by:cy0-0.3,rate:1.6,life:.8,col:C.emerald,sz:1.4});
+  packets(t,{ax:cx0-2.4,ay:cy0+1.4,bx:cx0-0.9,by:cy0+1.1,rate:1.6,life:.8,col:C.emerald,sz:1.4});
+  /* gates — real shapes */
+  const gates=[
+    {x:cx0-0.9,y:cy0-2.1,kind:'AND'},
+    {x:cx0-0.9,y:cy0-0.6,kind:'OR'},
+    {x:cx0-0.9,y:cy0+0.9,kind:'NOT'},
+  ];
+  gates.forEach((G,gi)=>{
+    const w=1.7,h=1.0,x=G.x,y=G.y;
+    const p=w2s(x,y),W2=w*ez(),H2=h*ez();
+    ctx.fillStyle=rgba(C.emerald,.14);ctx.strokeStyle=C.emerald;ctx.lineWidth=1.5;
+    ctx.beginPath();
+    if(G.kind==='AND'){
+      ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+W2*0.55,p.y);
+      ctx.arcTo(p.x+W2,p.y+H2/2,p.x+W2*0.55,p.y+H2,Math.min(W2*0.45,H2/2));
+      ctx.lineTo(p.x,p.y+H2);ctx.closePath();
+    }else if(G.kind==='OR'){
+      ctx.moveTo(p.x,p.y);ctx.quadraticCurveTo(p.x+W2*0.75,p.y,p.x+W2,p.y+H2/2);
+      ctx.quadraticCurveTo(p.x+W2*0.75,p.y+H2,p.x,p.y+H2);
+      ctx.quadraticCurveTo(p.x+W2*0.35,p.y+H2/2,p.x,p.y);
+    }else{
+      ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,p.y+H2);ctx.lineTo(p.x+W2*0.78,p.y+H2/2);ctx.closePath();
+    }
+    ctx.fill();ctx.stroke();
+    if(G.kind==='NOT'){const p2=w2s(x+w*0.93,y+h/2);ctx.beginPath();ctx.arc(p2.x,p2.y,h*0.13*ez(),0,7);ctx.stroke();}
+    seg(x-0.3,y+h*0.3,x,y+h*0.3,C.emerald,.8,1.3);
+    seg(x-0.3,y+h*0.7,x,y+h*0.7,C.emerald,.8,1.3);
+    seg(x+w,y+h/2,x+w+0.3,y+h/2,C.emerald,.8,1.3);
+    orb(x+w+0.3,y+h/2,0.14,C.emerald,6);
+    lab(x+w/2,y+h/2,G.kind,{size:11,align:'center',weight:'700',color:C.emerald});
+    lab(x+w+0.42,y+h/2+0.34,['feeds the ALU','feeds the ALU','inverts control'][gi],{size:6,color:C.dim2,mono:true});
+  });
+  lab(cx0+1.4,cy0-2.55,'COMBINATIONAL LOGIC → ALU',{size:8,weight:'700',color:C.amber});
+  /* right-hand signal ladder — fills the die and states the abstraction chain */
+  const lx=cx0+3.55,ly=cy0-1.9;
+  box(lx-0.95,ly-0.55,2.55,2.5,0.18,C.panel,rgba(C.cyan,.35),1);
+  lab(lx,ly-0.35,'SIGNAL LADDER',{size:8,weight:'700',color:C.cyan});
+  [['switch','1 transistor'],['gate','AND · OR · NOT'],['ALU','arithmetic + logic']].forEach((r,i)=>{
+    box(lx-0.78,ly+0.05+i*0.62,2.2,0.46,0.1,i===2?rgba(5,150,105,.08):'rgba(2,132,199,.05)',i===2?C.emerald:C.cyan,0.8);
+    lab(lx-0.68,ly+0.28+i*0.62,r[0],{size:7.5,weight:'700',color:C.text});
+    lab(lx+0.32,ly+0.28+i*0.62,r[1],{size:6.5,color:C.dim,align:'right'});
+  });
+  /* flip-flop ladder */
   const on=(Math.floor(t*1.5)%2)===0;
-  box(-242.4,79,2.8,1.2,0.4,on?rgba(2,132,199,.15):C.panel,on?C.cyan:C.grid,1);
-  lab(-241,79.6,on?'1':'0',{size:4.5,align:'center',weight:'700',color:on?C.cyan:C.dim2});
-  lab(-238.8,79.6,'flip-flop holds state',{size:4,color:C.cyan});
-  lab(-241,80.4,'electrons become information',{size:4,color:C.dim2,align:'center',mono:true});
+  for(let i=0;i<8;i++){
+    const bx2=cx0-2.2+i*0.63,bit=(Math.floor(t*2.5+i)%2)===0;
+    box(bx2,cy0+1.7,0.52,0.66,0.12,bit?rgba(2,132,199,.15):C.panel,bit?C.cyan:C.grid,1);
+    lab(bx2+0.26,cy0+2.03,bit?'1':'0',{size:7.5,align:'center',weight:'700',color:bit?C.cyan:C.dim2});
+  }
+  lab(cx0-2.2,cy0+2.62,'SEQUENTIAL LOGIC — flip-flop ladder holds register state',{size:8,weight:'700',color:C.cyan});
+  orb(on?cx0-0.4:cx0-2.0,cy0+2.03,0.16,C.cyan,8);
+  lab(cx0,cy0+2.98,'electrons become information',{size:8,color:C.dim2,align:'center',mono:true});
   ctx.globalAlpha=1;
 }
 
@@ -630,22 +737,22 @@ function drawDisplay(t){
   const T=TECHS[idx];
   /* focus wash */
   ctx.fillStyle='rgba(248,250,252,.62)';ctx.fillRect(0,0,W,H);
-  const x=MON[0]-300,y=MON[1]-190;
-  lab(x+4,y-14,'OUTPUT PIPELINE · the GPU framebuffer becomes light',{size:10,weight:'700',color:C.dim2,mono:true});
-  box(x,y,600,340,18,C.panel,C.grid,2,'rgba(2,132,199,.18)');
+  const x=MON[0]-300,y=MON[1]-190,pw=600,ph=400;
+  lab(x+4,y-16,'OUTPUT PIPELINE · the GPU framebuffer becomes light',{size:10,weight:'700',color:C.dim2,mono:true});
+  box(x,y,pw,ph,18,C.panel,C.grid,2,'rgba(2,132,199,.18)');
   const sx=x+16,sy=y+16,sw=568,sh=250;
   box(sx,sy,sw,sh,10,'#0b1220',rgba(2,132,199,.5),1);
   ctx.save();
-  const a=w2s(sx,sy),w=sw*cam.zoom,h=sh*cam.zoom,r=10*cam.zoom;
+  const a=w2s(sx,sy),w=sw*ez(),h=sh*ez(),r=10*ez();
   ctx.beginPath();ctx.moveTo(a.x+r,a.y);ctx.arcTo(a.x+w,a.y,a.x+w,a.y+h,r);ctx.arcTo(a.x+w,a.y+h,a.x,a.y+h,r);
   ctx.arcTo(a.x,a.y+h,a.x,a.y,r);ctx.arcTo(a.x,a.y,a.x+w,a.y,r);ctx.closePath();ctx.clip();
   const gr=ctx.createLinearGradient(a.x,a.y,a.x+w,a.y+h);
   gr.addColorStop(0,'#03151a');gr.addColorStop(.55,'#0a3a44');gr.addColorStop(1,'#020a0d');
   ctx.fillStyle=gr;ctx.fillRect(a.x,a.y,w,h);
-  ctx.fillStyle=rgba(C.cyan,.4);
-  ctx.beginPath();ctx.moveTo(a.x+w*.3,a.y+h-44);ctx.lineTo(a.x+w*.5,a.y+54);ctx.lineTo(a.x+w*.7,a.y+h-44);ctx.closePath();ctx.fill();
+  ctx.fillStyle=rgba(C.cyan,.38);
+  ctx.beginPath();ctx.moveTo(a.x+w*.3,a.y+h*.82);ctx.lineTo(a.x+w*.5,a.y+h*.22);ctx.lineTo(a.x+w*.7,a.y+h*.82);ctx.closePath();ctx.fill();
   ctx.strokeStyle=rgba(217,119,6,.5);ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(a.x,a.y+h-44);ctx.lineTo(a.x+w,a.y+h-44);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(a.x,a.y+h*.82);ctx.lineTo(a.x+w,a.y+h*.82);ctx.stroke();
   if(idx===0){
     ctx.globalAlpha=.3;ctx.fillStyle='#000';
     for(let yy=0;yy<h;yy+=4)ctx.fillRect(a.x,a.y+yy,w,1.8);
@@ -665,18 +772,18 @@ function drawDisplay(t){
     }
   }
   ctx.restore();
-  lab(x+300,y+296,T.n,{size:15,weight:'700',color:T.col,align:'center'});
-  lab(x+300,y+314,'contrast '+T.c+' / 4 · power draw '+T.p+' / 4',{size:8,color:C.dim,align:'center',mono:true});
-  /* spectrum bars */
-  const bx=x+16,byy0=y+296;
-  TECHS.forEach((Tk,i)=>{
-    const bxx=bx+300+i*70;
-    box(bxx,byy0-8,Tk.c*13,14,3,i===idx?rgba(Tk.col,.35):'rgba(226,232,240,.6)',i===idx?Tk.col:C.grid,1);
-    lab(bxx+2,byy0-12,Tk.n,{size:6.5,color:i===idx?Tk.col:C.dim});
-    box(bxx,byy0+8,Tk.p*13,10,3,i===idx?rgba(225,29,72,.3):'rgba(226,232,240,.5)',i===idx?C.magenta:C.grid,1);
-  });
-  lab(x+16,byy0+34,'contrast ratio ascends CRT < LCD < OLED < micro-LED · power consumption descends the same way',{size:7.5,color:C.dim,align:'left',mono:true});
-  lab(x+300,y+352,'every pixel you have read on this journey was computed, then lit',{size:8,color:C.dim2,align:'center'});
+  /* footer readout — name and stats left, comparison bars right */
+  lab(x+24,y+286,T.n,{size:20,weight:'700',color:T.col});
+  lab(x+24,y+306,'contrast '+T.c+' / 4 · power draw '+T.p+' / 4',{size:8,color:C.dim,mono:true});
+  if(W>=760){
+    TECHS.forEach((Tk,i)=>{
+      const bx=x+260+i*72;
+      lab(bx,y+276,Tk.n,{size:7,color:i===idx?Tk.col:C.dim2,weight:i===idx?'700':null});
+      box(bx,y+284,Tk.c*14,7,2,i===idx?rgba(Tk.col,.35):'rgba(226,232,240,.65)',i===idx?Tk.col:C.grid,1);
+      box(bx,y+296,Tk.p*14,7,2,i===idx?rgba(225,29,72,.3):'rgba(226,232,240,.55)',i===idx?C.magenta:C.grid,1);
+    });
+  }
+  lab(x+300,y+352,'every pixel you have read on this journey was computed, then lit',{size:8,color:C.dim2,align:'center',mono:true});
 }
 
 /* =====================================================================
@@ -684,8 +791,8 @@ function drawDisplay(t){
    ===================================================================== */
 function drawGrid(t){
   let sp=40;
-  while(sp*cam.zoom<34)sp*=2;
-  while(sp*cam.zoom>170)sp/=2;
+  while(sp*ez()<34)sp*=2;
+  while(sp*ez()>170)sp/=2;
   const o=w2s(0,0);
   const ox=((o.x%sp)+sp)%sp,oy=((o.y%sp)+sp)%sp;
   ctx.strokeStyle=rgba(C.grid,.6);ctx.lineWidth=1;ctx.beginPath();
@@ -733,10 +840,12 @@ function drawMinimap(){
   mm.beginPath();mm.moveTo(x,top);mm.lineTo(x,bot);mm.stroke();
   const d=clamp(Math.log10(cam.zoom)/2,0,1);
   const ty=top+d*(bot-top);
+  const s=segAt(tourTime);
+  const cur=s.type==='dwell'?s.i:s.type==='travel'?s.b:s.type==='rewind'?5:(s.type==='display'||s.type==='finale')?5:-1;
   for(let i=0;i<6;i++){
     const dd=Math.log10(ZOOMS[i])/2;
     const ny=top+dd*(bot-top);
-    const active=(Math.abs(cam.zoom-ZOOMS[i])/ZOOMS[i]<0.12);
+    const active=(i===cur);
     mm.beginPath();mm.arc(x,ny,active?6:4,0,7);
     mm.fillStyle=active?C.cyan:'#cbd5e1';mm.fill();
     if(active){mm.strokeStyle=rgba(C.cyan,.3);mm.lineWidth=2.5;mm.beginPath();mm.arc(x,ny,10,0,7);mm.stroke();}
@@ -777,10 +886,12 @@ const fillEl=document.getElementById('fill'),thumbEl=document.getElementById('th
 })();
 function fmt(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function updateProgressUI(){
-  const p=clamp(tourTime/TOTAL,0,1)*100;
+  const tt=clamp(tourTime,0,TOTAL);
+  const p=tt/TOTAL*100;
   fillEl.style.width=p+'%';
   thumbEl.style.left=p+'%';
-  clockEl.textContent=fmt(tourTime)+' / '+fmt(TOTAL);
+  trackEl.setAttribute('aria-valuenow',Math.round(p));
+  clockEl.textContent=fmt(tt)+' / '+fmt(TOTAL);
 }
 function seekFrac(f){tourTime=clamp(f,0,1)*TOTAL;updateProgressUI();}
 trackEl.addEventListener('pointerdown',e=>{
@@ -799,7 +910,11 @@ trackEl.addEventListener('lostpointercapture',()=>{draggingProgress=false;});
    controls
    ===================================================================== */
 const playBtn=document.getElementById('playBtn');
-function setPlaying(p){playing=p;playBtn.textContent=playing?'❚❚ Pause':'▶ Play Tour';}
+function setPlaying(p){
+  playing=p;
+  playBtn.textContent=playing?'❚❚ Pause':'▶ Play Tour';
+  playBtn.setAttribute('aria-label',playing?'Pause the tour':'Play the tour');
+}
 playBtn.addEventListener('click',()=>{setPlaying(!playing);AU.tick();});
 document.getElementById('replayBtn').addEventListener('click',()=>{
   tourTime=0;setPlaying(true);updateProgressUI();AU.chime();
@@ -826,55 +941,70 @@ document.addEventListener('keydown',e=>{
    ===================================================================== */
 const finEl=document.getElementById('finale');
 const stIdxEl=document.getElementById('stIdx'),stNameEl=document.getElementById('stName'),stZoomEl=document.getElementById('stZoom');
-let lastTick=performance.now();
+let lastTick=performance.now(),lastErr='';
 
 function frame(now){
-  const dt=Math.min(0.05,(now-lastTick)/1000);lastTick=now;
-  if(playing&&!draggingProgress&&!draggingDepth)tourTime+=dt;
-  if(!isFinite(tourTime))tourTime=0;
+  try{
+    const dt=Math.min(0.05,(now-lastTick)/1000);lastTick=now;
+    if(playing&&!draggingProgress&&!draggingDepth)tourTime+=dt;
+    if(!isFinite(tourTime))tourTime=0;
 
-  const c=camAt(tourTime);
-  cam.x=c.x;cam.y=c.y;cam.zoom=c.zoom;
-  const s=segAt(tourTime);
-  P_REV=(s.type==='rewind');
+    const c=camAt(tourTime);
+    cam.x=c.x;cam.y=c.y;cam.zoom=c.zoom;
+    const s=segAt(tourTime);
+    P_REV=(s.type==='rewind');
 
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
-  drawGrid(tourTime);
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
+    drawGrid(tourTime);
 
-  if(s.type==='display'||s.type==='finale'){
-    drawDisplay(tourTime);
-  }else{
-    for(let i=0;i<6;i++){
-      const al=stageAlpha(i);
-      if(al<0.02)continue;
-      [drawS1,drawS2,drawS3,drawS4,drawS5,drawS6][i](stageLocal(tourTime,i),al);
+    if(s.type==='display'){
+      drawDisplay(tourTime);
+    }else if(s.type!=='finale'){
+      const alphas=[0,1,2,3,4,5].map(i=>stageAlpha(i));
+      if(s.type==='travel'){
+        const f=easeIO(clamp((tourTime-s.start)/(s.end-s.start),0,1));
+        alphas[s.a]=Math.max(alphas[s.a],(1-f)*0.9);
+        alphas[s.b]=Math.max(alphas[s.b],f*0.9);
+      }
+      for(let i=0;i<6;i++){
+        const al=alphas[i];
+        if(al<0.02)continue;
+        [drawS1,drawS2,drawS3,drawS4,drawS5,drawS6][i](stageLocal(tourTime,i),al);
+      }
     }
+
+    finEl.classList.toggle('show',tourTime>=FIN_T-0.05&&tourTime<FIN_T+1e8);
+    document.body.classList.toggle('ended',tourTime>=FIN_T-0.05);
+
+    let idx=5;
+    if(s.type==='dwell')idx=s.i;
+    else if(s.type==='travel')idx=s.b;
+    else if(s.type==='rewind')idx=5;
+    stIdxEl.textContent=String(idx+1).padStart(2,'0');
+    stNameEl.textContent=s.type==='travel'?(NAMES[s.a]+' to '+NAMES[s.b]):s.type==='rewind'?'Rewind':(s.type==='display')?'Display':(s.type==='finale')?'Complete':NAMES[s.i];
+    stZoomEl.textContent=(cam.zoom<1.05?'1.0':cam.zoom<10?cam.zoom.toFixed(1):cam.zoom.toFixed(0))+'×';
+
+    const di=s.type==='dwell'?s.i:-1;
+    if(di!==lastDwell){if(lastDwell!==-1&&di!==-1)AU.chime();if(di===5&&lastDwell===4)AU.sweep();lastDwell=di;}
+
+    drawMinimap();
+    updateProgressUI();
+  }catch(err){
+    if(err.message!==lastErr){lastErr=err.message;console.error('[engine]',err);}
   }
-
-  finEl.classList.toggle('show',tourTime>=FIN_T-0.05&&tourTime<FIN_T+1e8);
-
-  let idx=5;
-  if(s.type==='dwell')idx=s.i;
-  else if(s.type==='travel')idx=s.b;
-  else if(s.type==='rewind')idx=5;
-  stIdxEl.textContent=String(idx+1).padStart(2,'0');
-  stNameEl.textContent=s.type==='travel'?(NAMES[s.a]+' to '+NAMES[s.b]):s.type==='rewind'?'Rewind':(s.type==='display'||s.type==='finale')?'Display':NAMES[s.i];
-  stZoomEl.textContent=(cam.zoom<1.05?'1.0':cam.zoom<10?cam.zoom.toFixed(1):cam.zoom.toFixed(0))+'×';
-
-  const di=s.type==='dwell'?s.i:-1;
-  if(di!==lastDwell){if(lastDwell!==-1&&di!==-1)AU.chime();if(di===5&&lastDwell===4)AU.sweep();lastDwell=di;}
-
-  drawMinimap();
-  updateProgressUI();
-  requestAnimationFrame(frame);
+  requestAnimationFrame(frame); /* a throw must never freeze the page */
 }
 
 /* debug/testing hook (invisible) */
 window.__engine={seek:seekFrac,depthToTime:timeForDepth,get t(){return tourTime;},set t(v){tourTime=v;},camAt};
 
 /* boot */
-function boot(){resize();tourTime=0;updateProgressUI();requestAnimationFrame(frame);}
+function boot(){
+  resize();tourTime=0;
+  if(REDUCED)setPlaying(false);
+  updateProgressUI();requestAnimationFrame(frame);
+}
 window.addEventListener('DOMContentLoaded',boot);
 window.addEventListener('resize',resize);
 </script>
